@@ -1,0 +1,42 @@
+[tool.poetry]
+name = "pysnmp-pysmi"
+version = "1.0.1"
+description = ""
+authors = ["rfaircloth-splunk <rfaircloth@splunk.com>"]
+license = "BSD-2-Clause"
+repository = "https://github.com/pysnmp/pysmi"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: System Administrators",
+    "Intended Audience :: Telecommunications Industry",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Topic :: Communications",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+readme = "README.md"
+
+packages = [
+    { include = "pysmi" },
+]
+include = ["docs", "tests", "examples", "scripts"]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+ply = "^3.11"
+Jinja2 = "^2.10.1"
+
+[tool.poetry.dev-dependencies]
+Sphinx = "^4.3.0"
+pysnmp = "^4.4.12"
+pytest = "^6.2.5"
+pytest-cov = "^3.0.0"
+black = "^21.10b0"
+isort = "^5.10.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

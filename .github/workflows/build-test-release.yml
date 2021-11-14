@@ -111,7 +111,7 @@ jobs:
   publish:
     name: Build Release
     needs:
-      - pre-commit
+      #- pre-commit
       - review_secrets
       - semgrep
       - build
