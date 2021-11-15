@@ -222,8 +222,8 @@ if dstFormat == 'pysnmp':
         mibStubs = [x for x in PySnmpCodeGen.baseMibs if x not in PySnmpCodeGen.fakeMibs]
 
     if not mibBorrowers:
-        mibBorrowers = [('http://mibs.snmplabs.com/pysnmp/notexts/@mib@', False),
-                        ('http://mibs.snmplabs.com/pysnmp/fulltexts/@mib@', True)]
+        mibBorrowers = [('http://pysnmp.github.com/mibs/notexts/@mib@', False),
+                        ('http://pysnmp.github.com/mibs/fulltexts/@mib@', True)]
 
     if not dstDirectory:
         dstDirectory = os.path.expanduser("~")

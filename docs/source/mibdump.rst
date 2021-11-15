@@ -211,8 +211,8 @@ ASN.1 MIB can't be found or parsed.
 
 Default source of pre-compiled MIBs for pysnmp target is:
 
-* http://mibs.snmplabs.com/pysnmp/fulltexts/@mib@
-* http://mibs.snmplabs.com/pysnmp/notexts/@mib@
+* http://pysnmp.github.com/mibs/fulltexts/@mib@
+* http://pysnmp.github.com/mibs/notexts/@mib@
 
 If you wish to modify this default list use one or more
 --mib-borrower options.
