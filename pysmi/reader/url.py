@@ -19,7 +19,6 @@ except ImportError:
 from pysmi.reader.localfile import FileReader
 from pysmi.reader.zipreader import ZipReader
 from pysmi.reader.httpclient import HttpReader
-from pysmi.reader.ftpclient import FtpReader
 from pysmi import error
 
 
@@ -62,12 +61,6 @@ def getReadersFromUrls(*sourceUrls, **options):
         elif mibSource.scheme in ('http', 'https'):
             readers.append(HttpReader(mibSource.hostname or mibSource.netloc, mibSource.port or 80, mibSource.path,
                                       ssl=mibSource.scheme == 'https').setOptions(**options))
-
-        elif mibSource.scheme in ('ftp', 'sftp'):
-            readers.append(
-                FtpReader(mibSource.hostname or mibSource.netloc, mibSource.path, ssl=mibSource.scheme == 'sftp',
-                          port=mibSource.port or 21, user=mibSource.username or 'anonymous',
-                          password=mibSource.password or 'anonymous@').setOptions(**options))
 
         else:
             raise error.PySmiError('Unsupported URL scheme %s' % sourceUrl)

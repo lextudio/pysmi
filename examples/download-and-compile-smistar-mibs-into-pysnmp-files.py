@@ -16,7 +16,6 @@ Also, we do not check if target file already exists thus MIB
 compilation occurs on every invocation.
 """#
 from pysmi.reader import HttpReader
-from pysmi.reader import FtpReader
 from pysmi.searcher import StubSearcher
 from pysmi.writer import PyFileWriter
 from pysmi.parser import SmiStarParser
@@ -26,9 +25,6 @@ from pysmi.compiler import MibCompiler
 inputMibs = ['IF-MIB', 'IP-MIB']
 httpSources = [
     ('pysnmp.github.io', 443, '/mibs/asn1/@mib@',True)
-]
-ftpSources = [
-    ('ftp.cisco.com', '/pub/mibs/v2/@mib@')
 ]
 dstDirectory = '.pysnmp-mibs'
 
@@ -40,7 +36,6 @@ mibCompiler = MibCompiler(
 
 # search for source MIBs at Web and FTP sites
 mibCompiler.addSources(*[HttpReader(*x) for x in httpSources])
-mibCompiler.addSources(*[FtpReader(*x) for x in ftpSources])
 
 # never recompile MIBs with MACROs
 mibCompiler.addSearchers(StubSearcher(*PySnmpCodeGen.baseMibs))

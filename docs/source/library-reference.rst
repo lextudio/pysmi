@@ -60,7 +60,6 @@ possible changes to MIB file name.
    /pysmi/reader/localfile/filereader
    /pysmi/reader/zipreader/zipreader
    /pysmi/reader/httpclient/httpreader
-   /pysmi/reader/ftpclient/ftpreader
    /pysmi/reader/callback/callbackreader
 
 Conditional compilation
