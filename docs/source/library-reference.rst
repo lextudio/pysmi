@@ -19,7 +19,7 @@ This example showcases some of its features:
 
    inputMibs = ['IF-MIB', 'IP-MIB']
 
-   httpSources = [('mibs.snmplabs.com', 80, '/asn1/@mib@')]
+   httpSources = [('pysnmp.github.io', 80, '/asn1/@mib@')]
 
    # store compiled MIBs by calling this function
    def store_mibs(mibName, jsonDoc, cbCtx):

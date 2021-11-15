@@ -21,7 +21,7 @@ from pysmi.compiler import MibCompiler
 inputMibs = ['IF-MIB', 'IP-MIB']
 srcDirectories = ['/usr/share/snmp/mibs']
 httpSources = [
-    ('mibs.snmplabs.com', 80, '/asn1/@mib@')
+    ('pysnmp.github.io', 443, 'mibs/asn1/@mib@', True)
 ]
 
 

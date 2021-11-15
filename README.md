@@ -36,8 +36,8 @@ To turn ASN.1 MIB into a JSON document, call *mibdump.py* tool like this:
 
 ```
 $ mibdump.py --generate-mib-texts  --destination-format json IF-MIB
-Source MIB repositories: file:///usr/share/snmp/mibs, http://mibs.snmplabs.com/asn1/@mib@
-Borrow missing/failed MIBs from: http://mibs.snmplabs.com/json/fulltexts/@mib@
+Source MIB repositories: file:///usr/share/snmp/mibs, https://pysnmp.github.io/mibs/asn1/@mib@
+Borrow missing/failed MIBs from: http://pysnmp.github.io/json/fulltexts/@mib@
 Existing/compiled MIB locations: 
 Compiled MIBs destination directory: .
 MIBs excluded from code generation: RFC-1212, RFC-1215, RFC1065-SMI, RFC1155-SMI,
@@ -63,7 +63,7 @@ Failed MIBs:
 ```
 
 JSON document build from
-[IF-MIB module](http://mibs.snmplabs.com/asn1/IF-MIB)
+[IF-MIB module](https://pysnmp.github.io/mibs/asn1IF-MIB)
 would hold information such as:
 
 ```
@@ -115,15 +115,15 @@ would hold information such as:
 
 In general, converted MIBs capture all aspects of original (ASN.1) MIB contents
 and layout. The snippet above is just a partial example, but here is the
-complete [IF-MIB.json](http://mibs.snmplabs.com/json/fulltexts/IF-MIB.json)
+complete [IF-MIB.json](http://pysnmp.github.io/json/fulltexts/IF-MIB.json)
 file.
 
 Besides one-to-one MIB conversion, PySMI library can produce JSON index to
 facilitate fast MIB information lookup across large collection of MIB files.
 For example, JSON index for
-[IP-MIB.json](http://mibs.snmplabs.com/json/asn1/IP-MIB),
-[TCP-MIB.json](http://mibs.snmplabs.com/json/asn1/TCP-MIB) and
-[UDP-MIB.json](http://mibs.snmplabs.com/json/asn1/UDP-MIB)
+[IP-MIB.json](http://pysnmp.github.io/json/asn1/IP-MIB),
+[TCP-MIB.json](http://pysnmp.github.io/json/asn1/TCP-MIB) and
+[UDP-MIB.json](http://pysnmp.github.io/json/asn1/UDP-MIB)
 modules would keep information like this:
 
 ```
@@ -177,11 +177,11 @@ With this example, *compliance* and *identity* keys point to
 *MODULE-COMPLIANCE* and *MODULE-IDENTITY* MIB objects, *oids*
 list top-level OIDs branches defined in MIB modules. Full index
 build over thousands of MIBs could be seen
-[here](http://mibs.snmplabs.com/json/index.json).
+[here](http://pysnmp.github.io/json/index.json).
 
 The PySMI library can automatically fetch required MIBs from HTTP, FTP sites
 or local directories. You could configure any MIB source available to you (including
-[http://mibs.snmplabs.com/asn1/](http://mibs.snmplabs.com/asn1/)) for that purpose.
+[https://pysnmp.github.io/mibs/asn1](https://pysnmp.github.io/mibs/asn1)) for that purpose.
 
 How to get PySMI
 ----------------

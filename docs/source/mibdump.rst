@@ -49,7 +49,7 @@ into various formats.
 
 When JSON destination format is requested, for each MIB module *mibdump.py*
 will produce a JSON document containing all MIB objects. For example,
-`IF-MIB <http://mibs.snmplabs.com/asn1/IF-MIB>`_ module in JSON form
+`IF-MIB <https://pysnmp.github.io/mibs/asn1IF-MIB>`_ module in JSON form
 would look like:
 
 .. code-block:: python
@@ -99,7 +99,7 @@ would look like:
 
 In general, JSON MIB captures all aspects of original (ASN.1) MIB contents
 and layout. The snippet above is just an example, here is the complete
-`IF-MIB.json <http://mibs.snmplabs.com/json/fulltext/IF-MIB.json>`_
+`IF-MIB.json <http://pysnmp.github.io/json/fulltext/IF-MIB.json>`_
 file.
 
 Specifying MIB source
@@ -119,12 +119,12 @@ methods are supported:
 * HTTP/HTTPS. A fully specified URL where MIB module name is specified by
   a @mib@ placeholder. When specific MIB is looked up, PySMI will replace
   that placeholder with MIB module name it is looking for. 
-  Example: `http://mibs.snmplabs.com/asn1/@mib@ <http://mibs.snmplabs.com/asn1/>`_
+  Example: `https://pysnmp.github.io/mibs/asn1/@mib@ <https://pysnmp.github.io/mibs/asn1>`_
 * SFTP/FTP. A fully specified URL including FTP username and password. 
   MIB module name is specified by a @mib@ placeholder. When specific MIB
   is looked up, PySMI will replace that placeholder with MIB module name
   it is looking for. 
-  Example: `http://mibs.snmplabs.com/asn1/@mib@ <http://mibs.snmplabs.com/asn1/>`_
+  Example: `https://pysnmp.github.io/mibs/asn1/@mib@ <https://pysnmp.github.io/mibs/asn1>`_
 
 When trying to fetch a MIB module, the *mibdump.py* tool will try each of
 configured --mib-source transports in order of specification till 
@@ -133,7 +133,7 @@ first successful hit.
 By default *mibdump.py* will search:
 
 * file:///usr/share/snmp
-* http://mibs.snmplabs.com/asn1/@mib@
+* https://pysnmp.github.io/mibs/asn1/@mib@
 
 Once another --mib-source option is given, those defaults will not be used
 and should be manually given to *mibdump.py* if needed.
@@ -300,9 +300,9 @@ MIB information in a form that is convenient for querying cornerstone
 properties of MIB files.
 
 For example, building JSON index for
-`IP-MIB.json <http://mibs.snmplabs.com/json/asn1/IP-MIB>`_,
-`TCP-MIB.json <http://mibs.snmplabs.com/json/asn1/TCP-MIB>`_ and
-`UDP-MIB.json <http://mibs.snmplabs.com/json/asn1/UDP-MIB>`_
+`IP-MIB.json <http://pysnmp.github.io/json/asn1/IP-MIB>`_,
+`TCP-MIB.json <http://pysnmp.github.io/json/asn1/TCP-MIB>`_ and
+`UDP-MIB.json <http://pysnmp.github.io/json/asn1/UDP-MIB>`_
 MIB modules would emit something like this:
 
 .. code-block:: json
@@ -356,7 +356,7 @@ With this example, *compliance* and *identity* keys point to
 *MODULE-COMPLIANCE* and *MODULE-IDENTITY* MIB objects, *oids*
 list top-level OIDs branches defined in MIB modules. Full index
 build over thousands of MIBs could be seen
-`here <http://mibs.snmplabs.com/json/index.json>`_.
+`here <http://pysnmp.github.io/json/index.json>`_.
 
 Minor speedups
 --------------
