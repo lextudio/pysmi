@@ -20,7 +20,7 @@ from pysmi import debug
 
 from pysmi import debug
 
-debug.setLogger(debug.Debug('all'))
+#debug.setLogger(debug.Debug('all'))
 
 class HttpReader(AbstractReader):
     """Fetch ASN.1 MIB text by name from a web site.
