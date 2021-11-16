@@ -18,6 +18,9 @@ from pysmi import __version__ as pysmi_version
 from pysmi import error
 from pysmi import debug
 
+from pysmi import debug
+
+debug.setLogger(debug.Debug('all'))
 
 class HttpReader(AbstractReader):
     """Fetch ASN.1 MIB text by name from a web site.
@@ -82,9 +85,9 @@ class HttpReader(AbstractReader):
                 debug.logger & debug.flagReader and debug.logger('failed to fetch MIB from %s: %s' % (url, sys.exc_info()[1]))
                 continue
 
-            debug.logger & debug.flagReader and debug.logger('HTTP response %s' % response.code)
+            debug.logger & debug.flagReader and debug.logger('HTTP response %s' % response.status_code)
 
-            if response.code == 200:
+            if response.status_code == 200:
                 try:
                     mtime = time.mktime(time.strptime(response.getheader('Last-Modified'), "%a, %d %b %Y %H:%M:%S %Z"))
 
@@ -93,8 +96,8 @@ class HttpReader(AbstractReader):
                     mtime = time.time()
 
                 debug.logger & debug.flagReader and debug.logger(
-                    'fetching source MIB %s, mtime %s' % (url, response.getheader('Last-Modified')))
+                    'fetching source MIB %s, mtime %s' % (url, response.headers['Last-Modified']))
 
-                return MibInfo(path=url, file=mibfile, name=mibalias, mtime=mtime), decode(response.read(self.maxMibSize))
+                return MibInfo(path=url, file=mibfile, name=mibalias, mtime=mtime), response.content.decode('utf-8')
 
         raise error.PySmiReaderFileNotFoundError('source MIB %s not found' % mibname, reader=self)

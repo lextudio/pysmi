@@ -17,11 +17,9 @@ from pysmi.parser import NullParser
 from pysmi.codegen import NullCodeGen
 from pysmi.compiler import MibCompiler
 
-inputMibs = ['BORROWED-MIB']
+inputMibs = ['MIKROTIK-MIB']
 
-httpBorrowers = [
-    ('pysnmp.github.io', 443, '/mibs/notexts/@mib@', True)
-]
+
 dstDirectory = '.pysnmp-mibs'
 
 # Initialize compiler infrastructure
@@ -34,9 +32,7 @@ mibCompiler = MibCompiler(
 mibCompiler.addSearchers(PyFileSearcher(dstDirectory))
 
 # search for precompiled MIBs at Web sites
-mibCompiler.addBorrowers(
-    *[PyFileBorrower(HttpReader(*x)) for x in httpBorrowers]
-)
+mibCompiler.addBorrowers(*[PyFileBorrower(HttpReader('https://pysnmp.github.io/mibs/notexts/@mib@'))])
 
 # run MIB compilation
 results = mibCompiler.compile(*inputMibs)

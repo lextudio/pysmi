@@ -19,13 +19,9 @@ from pysmi.compiler import MibCompiler
 
 # debug.setLogger(debug.Debug('borrower', 'reader', 'searcher'))
 
-inputMibs = ['BORROWED-MIB']
-httpSources = [ 
-    ('pysnmp.github.io', 443, '/mibs/asn1/@mib@',True)
-]
-httpBorrowers = [
-    ('pysnmp.github.iom', 443, '/mibs/notexts/@mib@',True)
-]
+inputMibs = ['MIKROTIK-MIB']
+
+
 dstDirectory = '.pysnmp-mibs'
 
 # Initialize compiler infrastructure
@@ -35,7 +31,7 @@ mibCompiler = MibCompiler(
 )
 
 # search for source MIBs at Web sites
-mibCompiler.addSources(*[HttpReader(*x) for x in httpSources])
+mibCompiler.addSources(HttpReader('https://pysnmp.github.io/mibs/asn1/@mib@'))
 
 # never recompile MIBs with MACROs
 mibCompiler.addSearchers(StubSearcher(*PySnmpCodeGen.baseMibs))
@@ -44,7 +40,7 @@ mibCompiler.addSearchers(StubSearcher(*PySnmpCodeGen.baseMibs))
 mibCompiler.addSearchers(PyFileSearcher(dstDirectory))
 
 # search for compiled MIBs at Web sites if source is not available or broken
-mibCompiler.addBorrowers(*[PyFileBorrower(HttpReader(*x)).setOptions(genTexts=False) for x in httpBorrowers])
+mibCompiler.addBorrowers(*[PyFileBorrower(HttpReader('https://pysnmp.github.io/mibs/notexts/@mib@'))])
 
 # run non-recursive MIB compilation
 results = mibCompiler.compile(*inputMibs)
