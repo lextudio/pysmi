@@ -6,16 +6,7 @@
 #
 import sys
 
-try:
-    # noinspection PyUnresolvedReferences
-    import urlparse
-    from urllib import url2pathname
-
-except ImportError:
-    # noinspection PyUnresolvedReferences
-    from urllib import parse as urlparse
-    from urllib.request import url2pathname
-
+from urllib import parse as urlparse
 from pysmi.reader.localfile import FileReader
 from pysmi.reader.zipreader import ZipReader
 from pysmi.reader.httpclient import HttpReader
@@ -59,8 +50,7 @@ def getReadersFromUrls(*sourceUrls, **options):
                 readers.append(ZipReader(filePath).setOptions(**options))
 
         elif mibSource.scheme in ('http', 'https'):
-            readers.append(HttpReader(mibSource.hostname or mibSource.netloc, mibSource.port or 80, mibSource.path,
-                                      ssl=mibSource.scheme == 'https').setOptions(**options))
+            readers.append(HttpReader(sourceUrl).setOptions(**options))
 
         else:
             raise error.PySmiError('Unsupported URL scheme %s' % sourceUrl)

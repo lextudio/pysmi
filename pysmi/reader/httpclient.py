@@ -8,13 +8,8 @@ import socket
 import sys
 import time
 
-try:
-    # noinspection PyUnresolvedReferences
-    from urllib2 import Request, urlopen
-except ImportError:
-    # noinspection PyUnresolvedReferences
-    from urllib.request import Request
-    from urllib.request import urlopen
+from requests import session
+
 
 from pysmi.reader.base import AbstractReader
 from pysmi.mibinfo import MibInfo
@@ -32,7 +27,7 @@ class HttpReader(AbstractReader):
     """
     MIB_MAGIC = '@mib@'
 
-    def __init__(self, host, port, locationTemplate, timeout=5, ssl=False):
+    def __init__(self,url):
         """Create an instance of *HttpReader* bound to specific URL.
 
            Note:
@@ -50,10 +45,10 @@ class HttpReader(AbstractReader):
                timeout (int): response timeout
                ssl (bool): access HTTPS web site
         """
-        self._url = '%s://%s:%d%s' % (ssl and 'https' or 'http',
-                                      host, port, decode(locationTemplate))
-
-        socket.setdefaulttimeout(timeout)
+        self._url = url
+     
+        self.session = session()
+        
         self._user_agent = 'pysmi-%s; python-%s.%s.%s; %s' % (
             pysmi_version, sys.version_info[0], sys.version_info[1],
             sys.version_info[2], sys.platform
@@ -81,9 +76,8 @@ class HttpReader(AbstractReader):
             debug.logger & debug.flagReader and debug.logger('trying to fetch MIB from %s' % url)
 
             try:
-                req = Request(url, headers=headers)
-                response = urlopen(req)  # nosec
-
+                response = self.session.get(url,headers=headers)
+                
             except Exception:
                 debug.logger & debug.flagReader and debug.logger('failed to fetch MIB from %s: %s' % (url, sys.exc_info()[1]))
                 continue

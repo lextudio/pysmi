@@ -28,6 +28,8 @@ include = ["docs", "tests", "examples", "scripts"]
 python = "^3.7"
 ply = "^3.11"
 Jinja2 = "^2.10.1"
+requests = "^2.26.0"
+
 
 [tool.poetry.dev-dependencies]
 Sphinx = "^4.3.0"
