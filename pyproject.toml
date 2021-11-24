@@ -25,7 +25,7 @@ packages = [
 include = ["docs", "tests", "examples", "scripts"]
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.8"
 ply = "^3.11"
 Jinja2 = "^2.10.1"
 requests = "^2.26.0"
