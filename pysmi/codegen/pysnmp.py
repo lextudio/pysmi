@@ -18,12 +18,6 @@ from pysmi import debug
 import jinja2
 
 
-# noinspection PyShadowingBuiltins
-unicode = str
-# noinspection PyShadowingBuiltins
-long = int
-
-
 class PySnmpCodeGen(IntermediateCodeGen):
     """Turns MIB AST into pysnmp Python code.
 

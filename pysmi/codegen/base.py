@@ -8,11 +8,6 @@ import sys
 from pysmi import error
 
 
-# noinspection PyShadowingBuiltins
-unicode = str
-# noinspection PyShadowingBuiltins
-long = int
-
 def dorepr(s):
     return repr(s)
 
@@ -275,12 +270,12 @@ class AbstractCodeGen(object):
 
     @staticmethod
     def isBinary(s):
-        return (isinstance(s, (str, unicode)) and
+        return (isinstance(s, str) and
                 s[0] == '\'' and s[-2:] in ('\'b', '\'B'))
 
     @staticmethod
     def isHex(s):
-        return (isinstance(s, (str, unicode)) and s[0] == '\''
+        return (isinstance(s, str) and s[0] == '\''
                 and s[-2:] in ('\'h', '\'H'))
 
     def str2int(self, s):
