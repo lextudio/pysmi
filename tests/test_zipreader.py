@@ -163,10 +163,7 @@ class ZipReaderTestCase(unittest.TestCase):
         80, 75, 5, 6, 0, 0, 0, 0, 5, 0, 5, 0, 151, 1, 0, 0, 233, 8, 0, 0, 0, 0]
 
 
-    if sys.version_info[0] < 3:
-        zipContents = ''.join([chr(x) for x in zipArchive])
-    else:
-        zipContents = bytes(zipArchive)
+    zipContents = bytes(zipArchive)
 
     def testGetDataFromFile(self):
 

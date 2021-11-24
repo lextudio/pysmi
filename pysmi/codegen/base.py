@@ -8,17 +8,13 @@ import sys
 from pysmi import error
 
 
-if sys.version_info[0] > 2:
-    # noinspection PyShadowingBuiltins
-    unicode = str
-    # noinspection PyShadowingBuiltins
-    long = int
+# noinspection PyShadowingBuiltins
+unicode = str
+# noinspection PyShadowingBuiltins
+long = int
 
-    def dorepr(s):
-        return repr(s)
-else:
-    def dorepr(s):
-        return repr(s.encode('utf-8')).decode('utf-8')
+def dorepr(s):
+    return repr(s)
 
 def updateDict(d1, d2):
     d1.update(d2)

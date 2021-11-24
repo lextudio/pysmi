@@ -88,12 +88,7 @@ class PyFileWriter(AbstractWriter):
 
         if self.pyCompile:
             try:
-                if sys.version_info[0:2] > (3, 1):
-                    # noinspection PyArgumentList
-                    py_compile.compile(pyfile, doraise=True, optimize=self.pyOptimizationLevel)
-
-                else:
-                    py_compile.compile(pyfile, doraise=True)
+                py_compile.compile(pyfile, doraise=True, optimize=self.pyOptimizationLevel)
 
             except (SyntaxError, py_compile.PyCompileError):
                 pass  # XXX

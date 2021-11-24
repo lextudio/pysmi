@@ -356,9 +356,6 @@ def lexerFactory(**grammarOptions):
                 raise error.PySmiError('Unknown lexer relaxation option: %s' % option)
 
             for func in relaxedGrammar[option]:
-                if sys.version_info[0] > 2:
-                    classAttr[func.__name__] = func()
-                else:
-                    classAttr[func.func_name] = func()
+                classAttr[func.__name__] = func()
 
     return type('SmiLexer', (SmiV2Lexer,), classAttr)

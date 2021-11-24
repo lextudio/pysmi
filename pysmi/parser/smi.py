@@ -1442,10 +1442,7 @@ def parserFactory(**grammarOptions):
                 raise error.PySmiError('Unknown parser relaxation option: %s' % option)
 
             for func in relaxedGrammar[option]:
-                if sys.version_info[0] > 2:
-                    classAttr[func.__name__] = func
-                else:
-                    classAttr[func.func_name] = func
+                classAttr[func.__name__] = func
 
     classAttr['defaultLexer'] = lexerFactory(**grammarOptions)
 

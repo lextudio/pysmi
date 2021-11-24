@@ -13,11 +13,10 @@ from pysmi.codegen.base import AbstractCodeGen, dorepr
 from pysmi import error
 from pysmi import debug
 
-if sys.version_info[0] > 2:
-    # noinspection PyShadowingBuiltins
-    unicode = str
-    # noinspection PyShadowingBuiltins
-    long = int
+# noinspection PyShadowingBuiltins
+unicode = str
+# noinspection PyShadowingBuiltins
+long = int
 
 
 class SymtableCodeGen(AbstractCodeGen):
