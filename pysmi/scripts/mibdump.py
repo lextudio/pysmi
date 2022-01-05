@@ -215,8 +215,8 @@ def start():
             mibStubs = [x for x in PySnmpCodeGen.baseMibs if x not in PySnmpCodeGen.fakeMibs]
 
         if not mibBorrowers:
-            mibBorrowers = [('http://pysnmp.github.com:443/mibs/notexts/@mib@', False),
-                            ('http://pysnmp.github.com:443/mibs/fulltexts/@mib@', True)]
+            mibBorrowers = [('https://pysnmp.github.com:443/mibs/notexts/@mib@', False),
+                            ('https://pysnmp.github.com:443/mibs/fulltexts/@mib@', True)]
 
         if not dstDirectory:
             dstDirectory = os.path.expanduser("~")
