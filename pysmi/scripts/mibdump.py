@@ -189,7 +189,7 @@ def start():
             keepTextsLayout = True
 
     if not mibSources:
-        mibSources = ['https://pysnmp.github.io/mibs/asn1/@mib@']
+        mibSources = ['https://pysnmp.github.io:443/mibs/asn1/@mib@']
 
     if inputMibs:
         mibSources = sorted(
@@ -215,8 +215,8 @@ def start():
             mibStubs = [x for x in PySnmpCodeGen.baseMibs if x not in PySnmpCodeGen.fakeMibs]
 
         if not mibBorrowers:
-            mibBorrowers = [('http://pysnmp.github.com/mibs/notexts/@mib@', False),
-                            ('http://pysnmp.github.com/mibs/fulltexts/@mib@', True)]
+            mibBorrowers = [('http://pysnmp.github.com:443/mibs/notexts/@mib@', False),
+                            ('http://pysnmp.github.com:443/mibs/fulltexts/@mib@', True)]
 
         if not dstDirectory:
             dstDirectory = os.path.expanduser("~")
@@ -247,8 +247,8 @@ def start():
             mibStubs = JsonCodeGen.baseMibs
 
         if not mibBorrowers:
-            mibBorrowers = [('https://pysnmp.github.io/mibs/json/notexts/@mib@', False),
-                            ('https://pysnmp.github.io/mibs/fulltexts/@mib@', True)]
+            mibBorrowers = [('https://pysnmp.github.io:443/mibs/json/notexts/@mib@', False),
+                            ('https://pysnmp.github.io:443/mibs/fulltexts/@mib@', True)]
 
         if not dstDirectory:
             dstDirectory = os.path.join('.')
@@ -269,8 +269,8 @@ def start():
             mibStubs = NullCodeGen.baseMibs
 
         if not mibBorrowers:
-            mibBorrowers = [('https://pysnmp.github.io/mibs/null/notexts/@mib@', False),
-                            ('https://pysnmp.github.io/mibs/null/fulltexts/@mib@', True)]
+            mibBorrowers = [('https://pysnmp.github.io:443/mibs/null/notexts/@mib@', False),
+                            ('https://pysnmp.github.io:443/mibs/null/fulltexts/@mib@', True)]
 
         if not dstDirectory:
             dstDirectory = ''

@@ -117,7 +117,7 @@ def start():
 
     if not mibSources:
         mibSources = ['file:///usr/share/snmp/mibs',
-                    'https://pysnmp.github.io/mibs/asn1/@mib@']
+                    'https://pysnmp.github.io:443/mibs/asn1/@mib@']
 
     if len(inputMibs) < 2:
         sys.stderr.write('ERROR: MIB source and/or destination arguments not given\r\n%s\r\n' % helpMessage)
