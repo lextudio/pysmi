@@ -26,3 +26,7 @@ venv*
 
 .coverage
 .tox/
+out
+cache
+*.log
+index.*

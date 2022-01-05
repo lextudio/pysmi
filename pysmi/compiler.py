@@ -250,6 +250,9 @@ class MibCompiler(object):
                                 mibInfo.name, mibname, fileInfo.path, ', '.join(mibInfo.imported) or '<none>'))
 
                     break
+                except UnicodeDecodeError:
+                    debug.logger & debug.flagCompiler and debug.logger('http exeception %s found at %s' % (mibname, source))
+                    continue
 
                 except error.PySmiReaderFileNotFoundError:
                     debug.logger & debug.flagCompiler and debug.logger('no %s found at %s' % (mibname, source))
@@ -279,7 +282,7 @@ class MibCompiler(object):
                 if mibname not in processed:
                     processed[mibname] = statusMissing
 
-        debug.logger & debug.flagCompiler and debug.logger(
+        print(
             'MIBs analyzed %s, MIBs failed %s' % (len(parsedMibs), len(failedMibs)))
 
         #
