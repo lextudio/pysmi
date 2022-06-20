@@ -16,7 +16,7 @@ def updateDict(d1, d2):
     return d1
 
 
-class AbstractCodeGen(object):
+class AbstractCodeGen:
     # never compile these, they either:
     # - define MACROs (implementation supplies them)
     # - or carry conflicting OIDs (so that all IMPORT's of them will be rewritten)

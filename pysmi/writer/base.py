@@ -5,7 +5,7 @@
 # License: http://snmplabs.com/pysmi/license.html
 #
 
-class AbstractWriter(object):
+class AbstractWriter:
     def setOptions(self, **kwargs):
         for k in kwargs:
             setattr(self, k, kwargs[k])

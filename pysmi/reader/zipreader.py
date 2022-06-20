@@ -16,7 +16,7 @@ from pysmi import debug
 from pysmi import error
 
 
-class FileLike(object):
+class FileLike:
     """Stripped down, binary file mock to work with ZipFile"""
     def __init__(self, buf, name):
         self.name = name
@@ -93,10 +93,10 @@ class ZipReader(AbstractReader):
 
         except Exception:
             debug.logger & debug.flagReader and debug.logger(
-                'ZIP file %s open failure: %s' % (self._name, sys.exc_info()[1]))
+                f'ZIP file {self._name} open failure: {sys.exc_info()[1]}')
 
             if not ignoreErrors:
-                self._pendingError = error.PySmiError('file %s access error: %s' % (self._name, sys.exc_info()[1]))
+                self._pendingError = error.PySmiError(f'file {self._name} access error: {sys.exc_info()[1]}')
 
     def _readZipDirectory(self, fileObj):
 
@@ -148,16 +148,16 @@ class ZipReader(AbstractReader):
                 dataObj = archive.read(filename)
 
             except Exception:
-                debug.logger & debug.flagReader and debug.logger('ZIP read component %s read error: %s' % (fileObj.name, sys.exc_info()[1]))
+                debug.logger & debug.flagReader and debug.logger(f'ZIP read component {fileObj.name} read error: {sys.exc_info()[1]}')
                 return '', 0
 
         return dataObj, mtime
 
     def __str__(self):
-        return '%s{"%s"}' % (self.__class__.__name__, self._name)
+        return f'{self.__class__.__name__}{{"{self._name}"}}'
 
     def getData(self, mibname, **options):
-        debug.logger & debug.flagReader and debug.logger('looking for MIB %s at %s' % (mibname, self._name))
+        debug.logger & debug.flagReader and debug.logger(f'looking for MIB {mibname} at {self._name}')
 
         if self._pendingError:
             raise self._pendingError
@@ -181,13 +181,13 @@ class ZipReader(AbstractReader):
                 continue
 
             debug.logger & debug.flagReader and debug.logger(
-                'source MIB %s, mtime %s, read from %s/%s' % (mibfile, time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime(mtime)), self._name, mibfile)
+                'source MIB {}, mtime {}, read from {}/{}'.format(mibfile, time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime(mtime)), self._name, mibfile)
             )
 
             if len(mibData) == self.maxMibSize:
-                raise IOError('MIB %s/%s too large' % (self._name, mibfile))
+                raise OSError(f'MIB {self._name}/{mibfile} too large')
 
-            return MibInfo(path='zip://%s/%s' % (self._name, mibfile),
+            return MibInfo(path=f'zip://{self._name}/{mibfile}',
                            file=mibfile, name=mibalias, mtime=mtime), decode(mibData)
 
         raise error.PySmiReaderFileNotFoundError('source MIB %s not found' % mibname, reader=self)

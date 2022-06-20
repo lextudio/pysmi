@@ -32,7 +32,7 @@ class CallbackWriter(AbstractWriter):
         self._cbCtx = cbCtx
 
     def __str__(self):
-        return '%s{"%s"}' % (self.__class__.__name__, self._cbFun)
+        return f'{self.__class__.__name__}{{"{self._cbFun}"}}'
 
     def putData(self, mibname, data, comments=(), dryRun=False):
         if dryRun:
@@ -44,7 +44,7 @@ class CallbackWriter(AbstractWriter):
 
         except Exception:
             raise error.PySmiWriterError(
-                'user callback %s failure writing %s: %s' % (self._cbFun, mibname, sys.exc_info()[1]), writer=self)
+                f'user callback {self._cbFun} failure writing {mibname}: {sys.exc_info()[1]}', writer=self)
 
         debug.logger & debug.flagWriter and debug.logger('user callback for %s succeeded' % mibname)
 

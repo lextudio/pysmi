@@ -47,7 +47,7 @@ class PyFileSearcher(AbstractSearcher):
         self._path = os.path.normpath(decode(path))
 
     def __str__(self):
-        return '%s{"%s"}' % (self.__class__.__name__, self._path)
+        return f'{self.__class__.__name__}{{"{self._path}"}}'
 
     def fileExists(self, mibname, mtime, rebuild=False):
         if rebuild:
@@ -69,14 +69,14 @@ class PyFileSearcher(AbstractSearcher):
                 pyData = fp.read(8)
                 fp.close()
 
-            except IOError:
-                raise error.PySmiSearcherError('failure opening compiled file %s: %s' % (f, sys.exc_info()[1]),
+            except OSError:
+                raise error.PySmiSearcherError(f'failure opening compiled file {f}: {sys.exc_info()[1]}',
                                                searcher=self)
             if pyData[:4] == PY_MAGIC_NUMBER:
                 pyData = pyData[4:]
                 pyTime = struct.unpack('<L', pyData[:4])[0]
                 debug.logger & debug.flagSearcher and debug.logger(
-                    'found %s, mtime %s' % (f, time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime(pyTime))))
+                    'found {}, mtime {}'.format(f, time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime(pyTime))))
                 if pyTime >= mtime:
                     raise error.PySmiFileNotModifiedError()
 
@@ -98,11 +98,11 @@ class PyFileSearcher(AbstractSearcher):
                 pyTime = os.stat(f)[8]
 
             except OSError:
-                raise error.PySmiSearcherError('failure opening compiled file %s: %s' % (f, sys.exc_info()[1]),
+                raise error.PySmiSearcherError(f'failure opening compiled file {f}: {sys.exc_info()[1]}',
                                                searcher=self)
 
             debug.logger & debug.flagSearcher and debug.logger(
-                'found %s, mtime %s' % (f, time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime(pyTime))))
+                'found {}, mtime {}'.format(f, time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime(pyTime))))
 
             if pyTime >= mtime:
                 raise error.PySmiFileNotModifiedError()

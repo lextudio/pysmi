@@ -6,7 +6,7 @@
 #
 
 
-class AbstractParser(object):
+class AbstractParser:
     def reset(self):
         raise NotImplementedError()
 

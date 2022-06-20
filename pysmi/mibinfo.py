@@ -6,7 +6,7 @@
 #
 
 
-class MibInfo(object):
+class MibInfo:
     #: actual MIB name
     name = ''
 

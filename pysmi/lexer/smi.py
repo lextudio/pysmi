@@ -260,12 +260,12 @@ class SmiV2Lexer(AbstractLexer):
 
     def t_error(self, t):
         raise error.PySmiLexerError(
-            "Illegal character '%s', %s characters left unparsed at this stage" % (t.value[0], len(t.value) - 1),
+            f"Illegal character '{t.value[0]}', {len(t.value) - 1} characters left unparsed at this stage",
             lineno=t.lineno)
         # t.lexer.skip(1)
 
 
-class SupportSmiV1Keywords(object):
+class SupportSmiV1Keywords:
     @staticmethod
     def reserved():
         reserved_words = [

@@ -26,7 +26,7 @@ class SmiV2Parser(AbstractParser):
                 os.makedirs(tempdir)
             except OSError:
                 if sys.exc_info()[1].errno != 17:
-                    raise error.PySmiError('Failed to create cache directory %s: %s' % (tempdir, sys.exc_info()[1]))
+                    raise error.PySmiError(f'Failed to create cache directory {tempdir}: {sys.exc_info()[1]}')
 
         self.lexer = self.defaultLexer(tempdir=tempdir)
 
@@ -64,7 +64,7 @@ class SmiV2Parser(AbstractParser):
 
     def parse(self, data, **kwargs):
         debug.logger & debug.flagParser and debug.logger(
-            'source MIB size is %s characters, first 50 characters are "%s..."' % (len(data), data[:50]))
+            f'source MIB size is {len(data)} characters, first 50 characters are "{data[:50]}..."')
 
         ast = self.parser.parse(data, lexer=self.lexer.lexer)
 
@@ -1142,7 +1142,7 @@ class SmiV2Parser(AbstractParser):
     # Error rule for syntax errors
     def p_error(self, p):
         if p:
-            raise error.PySmiParserError("Bad grammar near token type %s, value %s" % (p.type, p.value),
+            raise error.PySmiParserError(f"Bad grammar near token type {p.type}, value {p.value}",
                                          lineno=p.lineno)
 
 
@@ -1160,7 +1160,7 @@ class SmiV2Parser(AbstractParser):
 #
 
 # noinspection PyIncorrectDocstring
-class SupportSmiV1Keywords(object):
+class SupportSmiV1Keywords:
     # NETWORKADDRESS added
     @staticmethod
     def p_importedKeyword(self, p):
@@ -1233,7 +1233,7 @@ class SupportSmiV1Keywords(object):
 
 
 # noinspection PyIncorrectDocstring
-class SupportIndex(object):
+class SupportIndex:
     # SMIv1 IndexTypes added
     @staticmethod
     def p_Index(self, p):
@@ -1261,7 +1261,7 @@ class SupportIndex(object):
 #
 
 # noinspection PyIncorrectDocstring
-class CommaInImport(object):
+class CommaInImport:
     # comma at the end of import list
     @staticmethod
     def p_importIdentifiers(self, p):
@@ -1278,7 +1278,7 @@ class CommaInImport(object):
 
 
 # noinspection PyIncorrectDocstring
-class CommaInSequence(object):
+class CommaInSequence:
     # comma at the end of sequence list
     @staticmethod
     def p_sequenceItems(self, p):
@@ -1296,7 +1296,7 @@ class CommaInSequence(object):
 
 
 # noinspection PyIncorrectDocstring
-class CommaAndSpaces(object):
+class CommaAndSpaces:
     # common typos handled (mix of commas and spaces)
     @staticmethod
     def p_enumItems(self, p):
@@ -1317,7 +1317,7 @@ class CommaAndSpaces(object):
 
 
 # noinspection PyIncorrectDocstring
-class UppercaseIdentifier(object):
+class UppercaseIdentifier:
     # common mistake - using UPPERCASE_IDENTIFIER
     @staticmethod
     def p_enumItem(self, p):
@@ -1327,7 +1327,7 @@ class UppercaseIdentifier(object):
 
 
 # noinspection PyIncorrectDocstring
-class LowcaseIdentifier(object):
+class LowcaseIdentifier:
     # common mistake - LOWERCASE_IDENTIFIER in symbol's name
     @staticmethod
     def p_notificationTypeClause(self, p):
@@ -1342,7 +1342,7 @@ class LowcaseIdentifier(object):
 
 
 # noinspection PyIncorrectDocstring,PyIncorrectDocstring
-class CurlyBracesInEnterprises(object):
+class CurlyBracesInEnterprises:
     # common mistake - curly brackets around enterprise symbol
     @staticmethod
     def p_trapTypeClause(self, p):
@@ -1368,7 +1368,7 @@ class CurlyBracesInEnterprises(object):
 
 
 # noinspection PyIncorrectDocstring
-class NoCells(object):
+class NoCells:
     # common mistake - no Cells
     @staticmethod
     def p_CreationPart(self, p):

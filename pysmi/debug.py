@@ -34,7 +34,7 @@ flagMap = {
 }
 
 
-class Printer(object):
+class Printer:
     def __init__(self, logger=None, handler=None, formatter=None):
         if logger is None:
             logger = logging.getLogger('pysmi')
@@ -73,7 +73,7 @@ else:
             pass
 
 
-class Debug(object):
+class Debug:
     defaultPrinter = None
 
     def __init__(self, *flags, **options):
@@ -111,10 +111,10 @@ class Debug(object):
             except KeyError:
                 raise error.PySmiError('bad debug flag %s' % flag)
 
-            self('debug category \'%s\' %s' % (flag, inverse and 'disabled' or 'enabled'))
+            self('debug category \'{}\' {}'.format(flag, inverse and 'disabled' or 'enabled'))
 
     def __str__(self):
-        return 'logger %s, flags %x' % (self._printer, self._flags)
+        return f'logger {self._printer}, flags {self._flags:x}'
 
     def __call__(self, msg):
         self._printer(msg)

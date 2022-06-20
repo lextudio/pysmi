@@ -30,7 +30,7 @@ class FileWriter(AbstractWriter):
         self._path = decode(os.path.normpath(path))
 
     def __str__(self):
-        return '%s{"%s"}' % (self.__class__.__name__, self._path)
+        return f'{self.__class__.__name__}{{"{self._path}"}}'
 
     def getData(self, mibname, dryRun=False):
         filename = os.path.join(self._path, decode(mibname)) + self.suffix
@@ -43,7 +43,7 @@ class FileWriter(AbstractWriter):
             f.close()
             return data
 
-        except (OSError, IOError, UnicodeEncodeError):
+        except (OSError, UnicodeEncodeError):
             if f:
                 f.close()
             return ''
@@ -59,7 +59,7 @@ class FileWriter(AbstractWriter):
 
             except OSError:
                 raise error.PySmiWriterError(
-                    'failure creating destination directory %s: %s' % (self._path, sys.exc_info()[1]), writer=self)
+                    f'failure creating destination directory {self._path}: {sys.exc_info()[1]}', writer=self)
 
         if comments:
             data = '#\n' + ''.join(['# %s\n' % x for x in comments]) + '#\n' + data
@@ -74,7 +74,7 @@ class FileWriter(AbstractWriter):
             os.close(fd)
             os.rename(tfile, filename)
 
-        except (OSError, IOError, UnicodeEncodeError):
+        except (OSError, UnicodeEncodeError):
             exc = sys.exc_info()
             if tfile:
                 try:
@@ -83,6 +83,6 @@ class FileWriter(AbstractWriter):
                 except OSError:
                     pass
 
-            raise error.PySmiWriterError('failure writing file %s: %s' % (filename, exc[1]), file=filename, writer=self)
+            raise error.PySmiWriterError(f'failure writing file {filename}: {exc[1]}', file=filename, writer=self)
 
-        debug.logger & debug.flagWriter and debug.logger('%s stored in %s' % (mibname, filename))
+        debug.logger & debug.flagWriter and debug.logger(f'{mibname} stored in {filename}')

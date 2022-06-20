@@ -6,7 +6,7 @@
 #
 
 
-class AbstractSearcher(object):
+class AbstractSearcher:
 
     def setOptions(self, **kwargs):
         for k in kwargs:

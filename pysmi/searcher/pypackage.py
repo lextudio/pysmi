@@ -52,7 +52,7 @@ class PyPackageSearcher(AbstractSearcher):
         self.__loader = None
 
     def __str__(self):
-        return '%s{"%s"}' % (self.__class__.__name__, self._package)
+        return f'{self.__class__.__name__}{{"{self._package}"}}'
 
     @staticmethod
     def _parseDosTime(dosdate, dostime):
@@ -81,7 +81,7 @@ class PyPackageSearcher(AbstractSearcher):
                 self.__loader = p.__loader__
                 self._package = self._package.replace('.', os.sep)
                 debug.logger & debug.flagSearcher and debug.logger(
-                    '%s is an importable egg at %s' % (self._package, os.path.split(p.__file__)[0]))
+                    f'{self._package} is an importable egg at {os.path.split(p.__file__)[0]}')
 
             elif hasattr(p, '__file__'):
                 debug.logger & debug.flagSearcher and debug.logger(
@@ -98,7 +98,7 @@ class PyPackageSearcher(AbstractSearcher):
             f = os.path.join(self._package, mibname.upper()) + pySfx
 
             if f not in self.__loader._files:
-                debug.logger & debug.flagSearcher and debug.logger('%s is not in %s' % (f, self._package))
+                debug.logger & debug.flagSearcher and debug.logger(f'{f} is not in {self._package}')
                 continue
 
             pyData = self.__loader.get_data(f)
@@ -106,7 +106,7 @@ class PyPackageSearcher(AbstractSearcher):
                 pyData = pyData[4:]
                 pyTime = struct.unpack('<L', pyData[:4])[0]
                 debug.logger & debug.flagSearcher and debug.logger(
-                    'found %s, mtime %s' % (f, time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime(pyTime))))
+                    'found {}, mtime {}'.format(f, time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime(pyTime))))
                 if pyTime >= mtime:
                     raise error.PySmiFileNotModifiedError()
                 else:
@@ -121,7 +121,7 @@ class PyPackageSearcher(AbstractSearcher):
             f = os.path.join(self._package, mibname.upper()) + pySfx
 
             if f not in self.__loader._files:
-                debug.logger & debug.flagSearcher and debug.logger('%s is not in %s' % (f, self._package))
+                debug.logger & debug.flagSearcher and debug.logger(f'{f} is not in {self._package}')
                 continue
 
             pyTime = self._parseDosTime(
@@ -130,7 +130,7 @@ class PyPackageSearcher(AbstractSearcher):
             )
 
             debug.logger & debug.flagSearcher and debug.logger(
-                'found %s, mtime %s' % (f, time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime(pyTime))))
+                'found {}, mtime {}'.format(f, time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime(pyTime))))
             if pyTime >= mtime:
                 raise error.PySmiFileNotModifiedError()
             else:

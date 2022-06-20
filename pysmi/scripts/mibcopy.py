@@ -36,11 +36,11 @@ def start():
     ignoreErrorsFlag = False
 
     helpMessage = """\
-    Usage: %s [--help]
+    Usage: {} [--help]
         [--version]
         [--verbose]
         [--quiet]
-        [--debug=<%s>]
+        [--debug=<{}>]
         [--mib-source=<URI>]
         [--cache-directory=<DIRECTORY>]
         [--ignore-errors]
@@ -51,7 +51,7 @@ def start():
                 Use @mib@ placeholder token in URI to refer directly to
                 the required MIB module when source does not support
                 directory listing (e.g. HTTP).
-    """ % (
+    """.format(
         sys.argv[0],
         '|'.join([x for x in sorted(debug.flagMap)])
     )
@@ -90,11 +90,11 @@ def start():
             from pysmi import __version__
 
             sys.stderr.write("""\
-    SNMP SMI/MIB library version %s, written by Ilya Etingof <etingof@gmail.com>
-    Python interpreter: %s
+    SNMP SMI/MIB library version {}, written by Ilya Etingof <etingof@gmail.com>
+    Python interpreter: {}
     Software documentation and support at http://snmplabs.com/pysmi
-    %s
-    """ % (__version__, sys.version, helpMessage))
+    {}
+    """.format(__version__, sys.version, helpMessage))
             sys.exit(EX_OK)
 
         if opt[0] == '--quiet':
@@ -215,7 +215,7 @@ def start():
 
             except error.PySmiError as ex:
                 if verboseFlag:
-                    sys.stderr.write('Failed to read source MIB "%s": %s\r\n' % (os.path.join(srcDirectory, mibFile), ex))
+                    sys.stderr.write(f'Failed to read source MIB "{os.path.join(srcDirectory, mibFile)}": {ex}\r\n')
 
                 if not quietFlag:
                     sys.stderr.write('FAILED %s\r\n' % shortenPath(os.path.join(srcDirectory, mibFile)))
@@ -247,7 +247,7 @@ def start():
                                     'source MIB "%s"\r\n' % (os.path.join(dstDirectory, mibName),
                                                             os.path.join(srcDirectory, mibFile)))
                 if not quietFlag:
-                    sys.stderr.write('NOT COPIED %s (%s)\r\n' % (
+                    sys.stderr.write('NOT COPIED {} ({})\r\n'.format(
                         shortenPath(os.path.join(srcDirectory, mibFile)), mibName))
 
                 continue
@@ -255,7 +255,7 @@ def start():
             mibsRevisions[mibName] = srcMibRevision
 
             if verboseFlag:
-                sys.stderr.write('Copying "%s" (revision "%s") -> "%s" (revision "%s")\r\n' % (
+                sys.stderr.write('Copying "{}" (revision "{}") -> "{}" (revision "{}")\r\n'.format(
                     os.path.join(srcDirectory, mibFile), srcMibRevision,
                     os.path.join(dstDirectory, mibName), dstMibRevision))
 
@@ -264,18 +264,18 @@ def start():
 
             except Exception as ex:
                 if verboseFlag:
-                    sys.stderr.write('Failed to copy MIB "%s" -> "%s" (%s): "%s"\r\n' % (
+                    sys.stderr.write('Failed to copy MIB "{}" -> "{}" ({}): "{}"\r\n'.format(
                         os.path.join(srcDirectory, mibFile), os.path.join(dstDirectory, mibName), mibName, ex))
 
                 if not quietFlag:
-                    sys.stderr.write('FAILED %s (%s)\r\n' % (
+                    sys.stderr.write('FAILED {} ({})\r\n'.format(
                         shortenPath(os.path.join(srcDirectory, mibFile)), mibName))
 
                 mibsFailed += 1
 
             else:
                 if not quietFlag:
-                    sys.stderr.write('COPIED %s (%s)\r\n' % (
+                    sys.stderr.write('COPIED {} ({})\r\n'.format(
                         shortenPath(os.path.join(srcDirectory, mibFile)), mibName))
 
                 mibsCopied +=1

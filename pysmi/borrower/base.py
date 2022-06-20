@@ -8,7 +8,7 @@ from pysmi import error
 from pysmi import debug
 
 
-class AbstractBorrower(object):
+class AbstractBorrower:
     genTexts = False
     exts = ''
 
@@ -28,7 +28,7 @@ class AbstractBorrower(object):
         self._reader = reader
 
     def __str__(self):
-        return '%s{%s, genTexts=%s, exts=%s}' % (self.__class__.__name__,
+        return '{}{{{}, genTexts={}, exts={}}}'.format(self.__class__.__name__,
                                                  self._reader, self.genTexts,
                                                  self.exts)
 
@@ -43,11 +43,11 @@ class AbstractBorrower(object):
     def getData(self, mibname, **options):
         if bool(options.get('genTexts')) != self.genTexts:
             debug.logger & debug.flagBorrower and debug.logger(
-                'skipping incompatible borrower %s for file %s' % (self, mibname))
+                f'skipping incompatible borrower {self} for file {mibname}')
             raise error.PySmiFileNotFoundError(mibname=mibname, reader=self._reader)
 
         debug.logger & debug.flagBorrower and (
-            debug.logger('trying to borrow file %s from %s' % (mibname, self._reader))
+            debug.logger(f'trying to borrow file {mibname} from {self._reader}')
         )
 
         if 'exts' not in options:

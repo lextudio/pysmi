@@ -7,7 +7,7 @@
 import os
 
 
-class AbstractReader(object):
+class AbstractReader:
     maxMibSize = 10000000  # MIBs can't be that large
     fuzzyMatching = True  # try different file names while searching for MIB
     originalMatching = uppercaseMatching = lowcaseMatching = True

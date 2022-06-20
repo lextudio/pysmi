@@ -6,6 +6,6 @@
 #
 
 
-class AbstractLexer(object):
+class AbstractLexer:
     def reset(self):
         raise NotImplementedError()

@@ -40,7 +40,7 @@ class FileReader(AbstractReader):
         self._mibIndex = None
 
     def __str__(self):
-        return '%s{"%s"}' % (self.__class__.__name__, self._path)
+        return f'{self.__class__.__name__}{{"{self._path}"}}'
 
     def getSubdirs(self, path, recursive=True, ignoreErrors=True):
         if not recursive:
@@ -56,7 +56,7 @@ class FileReader(AbstractReader):
                 return dirs
 
             else:
-                raise error.PySmiError('directory %s access error: %s' % (path, sys.exc_info()[1]))
+                raise error.PySmiError(f'directory {path} access error: {sys.exc_info()[1]}')
 
         for d in subdirs:
             d = os.path.join(decode(path), decode(d))
@@ -76,9 +76,9 @@ class FileReader(AbstractReader):
                 )
                 f.close()
                 debug.logger & debug.flagReader and debug.logger(
-                    'loaded MIB index map from %s file, %s entries' % (indexFile, len(mibIndex)))
+                    f'loaded MIB index map from {indexFile} file, {len(mibIndex)} entries')
 
-            except IOError:
+            except OSError:
                 pass
 
         return mibIndex
@@ -93,14 +93,14 @@ class FileReader(AbstractReader):
 
             if mibname in self._mibIndex:
                 debug.logger & debug.flagReader and debug.logger(
-                    'found %s in MIB index: %s' % (mibname, self._mibIndex[mibname]))
+                    f'found {mibname} in MIB index: {self._mibIndex[mibname]}')
                 return [(mibname, self._mibIndex[mibname])]
 
-        return super(FileReader, self).getMibVariants(mibname, **options)
+        return super().getMibVariants(mibname, **options)
 
     def getData(self, mibname, **options):
         debug.logger & debug.flagReader and debug.logger(
-            '%slooking for MIB %s' % (self._recursive and 'recursively ' or '', mibname))
+            '{}looking for MIB {}'.format(self._recursive and 'recursively ' or '', mibname))
 
         for path in self.getSubdirs(self._path, self._recursive, self._ignoreErrors):
 
@@ -114,7 +114,7 @@ class FileReader(AbstractReader):
                         mtime = os.stat(f)[8]
 
                         debug.logger & debug.flagReader and debug.logger(
-                            'source MIB %s mtime is %s, fetching data...' % (
+                            'source MIB {} mtime is {}, fetching data...'.format(
                                 f, time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime(mtime))))
 
                         fp = open(f, mode='rb')
@@ -122,16 +122,16 @@ class FileReader(AbstractReader):
                         fp.close()
 
                         if len(mibData) == self.maxMibSize:
-                            raise IOError('MIB %s too large' % f)
+                            raise OSError('MIB %s too large' % f)
 
                         return MibInfo(path='file://%s' % f, file=mibfile, name=mibalias, mtime=mtime), decode(mibData)
 
-                    except (OSError, IOError):
+                    except OSError:
                         debug.logger & debug.flagReader and debug.logger(
-                            'source file %s open failure: %s' % (f, sys.exc_info()[1]))
+                            f'source file {f} open failure: {sys.exc_info()[1]}')
 
                         if not self._ignoreErrors:
-                            raise error.PySmiError('file %s access error: %s' % (f, sys.exc_info()[1]))
+                            raise error.PySmiError(f'file {f} access error: {sys.exc_info()[1]}')
 
                     raise error.PySmiReaderFileNotModifiedError('source MIB %s is older than needed' % f, reader=self)
 
