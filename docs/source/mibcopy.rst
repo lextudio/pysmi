@@ -37,7 +37,7 @@ all named after their canonical names.
       older.
 
     Documentation:
-      http://snmplabs.com/pysmi
+      https://www.pysnmp.com/pysmi
     Usage: mibcopy.py [--help]
           [--version]
           [--verbose]
@@ -73,12 +73,12 @@ methods are supported:
 * HTTP/HTTPS. A fully specified URL where MIB module name is specified by
   a @mib@ placeholder. When specific MIB is looked up, PySMI will replace
   that placeholder with MIB module name it is looking for. 
-  Example: `https://pysnmp.github.io/mibs/asn1/@mib@ <https://pysnmp.github.io/mibs/asn1>`_
+  Example: `https://mibs.pysnmp.com/asn1/@mib@ <https://mibs.pysnmp.com/asn1/>`_
 * SFTP/FTP. A fully specified URL including FTP username and password. 
   MIB module name is specified by a @mib@ placeholder. When specific MIB
   is looked up, PySMI will replace that placeholder with MIB module name
   it is looking for. 
-  Example: `https://pysnmp.github.io/mibs/asn1/@mib@ <https://pysnmp.github.io/mibs/asn1>`_
+  Example: `https://mibs.pysnmp.com/asn1/@mib@ <https://mibs.pysnmp.com/asn1/>`_
 
 When trying to fetch a MIB module, the *mibcopy.py* tool will try each of
 configured --mib-source transports in order of specification till 
@@ -87,7 +87,7 @@ first successful hit.
 By default *mibcopy.py* will search:
 
 * file:///usr/share/snmp
-* https://pysnmp.github.io/mibs/asn1/@mib@
+* https://mibs.pysnmp.com/asn1/@mib@
 
 Once another --mib-source option is given, those defaults will not be used
 and should be manually given to *mibcopy.py* if needed.

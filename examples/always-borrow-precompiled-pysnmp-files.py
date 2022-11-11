@@ -20,6 +20,9 @@ from pysmi.compiler import MibCompiler
 inputMibs = ['MIKROTIK-MIB']
 
 
+httpBorrowers = [
+    ('mibs.snmplabs.com', 80, '/pysnmp/notexts/@mib@')
+]
 dstDirectory = '.pysnmp-mibs'
 
 # Initialize compiler infrastructure
