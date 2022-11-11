@@ -25,7 +25,7 @@ from pysmi.compiler import MibCompiler
 
 inputMibs = ['IF-MIB', 'IP-MIB']
 httpSources = [
-    ('mibs.snmplabs.com', 80, '/asn1/@mib@')
+    ('mibs.pysnmp.com', 80, '/asn1/@mib@')
 ]
 ftpSources = [
     ('ftp.cisco.com', '/pub/mibs/v2/@mib@')
