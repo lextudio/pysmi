@@ -1,16 +1,13 @@
 
 SNMP MIB parser
 ---------------
-
-[![Python Versions](https://img.shields.io/pypi/pyversions/pysnmp-pysmi.svg)](https://pypi.org/project/pysnmp-pysmi/)
-[![Build status](https://travis-ci.org/etingof/pysmi.svg?branch=master)](https://secure.travis-ci.org/etingof/pysmi)
-[![Coverage Status](https://img.shields.io/codecov/c/github/pysnmp/pysmi.svg)](https://codecov.io/github/pysnmp/pysmi)
-[![GitHub license](https://img.shields.io/badge/license-BSD-blue.svg)](https://raw.githubusercontent.com/pysnmp/pysmi/main/LICENSE.rst)
+[![Python Versions](https://img.shields.io/pypi/pyversions/pysmi.svg)](https://pypi.org/project/pysmi/)
+[![GitHub license](https://img.shields.io/badge/license-BSD-blue.svg)](https://raw.githubusercontent.com/lextudio/pysmi/master/LICENSE.rst)
 
 PySMI is a pure-Python implementation of
 [SNMP SMI](https://en.wikipedia.org/wiki/Management_information_base) MIB parser.
 This tool is designed to turn ASN.1 MIBs into various formats. As of this moment,
-JSON and [pysnmp](https://github.com/etingof/pysnmp) modules can be generated
+JSON and [pysnmp](https://github.com/lextudio/pysnmp) modules can be generated
 from ASN.1 MIBs.
 
 Features
@@ -188,13 +185,14 @@ How to get PySMI
 
 The pysmi package is distributed under terms and conditions of 2-clause
 BSD [license](https://www.pysnmp.com/pysmi/license.html). Source code is freely
-available as a GitHub [repo](https://github.com/etingof/pysmi).
+available as a GitHub [repo](https://github.com/lextudio/pysmi).
 
 You could `pip install pysnmp-pysmi` or download it from [PyPI](https://pypi.org/project/pysnmp-pysmi/).
 
 If something does not work as expected,
-[open an issue](https://github.com/etingof/pysmi/issues) at GitHub or
+[open an issue](https://github.com/lextudio/pysnmp/issues) at GitHub or
 post your question [on Stack Overflow](https://stackoverflow.com/questions/ask).
 
 Copyright (c) 2015-2020, [Ilya Etingof](mailto:etingof@gmail.com).
+Copyright (c) 2022, [LeXtudio Inc.](mailto:support@lextudio.com).
 All rights reserved.

@@ -11,5 +11,5 @@ The best way to obtain SNMP SMI library is by running `pip`:
    $ pip install pysmi
 
 Alternatively, you can download the latest release from
-`GitHub <https://github.com/etingof/pysmi/releases>`_
+`GitHub <https://github.com/lextudio/pysmi/releases>`_
 or `PyPI <https://pypi.org/project/pysmi/>`_.
