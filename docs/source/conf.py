@@ -53,8 +53,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'SNMP SMI compiler'
-copyright = u'2015-2020, Ilya Etingof <etingof@gmail.com>'
-author = u'Ilya Etingof <etingof@gmail.com>'
+copyright = u'2015-2020, Ilya Etingof <etingof@gmail.com>; 2022, LeXtudio Inc. <support@lextudio.com>'
+author = u'Ilya Etingof <etingof@gmail.com>; LeXtudio Inc. <support@lextudio.com>'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

@@ -21,7 +21,7 @@ Documentation
 Source code & Changelog
 -----------------------
 
-Project source code is hosted at `GitHub <https://github.com/etingof/pysmi>`_.
+Project source code is hosted at `GitHub <https://github.com/lextudio/pysmi>`_.
 Everyone is welcome to fork and contribute back!
 
 We maintain the detailed :doc:`log of changes </changelog>` to our software.
@@ -71,5 +71,5 @@ Contact
 -------
 
 In case of questions or troubles using SNMP SMI library, please open up an
-`issue <https://github.com/etingof/pysmi/issues>`_ at GitHub or ask at
-`Stack Overflow <https://stackoverflow.com/questions/tagged/pysmi>`_ .
+`issue <https://github.com/lextudio/pysnmp/issues>`_ at GitHub or ask at
+`Stack Overflow <https://stackoverflow.com/questions/tagged/pysnmp>`_ .
