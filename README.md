@@ -187,7 +187,7 @@ The pysmi package is distributed under terms and conditions of 2-clause
 BSD [license](https://www.pysnmp.com/pysmi/license.html). Source code is freely
 available as a GitHub [repo](https://github.com/lextudio/pysmi).
 
-You could `pip install pysnmp-pysmi` or download it from [PyPI](https://pypi.org/project/pysnmp-pysmi/).
+You could `pip install pysmi-lextudio` or download it from [PyPI](https://pypi.org/project/pysmi-lextudio/).
 
 If something does not work as expected,
 [open an issue](https://github.com/lextudio/pysnmp/issues) at GitHub or

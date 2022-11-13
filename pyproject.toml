@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "pysnmp-pysmi"
+name = "pysmi-lextudio"
 version = "1.1.10"
-description = ""
-authors = ["rfaircloth-splunk <rfaircloth@splunk.com>"]
+description = "A pure-Python implementation of SNMP/SMI MIB parsing and conversion library."
+authors = ["Lex Li <support@lextudio.com>"]
 license = "BSD-2-Clause"
-repository = "https://github.com/pysnmp/pysmi"
+repository = "https://github.com/lextudio/pysmi"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
@@ -25,7 +25,7 @@ packages = [
 include = ["docs", "tests", "examples", "scripts"]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.7"
 ply = "^3.11"
 requests = "^2.26.0"
 
@@ -37,6 +37,7 @@ pytest = "^6.2.5"
 pytest-cov = "^3.0.0"
 black = "^21.10b0"
 isort = "^5.10.1"
+importlib-metadata = { version = ">=0.12", python = "<3.8" }
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
