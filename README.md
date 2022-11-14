@@ -2,6 +2,7 @@
 SNMP MIB parser
 ---------------
 [![PyPI](https://img.shields.io/pypi/v/pysmi-lextudio.svg?maxAge=2592000)](https://pypi.org/project/pysmi-lextudio)
+[![PyPI Downloads](https://img.shields.io/pypi/dd/pysmi-lextudio)](https://pypi.python.org/pypi/pysmi-lextudio/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/pysmi-lextudio.svg)](https://pypi.org/project/pysmi-lextudio/)
 [![GitHub license](https://img.shields.io/badge/license-BSD-blue.svg)](https://raw.githubusercontent.com/lextudio/pysmi/master/LICENSE.rst)
 
