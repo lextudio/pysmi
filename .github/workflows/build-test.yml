@@ -9,18 +9,6 @@ on:
     branches: [main, develop]
 
 jobs:
-  pre-commit:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: "3.7"
-      - name: Install actionlint
-        run: |
-          bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/v1.6.3/scripts/download-actionlint.bash)
-      - uses: pre-commit/action@v2.0.3
-
   build:
     name: build
     runs-on: ubuntu-latest
@@ -52,7 +40,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        python: ["3.7", "3.8", "3.9"]
+        python: ["3.7", "3.8", "3.9", "3.10", "pypy-3.8"]
         poetry-version: ["1.1.11"]
       fail-fast: false
     runs-on: ${{ matrix.os }}
