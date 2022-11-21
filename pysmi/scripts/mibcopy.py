@@ -3,7 +3,7 @@
 # This file is part of pysmi software.
 #
 # Copyright (c) 2015-2019, Ilya Etingof <etingof@gmail.com>
-# License: http://snmplabs.com/pysmi/license.html
+# License: https://www.pysnmp.com/pysmi/license.html
 #
 # SNMP SMI/MIB copying tool
 #
@@ -81,7 +81,7 @@ def start():
     is older.
 
     Documentation:
-    http://snmplabs.com/pysmi
+    https://www.pysnmp.com/pysmi
     %s
     """ % helpMessage)
             sys.exit(EX_OK)
@@ -92,7 +92,7 @@ def start():
             sys.stderr.write("""\
     SNMP SMI/MIB library version {}, written by Ilya Etingof <etingof@gmail.com>
     Python interpreter: {}
-    Software documentation and support at http://snmplabs.com/pysmi
+    Software documentation and support at https://www.pysnmp.com/pysmi
     {}
     """.format(__version__, sys.version, helpMessage))
             sys.exit(EX_OK)
@@ -117,7 +117,7 @@ def start():
 
     if not mibSources:
         mibSources = ['file:///usr/share/snmp/mibs',
-                    'https://pysnmp.github.io:443/mibs/asn1/@mib@']
+                    'https://mibs.pysnmp.com/mibs/asn1/@mib@']
 
     if len(inputMibs) < 2:
         sys.stderr.write('ERROR: MIB source and/or destination arguments not given\r\n%s\r\n' % helpMessage)

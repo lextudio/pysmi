@@ -3,7 +3,7 @@
 # This file is part of pysmi software.
 #
 # Copyright (c) 2015-2019, Ilya Etingof <etingof@gmail.com>
-# License: http://snmplabs.com/pysmi/license.html
+# License: https://www.pysnmp.com/pysmi/license.html
 #
 # SNMP SMI/MIB data management tool
 #
@@ -107,7 +107,7 @@ def start():
     Synopsis:
     SNMP SMI/MIB files conversion tool
     Documentation:
-    http://snmplabs.com/pysmi
+    https://www.pysnmp.com/pysmi
     %s
     """ % helpMessage)
             sys.exit(EX_OK)
@@ -118,7 +118,7 @@ def start():
             sys.stderr.write("""\
     SNMP SMI/MIB library version {}, written by Ilya Etingof <etingof@gmail.com>
     Python interpreter: {}
-    Software documentation and support at http://snmplabs.com/pysmi
+    Software documentation and support at https://www.pysnmp.com/pysmi
     {}
     """.format(__version__, sys.version, helpMessage))
             sys.exit(EX_OK)
@@ -189,7 +189,8 @@ def start():
             keepTextsLayout = True
 
     if not mibSources:
-        mibSources = ['https://pysnmp.github.io:443/mibs/asn1/@mib@']
+        mibSources = ['file:///usr/share/snmp/mibs',
+                    'https://mibs.pysnmp.com/mibs/asn1/@mib@']
 
     if inputMibs:
         mibSources = sorted(
@@ -215,8 +216,8 @@ def start():
             mibStubs = [x for x in PySnmpCodeGen.baseMibs if x not in PySnmpCodeGen.fakeMibs]
 
         if not mibBorrowers:
-            mibBorrowers = [('https://pysnmp.github.com:443/mibs/notexts/@mib@', False),
-                            ('https://pysnmp.github.com:443/mibs/fulltexts/@mib@', True)]
+            mibBorrowers = [('https://mibs.pysnmp.com:443/mibs/notexts/@mib@', False),
+                            ('https://mibs.pysnmp.com:443/mibs/fulltexts/@mib@', True)]
 
         if not dstDirectory:
             dstDirectory = os.path.expanduser("~")
@@ -247,8 +248,8 @@ def start():
             mibStubs = JsonCodeGen.baseMibs
 
         if not mibBorrowers:
-            mibBorrowers = [('https://pysnmp.github.io:443/mibs/json/notexts/@mib@', False),
-                            ('https://pysnmp.github.io:443/mibs/fulltexts/@mib@', True)]
+            mibBorrowers = [('https://mibs.pysnmp.com/mibs/json/notexts/@mib@', False),
+                            ('https://mibs.pysnmp.com/mibs/fulltexts/@mib@', True)]
 
         if not dstDirectory:
             dstDirectory = os.path.join('.')
@@ -269,8 +270,8 @@ def start():
             mibStubs = NullCodeGen.baseMibs
 
         if not mibBorrowers:
-            mibBorrowers = [('https://pysnmp.github.io:443/mibs/null/notexts/@mib@', False),
-                            ('https://pysnmp.github.io:443/mibs/null/fulltexts/@mib@', True)]
+            mibBorrowers = [('https://mibs.pysnmp.com/mibs/null/notexts/@mib@', False),
+                            ('https://mibs.pysnmp.com/mibs/null/fulltexts/@mib@', True)]
 
         if not dstDirectory:
             dstDirectory = ''

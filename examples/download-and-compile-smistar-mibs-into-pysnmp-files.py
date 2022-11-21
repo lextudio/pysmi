@@ -24,7 +24,7 @@ from pysmi.compiler import MibCompiler
 
 inputMibs = ['IF-MIB', 'IP-MIB']
 httpSources = [
-    ('mibs.pysnmp.com', 80, '/asn1/@mib@')
+    ('mibs.pysnmp.com', 443, '/asn1/@mib@')
 ]
 ftpSources = [
     ('ftp.cisco.com', '/pub/mibs/v2/@mib@')
@@ -38,7 +38,7 @@ mibCompiler = MibCompiler(
 )
 
 # search for source MIBs at Web and FTP sites
-mibCompiler.addSources(HttpReader('https://pysnmp.github.io/mibs/asn1/@mib@'))
+mibCompiler.addSources(HttpReader('https://mibs.pysnmp.com/mibs/asn1/@mib@'))
 
 # never recompile MIBs with MACROs
 mibCompiler.addSearchers(StubSearcher(*PySnmpCodeGen.baseMibs))

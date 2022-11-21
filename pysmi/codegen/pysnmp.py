@@ -1170,7 +1170,7 @@ for _%(name)s_obj in [%(objects)s]:
 
         if 'comments' in kwargs:
             out = ''.join(['# %s\n' % x for x in kwargs['comments']]) + '#\n' + out
-            out = '#\n# PySNMP MIB module %s (http://snmplabs.com/pysmi)\n' % self.moduleName[0] + out
+            out = '#\n# PySNMP MIB module %s (https://www.pysnmp.com/pysmi)\n' % self.moduleName[0] + out
 
         debug.logger & debug.flagCodegen and debug.logger(
             'canonical MIB name {} ({}), imported MIB(s) {}, Python code size {} bytes'.format(
@@ -1197,7 +1197,7 @@ for _%(name)s_obj in [%(objects)s]:
 
         if 'comments' in kwargs:
             out = ''.join(['# %s\n' % x for x in kwargs['comments']]) + '#\n' + out
-            out = '#\n# PySNMP MIB indices (http://snmplabs.com/pysmi)\n' + out
+            out = '#\n# PySNMP MIB indices (https://www.pysnmp.com/pysmi)\n' + out
 
         debug.logger & debug.flagCodegen and debug.logger(
             f'OID->MIB index built, {count} entries, {len(out)} bytes')
