@@ -21,7 +21,7 @@ inputMibs = ['MIKROTIK-MIB']
 
 
 httpBorrowers = [
-    ('mibs.snmplabs.com', 80, '/pysnmp/notexts/@mib@')
+    ('mibs.pysnmp.com', 443, '/pysnmp/notexts/@mib@')
 ]
 dstDirectory = '.pysnmp-mibs'
 
@@ -35,7 +35,7 @@ mibCompiler = MibCompiler(
 mibCompiler.addSearchers(PyFileSearcher(dstDirectory))
 
 # search for precompiled MIBs at Web sites
-mibCompiler.addBorrowers(*[PyFileBorrower(HttpReader('https://pysnmp.github.io/mibs/notexts/@mib@'))])
+mibCompiler.addBorrowers(*[PyFileBorrower(HttpReader('https://mibs.pysnmp.com/mibs/notexts/@mib@'))])
 
 # run MIB compilation
 results = mibCompiler.compile(*inputMibs)

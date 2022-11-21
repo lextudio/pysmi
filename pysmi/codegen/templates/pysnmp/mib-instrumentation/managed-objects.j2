@@ -12,7 +12,7 @@ If the hook is not overridden, it will manage the volatile variable
 as defined by the MIB OBJECT-TYPE clause.
 
 These hooks are asynchronous by design. Be sure to understand pysnmp
-SMI data model (`http://snmplabs.com/pysnmp`) if you are going to add
+SMI data model (`https://www.pysnmp.com/pysnmp`) if you are going to add
 your code into these hooks.
 #}
 {% extends "pysnmp/mib-definitions.j2" %}
@@ -26,7 +26,7 @@ class _{{ symbol|replace('-', '_')|capfirst }}_Object(MibScalar):
     User can override none, some or all of the method below interfacing
     them to the data source they want to manage through SNMP.
 
-    See the SMI data model documentation at `http://snmplabs.com/pysnmp`.
+    See the SMI data model documentation at `https://www.pysnmp.com/pysnmp`.
     """
     {% block mib_scalar_object_read %}
     def readTest(self, varBind, **context):
@@ -96,7 +96,7 @@ class _{{ symbol|replace('-', '_')|capfirst }}_Object(MibScalar):
     User can override none, some or all of the method below interfacing
     them to the data source they want to manage through SNMP.
 
-    See the SMI data model documentation at `http://snmplabs.com/pysnmp`.
+    See the SMI data model documentation at `https://www.pysnmp.com/pysnmp`.
     """
     {% block mib_table_column_object_read %}
     def readTest(self, varBind, **context):
