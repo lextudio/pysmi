@@ -5,18 +5,18 @@ The *mibcopy* tool
 .. toctree::
    :maxdepth: 2
 
-The *mibcopy.py* tool attempts to normalize the file name of the MIB file.
+The *mibcopy* tool attempts to normalize the file name of the MIB file.
 
 It turned out that sometimes vendors name their MIBs in any possible way,
 not necessarily after the canonical MIB name. This causes problems to the
 MIB consumers as they may not be able to locate the MIB they need on the
 file system.
 
-The way how *mibcopy.py* works is that it tries to read the MIB from
+The way how *mibcopy* works is that it tries to read the MIB from
 the given file (or all files from a given directory or archive), parse
 MIB's canonical name from the contents of the file. Based on that, the
 tool tries to rename MIB file into the name which is the same as canonical
-MIB name. If *mibcopy.py* encounters the same named file already present
+MIB name. If *mibcopy* encounters the same named file already present
 on the file system, it reads it up to see its revision date. Then the
 tool compares the revision dates of the colliding MIB files and either
 overrides the offending file or drops the file being copied as outdated.
@@ -26,7 +26,7 @@ all named after their canonical names.
 
 .. code-block:: bash
 
-    $ mibcopy.py --help
+    $ mibcopy --help
     Synopsis:
       SNMP SMI/MIB files copying tool. When given MIB file(s) or
       directory(ies) on input and a destination directory, the tool
@@ -38,7 +38,7 @@ all named after their canonical names.
 
     Documentation:
       https://www.pysnmp.com/pysmi
-    Usage: mibcopy.py [--help]
+    Usage: mibcopy [--help]
           [--version]
           [--verbose]
           [--quiet]
@@ -80,22 +80,22 @@ methods are supported:
   it is looking for. 
   Example: `https://mibs.pysnmp.com/asn1/@mib@ <https://mibs.pysnmp.com/asn1/>`_
 
-When trying to fetch a MIB module, the *mibcopy.py* tool will try each of
+When trying to fetch a MIB module, the *mibcopy* tool will try each of
 configured --mib-source transports in order of specification till 
 first successful hit.
 
-By default *mibcopy.py* will search:
+By default *mibcopy* will search:
 
 * file:///usr/share/snmp
 * https://mibs.pysnmp.com/asn1/@mib@
 
 Once another --mib-source option is given, those defaults will not be used
-and should be manually given to *mibcopy.py* if needed.
+and should be manually given to *mibcopy* if needed.
 
 Setting destination directory
 -----------------------------
 
-The *mibcopy.py* writes MIBs into the *<DESTINATION>* directory.
+The *mibcopy* writes MIBs into the *<DESTINATION>* directory.
 
 Ignoring transformation errors
 ------------------------------

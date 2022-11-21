@@ -29,12 +29,12 @@ How to use PySMI
 
 If you are using pysnmp, you might never notice pysmi presence - pysnmp
 calls pysmi for MIB download and compilation behind the scenes (you can
-still can do that manually by invoking *mibdump.py* tool).
+still can do that manually by invoking *mibdump* tool).
 
-To turn ASN.1 MIB into a JSON document, call *mibdump.py* tool like this:
+To turn ASN.1 MIB into a JSON document, call *mibdump* tool like this:
 
 ```
-$ mibdump.py --generate-mib-texts  --destination-format json IF-MIB
+$ mibdump --generate-mib-texts  --destination-format json IF-MIB
 Source MIB repositories: file:///usr/share/snmp/mibs, https://mibs.pysnmp.com/asn1/@mib@
 Borrow missing/failed MIBs from: https://mibs.pysnmp.com/json/fulltexts/@mib@
 Existing/compiled MIB locations: 
