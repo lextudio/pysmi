@@ -33,8 +33,12 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
-    'sphinx.ext.todo'
+    'sphinx.ext.todo',
+    'sphinx_sitemap'
 ]
+
+html_baseurl = 'https://www.pysnmp.com/pysmi'
+sitemap_url_scheme = '{link}'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['.templates']
