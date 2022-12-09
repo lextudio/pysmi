@@ -96,7 +96,7 @@ class HttpReader(AbstractReader):
                     mtime = time.time()
 
                 debug.logger & debug.flagReader and debug.logger(
-                    'fetching source MIB {}, mtime {}'.format(url, response.headers['Last-Modified']))
+                    'fetching source MIB {}, mtime {}'.format(url, mtime))
 
                 return MibInfo(path=url, file=mibfile, name=mibalias, mtime=mtime), response.content.decode('utf-8')
 
