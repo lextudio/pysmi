@@ -79,7 +79,7 @@ class HttpReader(AbstractReader):
             debug.logger & debug.flagReader and debug.logger('trying to fetch MIB from %s' % url)
 
             try:
-                response = self.session.get(url,headers=headers)
+                response = self.session.get(url, headers=headers)
                 
             except Exception:
                 debug.logger & debug.flagReader and debug.logger(f'failed to fetch MIB from {url}: {sys.exc_info()[1]}')
