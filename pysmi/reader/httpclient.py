@@ -8,7 +8,7 @@ import socket
 import sys
 import time
 
-from requests import session
+from requests import Session
 
 
 from pysmi.reader.base import AbstractReader
@@ -50,7 +50,7 @@ class HttpReader(AbstractReader):
         """
         self._url = url
      
-        self.session = session()
+        self.session = Session()
         
         self._user_agent = 'pysmi-{}; python-{}.{}.{}; {}'.format(
             pysmi_version, sys.version_info[0], sys.version_info[1],
