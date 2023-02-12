@@ -1,3 +1,18 @@
+Revision 1.1.13, 11-02-2023
+---------------------------
+
+- Updated MIB URLs.
+
+Revision 1.1.12, 26-12-2022
+---------------------------
+
+- Migrated to new asn1 repo.
+- Bumped minimal Python version to 3.7.
+
+Revision 1.1.11, 21-11-2022
+---------------------------
+
+- Revised documentation to meet the latest version.
 
 Revision 0.3.4, XX-01-2019
 --------------------------
