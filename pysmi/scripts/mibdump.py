@@ -358,17 +358,12 @@ def start():
                             writeMibs=writeMibsFlag,
                             ignoreErrors=ignoreErrorsFlag)
         )
-        
-        safe = {}
-        for x in sorted(processed):
-            if processed[x] != 'failed':
-                safe[x]=processed[x]
-                
+
         if buildIndexFlag:
             mibCompiler.buildIndex(
-                safe,
+                processed,
                 dryRun=dryrunFlag,
-                ignoreErrors=True
+                ignoreErrors=ignoreErrorsFlag
             )
 
     except error.PySmiError:
@@ -377,21 +372,22 @@ def start():
 
     else:
         if verboseFlag:
-            sys.stdout.write('{}reated/updated MIBs: {}\r\n'.format(dryrunFlag and 'Would be c' or 'C', ', '.join(
+            sys.stderr.write('{}reated/updated MIBs: {}\r\n'.format(dryrunFlag and 'Would be c' or 'C', ', '.join(
                 ['{}{}'.format(x, x != processed[x].alias and ' (%s)' % processed[x].alias or '') for x in sorted(processed) if processed[x] == 'compiled'])))
 
-            sys.stdout.write('Pre-compiled MIBs {}borrowed: {}\r\n'.format(dryrunFlag and 'Would be ' or '', ', '.join(
+            sys.stderr.write('Pre-compiled MIBs {}borrowed: {}\r\n'.format(dryrunFlag and 'Would be ' or '', ', '.join(
                 [f'{x} ({processed[x].path})' for x in sorted(processed) if processed[x] == 'borrowed'])))
 
-            sys.stdout.write(
+            sys.stderr.write(
                 'Up to date MIBs: %s\r\n' % ', '.join(['%s' % x for x in sorted(processed) if processed[x] == 'untouched']))
-            sys.stderr.write("Missing source MIBs: %s\n" % "\n ".join(
+
+            sys.stderr.write('Missing source MIBs: %s\r\n' % ', '.join(
                 ['%s' % x for x in sorted(processed) if processed[x] == 'missing']))
 
             sys.stderr.write(
                 'Ignored MIBs: %s\r\n' % ', '.join(['%s' % x for x in sorted(processed) if processed[x] == 'unprocessed']))
 
-            sys.stderr.write("Failed MIBs: %s\n" % "\n ".join(
+            sys.stderr.write('Failed MIBs: %s\r\n' % ', '.join(
                 [f'{x} ({processed[x].error})' for x in sorted(processed) if processed[x] == 'failed']))
 
         exitCode = EX_OK

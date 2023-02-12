@@ -8,7 +8,7 @@ import socket
 import sys
 import time
 
-from requests import session
+from requests import Session
 
 
 from pysmi.reader.base import AbstractReader
@@ -50,7 +50,7 @@ class HttpReader(AbstractReader):
         """
         self._url = url
      
-        self.session = session()
+        self.session = Session()
         
         self._user_agent = 'pysmi-{}; python-{}.{}.{}; {}'.format(
             pysmi_version, sys.version_info[0], sys.version_info[1],
@@ -79,7 +79,7 @@ class HttpReader(AbstractReader):
             debug.logger & debug.flagReader and debug.logger('trying to fetch MIB from %s' % url)
 
             try:
-                response = self.session.get(url,headers=headers)
+                response = self.session.get(url, headers=headers)
                 
             except Exception:
                 debug.logger & debug.flagReader and debug.logger(f'failed to fetch MIB from {url}: {sys.exc_info()[1]}')
@@ -96,7 +96,7 @@ class HttpReader(AbstractReader):
                     mtime = time.time()
 
                 debug.logger & debug.flagReader and debug.logger(
-                    'fetching source MIB {}, mtime {}'.format(url, response.headers['Last-Modified']))
+                    'fetching source MIB {}, mtime {}'.format(url, mtime))
 
                 return MibInfo(path=url, file=mibfile, name=mibalias, mtime=mtime), response.content.decode('utf-8')
 

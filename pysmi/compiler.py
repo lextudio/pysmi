@@ -282,7 +282,7 @@ class MibCompiler:
                 if mibname not in processed:
                     processed[mibname] = statusMissing
 
-        print(
+        debug.logger & debug.flagCompiler and debug.logger(
             f'MIBs analyzed {len(parsedMibs)}, MIBs failed {len(failedMibs)}')
 
         #
