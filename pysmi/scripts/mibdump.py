@@ -190,7 +190,7 @@ def start():
 
     if not mibSources:
         mibSources = ['file:///usr/share/snmp/mibs',
-                    'https://mibs.pysnmp.com/mibs/asn1/@mib@']
+                    'https://mibs.pysnmp.com/asn1/@mib@']
 
     if inputMibs:
         mibSources = sorted(
@@ -248,8 +248,8 @@ def start():
             mibStubs = JsonCodeGen.baseMibs
 
         if not mibBorrowers:
-            mibBorrowers = [('https://mibs.pysnmp.com/mibs/json/notexts/@mib@', False),
-                            ('https://mibs.pysnmp.com/mibs/fulltexts/@mib@', True)]
+            mibBorrowers = [('https://mibs.pysnmp.com/json/notexts/@mib@', False),
+                            ('https://mibs.pysnmp.com/fulltexts/@mib@', True)]
 
         if not dstDirectory:
             dstDirectory = os.path.join('.')
@@ -270,8 +270,8 @@ def start():
             mibStubs = NullCodeGen.baseMibs
 
         if not mibBorrowers:
-            mibBorrowers = [('https://mibs.pysnmp.com/mibs/null/notexts/@mib@', False),
-                            ('https://mibs.pysnmp.com/mibs/null/fulltexts/@mib@', True)]
+            mibBorrowers = [('https://mibs.pysnmp.com/null/notexts/@mib@', False),
+                            ('https://mibs.pysnmp.com/null/fulltexts/@mib@', True)]
 
         if not dstDirectory:
             dstDirectory = ''

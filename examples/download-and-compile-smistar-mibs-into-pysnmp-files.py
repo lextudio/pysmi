@@ -38,7 +38,7 @@ mibCompiler = MibCompiler(
 )
 
 # search for source MIBs at Web and FTP sites
-mibCompiler.addSources(HttpReader('https://mibs.pysnmp.com/mibs/asn1/@mib@'))
+mibCompiler.addSources(HttpReader('https://mibs.pysnmp.com/asn1/@mib@'))
 
 # never recompile MIBs with MACROs
 mibCompiler.addSearchers(StubSearcher(*PySnmpCodeGen.baseMibs))
