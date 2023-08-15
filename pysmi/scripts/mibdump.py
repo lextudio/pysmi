@@ -37,6 +37,7 @@ def start():
 
     # Defaults
     verboseFlag = True
+    strictFlag = False
     mibSources = []
     doFuzzyMatchingFlag = True
     mibSearchers = []
@@ -60,6 +61,7 @@ def start():
     Usage: {} [--help]
         [--version]
         [--quiet]
+        [--strict]
         [--debug=<{}>]
         [--mib-source=<URI>]
         [--mib-searcher=<PATH|PACKAGE>]
@@ -97,6 +99,7 @@ def start():
                 "help",
                 "version",
                 "quiet",
+                "strict",
                 "debug=",
                 "mib-source=",
                 "mib-searcher=",
@@ -156,6 +159,9 @@ def start():
 
         if opt[0] == "--quiet":
             verboseFlag = False
+
+        if opt[0] == "--strict":
+            strictFlag = True
 
         if opt[0] == "--debug":
             debug.setLogger(debug.Debug(*opt[1].split(",")))
@@ -294,6 +300,7 @@ def start():
         searchers.append(StubSearcher(*mibStubs))
 
         codeGenerator = PySnmpCodeGen()
+        codeGenerator.strictCompliance = strictFlag
 
         fileWriter = PyFileWriter(dstDirectory).setOptions(
             pyCompile=pyCompileFlag, pyOptimizationLevel=pyOptimizationLevel
@@ -331,6 +338,7 @@ def start():
         ]
 
         codeGenerator = JsonCodeGen()
+        codeGenerator.strictCompliance = strictFlag
 
         fileWriter = FileWriter(dstDirectory).setOptions(suffix=".json")
 

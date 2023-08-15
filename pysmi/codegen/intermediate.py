@@ -74,6 +74,7 @@ class IntermediateCodeGen(AbstractCodeGen):
 
     indent = " " * 4
     fakeidx = 1000  # starting index for fake symbols
+    strictCompliance = True
 
     def __init__(self):
         self._rows = set()
@@ -180,9 +181,10 @@ class IntermediateCodeGen(AbstractCodeGen):
 
             if moduleIdentity:
                 if self._moduleIdentityOid:
-                    # TODO: maybe we should show a warning here
-                    # raise error.PySmiSemanticError("Duplicate module identity")
-                    pass
+                    if self.strictCompliance:
+                        raise error.PySmiSemanticError("Duplicate module identity")
+                    else:
+                        pass
                 else:
                     self._moduleIdentityOid = outDict["oid"]
 
