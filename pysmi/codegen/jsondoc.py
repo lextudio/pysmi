@@ -493,7 +493,7 @@ class JsonCodeGen(AbstractCodeGen):
 
         outDict = OrderedDict()
         outDict['name'] = name
-        outDict['oid'] = enterpriseStr + '0.' + str(value)
+        outDict['oid'] = enterpriseStr + '.0.' + str(value)
         outDict['class'] = 'notificationtype'
 
         if variables:
