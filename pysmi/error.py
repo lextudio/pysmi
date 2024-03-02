@@ -2,7 +2,7 @@
 # This file is part of pysmi software.
 #
 # Copyright (c) 2015-2020, Ilya Etingof <etingof@gmail.com>
-# License: http://snmplabs.com/pysmi/license.html
+# License: https://www.pysnmp.com/pysmi/license.html
 #
 # Package exception model:
 # Here we subclass base Python exception overriding its constructor to

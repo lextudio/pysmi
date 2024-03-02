@@ -19,7 +19,7 @@ This example showcases some of its features:
 
    inputMibs = ['IF-MIB', 'IP-MIB']
 
-   httpSources = [('pysnmp.github.io', 80, '/asn1/@mib@')]
+   httpSources = [('mibs.pysnmp.com', 80, '/asn1/@mib@')]
 
    # store compiled MIBs by calling this function
    def store_mibs(mibName, jsonDoc, cbCtx):
@@ -77,7 +77,7 @@ Such cases include:
 name based on whatever reason it is aware of.
 
 In general, *searcher* logic is specific to target format. At the time being,
-only `pysnmp <http://snmplabs.com/pysnmp>`_ code generation backend requires
+only `pysnmp <https://www.pysnmp.com/pysnmp>`_ code generation backend requires
 such filtering.
 
 .. toctree::

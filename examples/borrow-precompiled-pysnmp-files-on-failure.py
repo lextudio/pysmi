@@ -19,9 +19,13 @@ from pysmi.compiler import MibCompiler
 
 # debug.setLogger(debug.Debug('borrower', 'reader', 'searcher'))
 
-inputMibs = ['MIKROTIK-MIB']
-
-
+inputMibs = ['BORROWED-MIB']
+httpSources = [ 
+    ('mibs.pysnmp.com', 80, '/asn1/@mib@')
+]
+httpBorrowers = [
+    ('mibs.pysnmp.com', 80, '/pysnmp/notexts/@mib@')
+]
 dstDirectory = '.pysnmp-mibs'
 
 # Initialize compiler infrastructure
