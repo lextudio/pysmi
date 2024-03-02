@@ -180,8 +180,11 @@ class IntermediateCodeGen(AbstractCodeGen):
 
             if moduleIdentity:
                 if self._moduleIdentityOid:
-                    raise error.PySmiSemanticError("Duplicate module identity")
-                self._moduleIdentityOid = outDict["oid"]
+                    # TODO: maybe we should show a warning here
+                    # raise error.PySmiSemanticError("Duplicate module identity")
+                    pass
+                else:
+                    self._moduleIdentityOid = outDict["oid"]
 
             if moduleCompliance:
                 self._complianceOids.append(outDict["oid"])
