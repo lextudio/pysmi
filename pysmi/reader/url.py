@@ -7,6 +7,7 @@
 import sys
 
 from urllib import parse as urlparse
+from urllib.request import url2pathname
 from pysmi.reader.localfile import FileReader
 from pysmi.reader.zipreader import ZipReader
 from pysmi.reader.httpclient import HttpReader
