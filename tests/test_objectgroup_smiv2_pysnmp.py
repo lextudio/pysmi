@@ -5,6 +5,7 @@
 # License: https://www.pysnmp.com/pysmi/license.html
 #
 import sys
+
 try:
     import unittest2 as unittest
 
@@ -20,73 +21,68 @@ from pysnmp.smi.builder import MibBuilder
 
 class ObjectGroupTestCase(unittest.TestCase):
     """
-TEST-MIB DEFINITIONS ::= BEGIN
-IMPORTS
-  OBJECT-GROUP
-    FROM SNMPv2-CONF;
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      OBJECT-GROUP
+        FROM SNMPv2-CONF;
 
-testObjectGroup OBJECT-GROUP
-    OBJECTS         {
-                        testStorageType,
-                        testRowStatus
-                    }
-    STATUS          current
-    DESCRIPTION
-        "A collection of test objects."
- ::= { 1 3 }
+    testObjectGroup OBJECT-GROUP
+        OBJECTS         {
+                            testStorageType,
+                            testRowStatus
+                        }
+        STATUS          current
+        DESCRIPTION
+            "A collection of test objects."
+     ::= { 1 3 }
 
-END
- """
+    END
+    """
 
     def setUp(self):
         ast = parserFactory(**smiV2)().parse(self.__class__.__doc__)[0]
         mibInfo, symtable = SymtableCodeGen().genCode(ast, {}, genTexts=True)
-        self.mibInfo, pycode = PySnmpCodeGen().genCode(ast, {mibInfo.name: symtable}, genTexts=True)
-        codeobj = compile(pycode, 'test', 'exec')
+        self.mibInfo, pycode = PySnmpCodeGen().genCode(
+            ast, {mibInfo.name: symtable}, genTexts=True
+        )
+        codeobj = compile(pycode, "test", "exec")
 
         mibBuilder = MibBuilder()
         mibBuilder.loadTexts = True
 
-        self.ctx = {'mibBuilder': mibBuilder}
+        self.ctx = {"mibBuilder": mibBuilder}
 
         exec(codeobj, self.ctx, self.ctx)
 
     def testObjectGroupSymbol(self):
-        self.assertTrue(
-            'testObjectGroup' in self.ctx,
-            'symbol not present'
-        )
+        self.assertTrue("testObjectGroup" in self.ctx, "symbol not present")
 
     def testObjectGroupName(self):
-        self.assertEqual(
-            self.ctx['testObjectGroup'].getName(),
-            (1, 3),
-            'bad name'
-        )
+        self.assertEqual(self.ctx["testObjectGroup"].getName(), (1, 3), "bad name")
 
     def testObjectGroupDescription(self):
         self.assertEqual(
-            self.ctx['testObjectGroup'].getDescription(),
-            'A collection of test objects.\n',
-            'bad DESCRIPTION'
+            self.ctx["testObjectGroup"].getDescription(),
+            "A collection of test objects.\n",
+            "bad DESCRIPTION",
         )
 
     def testObjectGroupObjects(self):
         self.assertEqual(
-            self.ctx['testObjectGroup'].getObjects(),
-            (('TEST-MIB', 'testStorageType'), ('TEST-MIB', 'testRowStatus')),
-            'bad OBJECTS'
+            self.ctx["testObjectGroup"].getObjects(),
+            (("TEST-MIB", "testStorageType"), ("TEST-MIB", "testRowStatus")),
+            "bad OBJECTS",
         )
 
     def testObjectGroupClass(self):
         self.assertEqual(
-            self.ctx['testObjectGroup'].__class__.__name__,
-            'ObjectGroup',
-            'bad SYNTAX class'
+            self.ctx["testObjectGroup"].__class__.__name__,
+            "ObjectGroup",
+            "bad SYNTAX class",
         )
 
 
 suite = unittest.TestLoader().loadTestsFromModule(sys.modules[__name__])
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.TextTestRunner(verbosity=2).run(suite)

@@ -16,12 +16,12 @@ try:
 except ImportError:
     import imp
 
-    SOURCE_SUFFIXES = [s[0] for s in imp.get_suffixes()
-                       if s[2] == imp.PY_SOURCE]
+    SOURCE_SUFFIXES = [s[0] for s in imp.get_suffixes() if s[2] == imp.PY_SOURCE]
 
 from pysmi.borrower.base import AbstractBorrower
 
 
 class PyFileBorrower(AbstractBorrower):
     """Create PySNMP MIB file borrowing object"""
+
     exts = SOURCE_SUFFIXES

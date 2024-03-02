@@ -16,16 +16,17 @@ from pysmi import error
 class FileWriter(AbstractWriter):
     """Stores transformed MIB modules in files at specified location.
 
-       User is expected to pass *FileReader* class instance to
-       *MibCompiler* on instantiation. The rest is internal to *MibCompiler*.
+    User is expected to pass *FileReader* class instance to
+    *MibCompiler* on instantiation. The rest is internal to *MibCompiler*.
     """
-    suffix = ''
+
+    suffix = ""
 
     def __init__(self, path):
         """Creates an instance of *FileReader* class.
 
-           Args:
-               path: writable directory to store created files
+        Args:
+            path: writable directory to store created files
         """
         self._path = decode(os.path.normpath(path))
 
@@ -46,11 +47,11 @@ class FileWriter(AbstractWriter):
         except (OSError, UnicodeEncodeError):
             if f:
                 f.close()
-            return ''
+            return ""
 
     def putData(self, mibname, data, comments=(), dryRun=False):
         if dryRun:
-            debug.logger & debug.flagWriter and debug.logger('dry run mode')
+            debug.logger & debug.flagWriter and debug.logger("dry run mode")
             return
 
         if not os.path.exists(self._path):
@@ -59,10 +60,12 @@ class FileWriter(AbstractWriter):
 
             except OSError:
                 raise error.PySmiWriterError(
-                    f'failure creating destination directory {self._path}: {sys.exc_info()[1]}', writer=self)
+                    f"failure creating destination directory {self._path}: {sys.exc_info()[1]}",
+                    writer=self,
+                )
 
         if comments:
-            data = '#\n' + ''.join(['# %s\n' % x for x in comments]) + '#\n' + data
+            data = "#\n" + "".join(["# %s\n" % x for x in comments]) + "#\n" + data
 
         filename = os.path.join(self._path, decode(mibname)) + self.suffix
 
@@ -83,6 +86,10 @@ class FileWriter(AbstractWriter):
                 except OSError:
                     pass
 
-            raise error.PySmiWriterError(f'failure writing file {filename}: {exc[1]}', file=filename, writer=self)
+            raise error.PySmiWriterError(
+                f"failure writing file {filename}: {exc[1]}", file=filename, writer=self
+            )
 
-        debug.logger & debug.flagWriter and debug.logger(f'{mibname} stored in {filename}')
+        debug.logger & debug.flagWriter and debug.logger(
+            f"{mibname} stored in {filename}"
+        )

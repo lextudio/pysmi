@@ -18,26 +18,26 @@ flagCodegen = 0x0020
 flagWriter = 0x0040
 flagCompiler = 0x0080
 flagBorrower = 0x0100
-flagAll = 0xffff
+flagAll = 0xFFFF
 
 flagMap = {
-    'searcher': flagSearcher,
-    'reader': flagReader,
-    'lexer': flagLexer,
-    'parser': flagParser,
-    'grammar': flagGrammar,
-    'codegen': flagCodegen,
-    'writer': flagWriter,
-    'compiler': flagCompiler,
-    'borrower': flagBorrower,
-    'all': flagAll
+    "searcher": flagSearcher,
+    "reader": flagReader,
+    "lexer": flagLexer,
+    "parser": flagParser,
+    "grammar": flagGrammar,
+    "codegen": flagCodegen,
+    "writer": flagWriter,
+    "compiler": flagCompiler,
+    "borrower": flagBorrower,
+    "all": flagAll,
 }
 
 
 class Printer:
     def __init__(self, logger=None, handler=None, formatter=None):
         if logger is None:
-            logger = logging.getLogger('pysmi')
+            logger = logging.getLogger("pysmi")
 
         logger.setLevel(logging.DEBUG)
 
@@ -45,7 +45,7 @@ class Printer:
             handler = logging.StreamHandler()
 
         if formatter is None:
-            formatter = logging.Formatter('%(asctime)s %(name)s: %(message)s')
+            formatter = logging.Formatter("%(asctime)s %(name)s: %(message)s")
 
         handler.setFormatter(formatter)
         handler.setLevel(logging.DEBUG)
@@ -58,13 +58,13 @@ class Printer:
         self.__logger.debug(msg)
 
     def __str__(self):
-        return '<python built-in logging>'
+        return "<python built-in logging>"
 
     def getCurrentLogger(self):
         return self.__logger
 
 
-if hasattr(logging, 'NullHandler'):
+if hasattr(logging, "NullHandler"):
     NullHandler = logging.NullHandler
 else:
     # Python 2.6 and older
@@ -78,26 +78,26 @@ class Debug:
 
     def __init__(self, *flags, **options):
         self._flags = flagNone
-        if options.get('printer') is not None:
-            self._printer = options.get('printer')
+        if options.get("printer") is not None:
+            self._printer = options.get("printer")
 
         elif self.defaultPrinter is not None:
             self._printer = self.defaultPrinter
 
         else:
-            if 'loggerName' in options:
+            if "loggerName" in options:
                 # route our logs to parent logger
                 self._printer = Printer(
-                    logger=logging.getLogger(options['loggerName']),
-                    handler=NullHandler()
+                    logger=logging.getLogger(options["loggerName"]),
+                    handler=NullHandler(),
                 )
             else:
                 self._printer = Printer()
 
-        self('running pysmi version %s' % __version__)
+        self("running pysmi version %s" % __version__)
 
         for flag in flags:
-            inverse = flag and flag[0] in ('!', '~')
+            inverse = flag and flag[0] in ("!", "~")
 
             if inverse:
                 flag = flag[1:]
@@ -109,12 +109,16 @@ class Debug:
                     self._flags |= flagMap[flag]
 
             except KeyError:
-                raise error.PySmiError('bad debug flag %s' % flag)
+                raise error.PySmiError("bad debug flag %s" % flag)
 
-            self('debug category \'{}\' {}'.format(flag, inverse and 'disabled' or 'enabled'))
+            self(
+                "debug category '{}' {}".format(
+                    flag, inverse and "disabled" or "enabled"
+                )
+            )
 
     def __str__(self):
-        return f'logger {self._printer}, flags {self._flags:x}'
+        return f"logger {self._printer}, flags {self._flags:x}"
 
     def __call__(self, msg):
         self._printer(msg)

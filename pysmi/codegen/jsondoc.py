@@ -6,6 +6,7 @@
 #
 import sys
 import os
+
 try:
     import json
 except ImportError:
@@ -31,23 +32,27 @@ class JsonCodeGen(IntermediateCodeGen):
     Instance of this class is supposed to be passed to *MibCompiler*,
     the rest is internal to *MibCompiler*.
     """
-    TEMPLATE_NAME = 'jsondoc/base.j2'
+
+    TEMPLATE_NAME = "jsondoc/base.j2"
 
     def genCode(self, ast, symbolTable, **kwargs):
         mibInfo, context = IntermediateCodeGen.genCode(self, ast, symbolTable, **kwargs)
 
         # TODO: reduce code duplication with the other codegens
 
-        searchPath = [os.path.join(os.path.dirname(__file__), 'templates')]
+        searchPath = [os.path.join(os.path.dirname(__file__), "templates")]
 
-        dstTemplate = kwargs.get('dstTemplate')
+        dstTemplate = kwargs.get("dstTemplate")
         if dstTemplate:
             searchPath.insert(0, os.path.dirname(os.path.abspath(dstTemplate)))
 
-        env = jinja2.Environment(loader=jinja2.FileSystemLoader(searchPath),
-                                 trim_blocks=True, lstrip_blocks=True)
+        env = jinja2.Environment(
+            loader=jinja2.FileSystemLoader(searchPath),
+            trim_blocks=True,
+            lstrip_blocks=True,
+        )
 
-        env.filters['capfirst'] = jfilters.capfirst
+        env.filters["capfirst"] = jfilters.capfirst
 
         try:
             tmpl = env.get_template(dstTemplate or self.TEMPLATE_NAME)
@@ -55,41 +60,46 @@ class JsonCodeGen(IntermediateCodeGen):
 
         except jinja2.exceptions.TemplateError:
             err = sys.exc_info()[1]
-            raise error.PySmiCodegenError('Jinja template rendering error: %s' % err)
+            raise error.PySmiCodegenError("Jinja template rendering error: %s" % err)
 
         debug.logger & debug.flagCodegen and debug.logger(
-            'canonical MIB name %s (%s), imported MIB(s) %s, rendered from '
-            '%s, JSON document size %d bytes' % (
-                mibInfo.name, mibInfo.identity,
-                ','.join(mibInfo.imported) or '<none>',
-                dstTemplate, len(text)))
+            "canonical MIB name %s (%s), imported MIB(s) %s, rendered from "
+            "%s, JSON document size %d bytes"
+            % (
+                mibInfo.name,
+                mibInfo.identity,
+                ",".join(mibInfo.imported) or "<none>",
+                dstTemplate,
+                len(text),
+            )
+        )
 
         return mibInfo, text
 
     # TODO: move this to a template
     def genIndex(self, processed, **kwargs):
         outDict = {
-            'meta': {},
-            'identity': {},
-            'enterprise': {},
-            'compliance': {},
-            'oids': {},
+            "meta": {},
+            "identity": {},
+            "enterprise": {},
+            "compliance": {},
+            "oids": {},
         }
-        if kwargs.get('old_index_data'):
+        if kwargs.get("old_index_data"):
             try:
-                outDict.update(
-                    json.loads(kwargs['old_index_data'])
-                )
+                outDict.update(json.loads(kwargs["old_index_data"]))
 
             except Exception:
-                raise error.PySmiCodegenError('Index load error: %s' % sys.exc_info()[1])
+                raise error.PySmiCodegenError(
+                    "Index load error: %s" % sys.exc_info()[1]
+                )
 
         def order(top):
             if isinstance(top, dict):
                 new_top = OrderedDict()
                 try:
                     # first try to sort keys as OIDs
-                    for k in sorted(top, key=lambda x: [int(y) for y in x.split('.')]):
+                    for k in sorted(top, key=lambda x: [int(y) for y in x.split(".")]):
                         new_top[k] = order(top[k])
 
                 except ValueError:
@@ -107,31 +117,31 @@ class JsonCodeGen(IntermediateCodeGen):
             return top
 
         for module, status in processed.items():
-            modData = outDict['identity']
-            identity_oid = getattr(status, 'identity', None)
+            modData = outDict["identity"]
+            identity_oid = getattr(status, "identity", None)
             if identity_oid:
                 if identity_oid not in modData:
                     modData[identity_oid] = []
 
                 modData[identity_oid].append(module)
 
-            modData = outDict['enterprise']
-            enterprise_oid = getattr(status, 'enterprise', None)
+            modData = outDict["enterprise"]
+            enterprise_oid = getattr(status, "enterprise", None)
             if enterprise_oid:
                 if enterprise_oid not in modData:
                     modData[enterprise_oid] = []
 
                 modData[enterprise_oid].append(module)
 
-            modData = outDict['compliance']
-            compliance_oids = getattr(status, 'compliance', ())
+            modData = outDict["compliance"]
+            compliance_oids = getattr(status, "compliance", ())
             for compliance_oid in compliance_oids:
                 if compliance_oid not in modData:
                     modData[compliance_oid] = []
                 modData[compliance_oid].append(module)
 
-            modData = outDict['oids']
-            objects_oids = getattr(status, 'oids', ())
+            modData = outDict["oids"]
+            objects_oids = getattr(status, "oids", ())
             for object_oid in objects_oids:
                 if object_oid not in modData:
                     modData[object_oid] = []
@@ -140,19 +150,22 @@ class JsonCodeGen(IntermediateCodeGen):
 
             if modData:
                 unique_prefixes = {}
-                for oid in sorted(modData, key=lambda x: x.count('.')):
+                for oid in sorted(modData, key=lambda x: x.count(".")):
                     for oid_prefix, modules in unique_prefixes.items():
-                        if oid.startswith(oid_prefix) and set(modules).issuperset(modData[oid]):
+                        if oid.startswith(oid_prefix) and set(modules).issuperset(
+                            modData[oid]
+                        ):
                             break
                     else:
                         unique_prefixes[oid] = modData[oid]
 
-                outDict['oids'] = unique_prefixes
+                outDict["oids"] = unique_prefixes
 
-        if 'comments' in kwargs:
-            outDict['meta']['comments'] = kwargs['comments']
+        if "comments" in kwargs:
+            outDict["meta"]["comments"] = kwargs["comments"]
 
         debug.logger & debug.flagCodegen and debug.logger(
-            'OID->MIB index built, %s entries' % len(processed))
+            "OID->MIB index built, %s entries" % len(processed)
+        )
 
         return json.dumps(order(outDict), indent=2)

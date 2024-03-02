@@ -5,6 +5,7 @@
 # License: https://www.pysnmp.com/pysmi/license.html
 #
 import sys
+
 try:
     import unittest2 as unittest
 
@@ -19,82 +20,73 @@ from pysnmp.smi.builder import MibBuilder
 
 class ValueDeclarationTestCase(unittest.TestCase):
     """
-TEST-MIB DEFINITIONS ::= BEGIN
-IMPORTS
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
 
-  OBJECT-TYPE
-    FROM SNMPv2-SMI;
+      OBJECT-TYPE
+        FROM SNMPv2-SMI;
 
--- simple values
+    -- simple values
 
-testValue1  OBJECT IDENTIFIER ::= { 1 }
-testValue2  OBJECT IDENTIFIER ::= { testValue1 3 }
-testValue3  OBJECT IDENTIFIER ::= { 1 3 6 1 2 }
+    testValue1  OBJECT IDENTIFIER ::= { 1 }
+    testValue2  OBJECT IDENTIFIER ::= { testValue1 3 }
+    testValue3  OBJECT IDENTIFIER ::= { 1 3 6 1 2 }
 
--- testValue01  INTEGER ::= 123
--- testValue02  INTEGER ::= -123
--- testValue04  OCTET STRING ::= h'test string'
--- testValue05  INTEGER ::= testValue01
--- testValue06  OCTET STRING ::= "test string"
--- testValue07  OCTET STRING ::= b'010101'
+    -- testValue01  INTEGER ::= 123
+    -- testValue02  INTEGER ::= -123
+    -- testValue04  OCTET STRING ::= h'test string'
+    -- testValue05  INTEGER ::= testValue01
+    -- testValue06  OCTET STRING ::= "test string"
+    -- testValue07  OCTET STRING ::= b'010101'
 
--- application syntax
+    -- application syntax
 
--- testValue03  Integer32 ::= 123
--- testValue03  Counter32 ::= 123
--- testValue03  Gauge32 ::= 123
--- testValue03  Unsigned32 ::= 123
--- testValue03  TimeTicks ::= 123
--- testValue03  Opaque ::= "0123"
--- testValue03  Counter64 ::= 123456789123456789
--- testValue03  IpAddress ::= "127.0.0.1"
+    -- testValue03  Integer32 ::= 123
+    -- testValue03  Counter32 ::= 123
+    -- testValue03  Gauge32 ::= 123
+    -- testValue03  Unsigned32 ::= 123
+    -- testValue03  TimeTicks ::= 123
+    -- testValue03  Opaque ::= "0123"
+    -- testValue03  Counter64 ::= 123456789123456789
+    -- testValue03  IpAddress ::= "127.0.0.1"
 
-END
- """
+    END
+    """
 
     def setUp(self):
         ast = parserFactory()().parse(self.__class__.__doc__)[0]
         mibInfo, symtable = SymtableCodeGen().genCode(ast, {}, genTexts=True)
-        self.mibInfo, pycode = PySnmpCodeGen().genCode(ast, {mibInfo.name: symtable}, genTexts=True)
-        codeobj = compile(pycode, 'test', 'exec')
+        self.mibInfo, pycode = PySnmpCodeGen().genCode(
+            ast, {mibInfo.name: symtable}, genTexts=True
+        )
+        codeobj = compile(pycode, "test", "exec")
 
         mibBuilder = MibBuilder()
         mibBuilder.loadTexts = True
 
-        self.ctx = {'mibBuilder': mibBuilder}
+        self.ctx = {"mibBuilder": mibBuilder}
 
         exec(codeobj, self.ctx, self.ctx)
 
     def testValueDeclarationSymbol(self):
         self.assertTrue(
-            'testValue1' in self.ctx and
-            'testValue2' in self.ctx and
-            'testValue3' in self.ctx,
-            'symbol not present'
+            "testValue1" in self.ctx
+            and "testValue2" in self.ctx
+            and "testValue3" in self.ctx,
+            "symbol not present",
         )
 
     def testValueDeclarationName1(self):
-        self.assertEqual(
-            self.ctx['testValue1'].getName(),
-            (1,),
-            'bad value'
-        )
+        self.assertEqual(self.ctx["testValue1"].getName(), (1,), "bad value")
 
     def testValueDeclarationName2(self):
-        self.assertEqual(
-            self.ctx['testValue2'].getName(),
-            (1, 3),
-            'bad value'
-        )
+        self.assertEqual(self.ctx["testValue2"].getName(), (1, 3), "bad value")
 
     def testValueDeclarationName3(self):
-        self.assertEqual(
-            self.ctx['testValue3'].getName(),
-            (1, 3, 6, 1, 2),
-            'bad value'
-        )
+        self.assertEqual(self.ctx["testValue3"].getName(), (1, 3, 6, 1, 2), "bad value")
+
 
 suite = unittest.TestLoader().loadTestsFromModule(sys.modules[__name__])
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.TextTestRunner(verbosity=2).run(suite)

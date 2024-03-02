@@ -14,15 +14,15 @@ from pysmi import error
 
 
 class AnyFileSearcher(AbstractSearcher):
-    """Figures out if given file exists at given location.
-    """
+    """Figures out if given file exists at given location."""
+
     exts = []
 
     def __init__(self, path):
         """Create an instance of *AnyFileSearcher* bound to specific directory.
 
-           Args:
-             path (str): path to local directory
+        Args:
+          path (str): path to local directory
         """
         self._path = os.path.normpath(decode(path))
 
@@ -31,7 +31,9 @@ class AnyFileSearcher(AbstractSearcher):
 
     def fileExists(self, mibname, mtime, rebuild=False):
         if rebuild:
-            debug.logger & debug.flagSearcher and debug.logger('pretend %s is very old' % mibname)
+            debug.logger & debug.flagSearcher and debug.logger(
+                "pretend %s is very old" % mibname
+            )
             return
 
         mibname = decode(mibname)
@@ -40,20 +42,29 @@ class AnyFileSearcher(AbstractSearcher):
         for sfx in self.exts:
             f = basename + sfx
             if not os.path.exists(f) or not os.path.isfile(f):
-                debug.logger & debug.flagSearcher and debug.logger('%s not present or not a file' % f)
+                debug.logger & debug.flagSearcher and debug.logger(
+                    "%s not present or not a file" % f
+                )
                 continue
 
             try:
                 fileTime = os.stat(f)[8]
 
             except OSError:
-                raise error.PySmiSearcherError(f'failure opening compiled file {f}: {sys.exc_info()[1]}',
-                                               searcher=self)
+                raise error.PySmiSearcherError(
+                    f"failure opening compiled file {f}: {sys.exc_info()[1]}",
+                    searcher=self,
+                )
 
             debug.logger & debug.flagSearcher and debug.logger(
-                'found {}, mtime {}'.format(f, time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime(fileTime))))
+                "found {}, mtime {}".format(
+                    f, time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime(fileTime))
+                )
+            )
 
             if fileTime >= mtime:
                 raise error.PySmiFileNotModifiedError()
 
-        raise error.PySmiFileNotFoundError('no compiled file %s found' % mibname, searcher=self)
+        raise error.PySmiFileNotFoundError(
+            "no compiled file %s found" % mibname, searcher=self
+        )

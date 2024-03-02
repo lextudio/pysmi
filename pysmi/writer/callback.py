@@ -12,11 +12,11 @@ from pysmi import error
 
 class CallbackWriter(AbstractWriter):
     """Invokes user-specified callable and passes transformed
-       MIB module to it.
+    MIB module to it.
 
-       Note: user callable object signature must be as follows
+    Note: user callable object signature must be as follows
 
-       .. function:: cbFun(mibname, contents, cbCtx)
+    .. function:: cbFun(mibname, contents, cbCtx)
 
     """
 
@@ -36,7 +36,7 @@ class CallbackWriter(AbstractWriter):
 
     def putData(self, mibname, data, comments=(), dryRun=False):
         if dryRun:
-            debug.logger & debug.flagWriter and debug.logger('dry run mode')
+            debug.logger & debug.flagWriter and debug.logger("dry run mode")
             return
 
         try:
@@ -44,9 +44,13 @@ class CallbackWriter(AbstractWriter):
 
         except Exception:
             raise error.PySmiWriterError(
-                f'user callback {self._cbFun} failure writing {mibname}: {sys.exc_info()[1]}', writer=self)
+                f"user callback {self._cbFun} failure writing {mibname}: {sys.exc_info()[1]}",
+                writer=self,
+            )
 
-        debug.logger & debug.flagWriter and debug.logger('user callback for %s succeeded' % mibname)
+        debug.logger & debug.flagWriter and debug.logger(
+            "user callback for %s succeeded" % mibname
+        )
 
     def getData(self, filename):
-        return ''
+        return ""

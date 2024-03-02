@@ -8,22 +8,22 @@
 
 class MibInfo:
     #: actual MIB name
-    name = ''
+    name = ""
 
     #: possible alternative to MIB name
-    alias = ''
+    alias = ""
 
     #: URL to MIB file
-    path = ''
+    path = ""
 
     #: MIB file name
-    file = ''
+    file = ""
 
     #: MIB file modification time
     mtime = 0
 
     #: module OID
-    oid = ''
+    oid = ""
 
     #: MIB revision as `datetime`
     revision = None
@@ -32,7 +32,7 @@ class MibInfo:
     oids = ()
 
     #: MODULE-IDENTITY OID
-    identity = ''
+    identity = ""
 
     #: Enterprise OID
     enterprise = ()

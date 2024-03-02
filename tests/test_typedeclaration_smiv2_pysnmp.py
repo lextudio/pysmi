@@ -5,6 +5,7 @@
 # License: https://www.pysnmp.com/pysmi/license.html
 #
 import sys
+
 try:
     import unittest2 as unittest
 
@@ -19,135 +20,131 @@ from pysnmp.smi.builder import MibBuilder
 
 class TypeDeclarationTestCase(unittest.TestCase):
     """
-TEST-MIB DEFINITIONS ::= BEGIN
-IMPORTS
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
 
-  IpAddress,
-  Counter32,
-  Gauge32,
-  TimeTicks,
-  Opaque,
-  Integer32,
-  Unsigned32,
-  Counter64
-    FROM SNMPv2-SMI
+      IpAddress,
+      Counter32,
+      Gauge32,
+      TimeTicks,
+      Opaque,
+      Integer32,
+      Unsigned32,
+      Counter64
+        FROM SNMPv2-SMI
 
-  TEXTUAL-CONVENTION
-    FROM SNMPv2-TC;
+      TEXTUAL-CONVENTION
+        FROM SNMPv2-TC;
 
--- simple types
-TestTypeInteger ::= INTEGER
-TestTypeOctetString ::= OCTET STRING
-TestTypeObjectIdentifier ::= OBJECT IDENTIFIER
+    -- simple types
+    TestTypeInteger ::= INTEGER
+    TestTypeOctetString ::= OCTET STRING
+    TestTypeObjectIdentifier ::= OBJECT IDENTIFIER
 
--- application types
-TestTypeIpAddress ::= IpAddress
-TestTypeInteger32 ::= Integer32
-TestTypeCounter32 ::= Counter32
-TestTypeGauge32 ::= Gauge32
-TestTypeTimeTicks ::= TimeTicks
-TestTypeOpaque ::= Opaque
-TestTypeCounter64 ::= Counter64
-TestTypeUnsigned32 ::= Unsigned32
+    -- application types
+    TestTypeIpAddress ::= IpAddress
+    TestTypeInteger32 ::= Integer32
+    TestTypeCounter32 ::= Counter32
+    TestTypeGauge32 ::= Gauge32
+    TestTypeTimeTicks ::= TimeTicks
+    TestTypeOpaque ::= Opaque
+    TestTypeCounter64 ::= Counter64
+    TestTypeUnsigned32 ::= Unsigned32
 
--- constrained subtypes
+    -- constrained subtypes
 
-TestTypeEnum ::= INTEGER {
-                    noResponse(-1),
-                    noError(0),
-                    tooBig(1)
-                }
-TestTypeSizeRangeConstraint ::= OCTET STRING (SIZE (0..255))
-TestTypeSizeConstraint ::= OCTET STRING (SIZE (8 | 11))
-TestTypeRangeConstraint ::= INTEGER (0..2)
-TestTypeSingleValueConstraint ::= INTEGER (0|2|4)
+    TestTypeEnum ::= INTEGER {
+                        noResponse(-1),
+                        noError(0),
+                        tooBig(1)
+                    }
+    TestTypeSizeRangeConstraint ::= OCTET STRING (SIZE (0..255))
+    TestTypeSizeConstraint ::= OCTET STRING (SIZE (8 | 11))
+    TestTypeRangeConstraint ::= INTEGER (0..2)
+    TestTypeSingleValueConstraint ::= INTEGER (0|2|4)
 
-TestTypeBits ::= BITS {
-                    sunday(0),
-                    monday(1),
-                    tuesday(2),
-                    wednesday(3),
-                    thursday(4),
-                    friday(5),
-                    saturday(6)
-                }
+    TestTypeBits ::= BITS {
+                        sunday(0),
+                        monday(1),
+                        tuesday(2),
+                        wednesday(3),
+                        thursday(4),
+                        friday(5),
+                        saturday(6)
+                    }
 
 
-TestTextualConvention ::= TEXTUAL-CONVENTION
-    DISPLAY-HINT "1x:"
-    STATUS       current
-    DESCRIPTION
-            "Test TC"
-    REFERENCE
-            "Test reference"
-    SYNTAX       OCTET STRING
+    TestTextualConvention ::= TEXTUAL-CONVENTION
+        DISPLAY-HINT "1x:"
+        STATUS       current
+        DESCRIPTION
+                "Test TC"
+        REFERENCE
+                "Test reference"
+        SYNTAX       OCTET STRING
 
-END
- """
+    END
+    """
 
     def setUp(self):
         ast = parserFactory()().parse(self.__class__.__doc__)[0]
         mibInfo, symtable = SymtableCodeGen().genCode(ast, {}, genTexts=True)
-        self.mibInfo, pycode = PySnmpCodeGen().genCode(ast, {mibInfo.name: symtable}, genTexts=True)
-        codeobj = compile(pycode, 'test', 'exec')
+        self.mibInfo, pycode = PySnmpCodeGen().genCode(
+            ast, {mibInfo.name: symtable}, genTexts=True
+        )
+        codeobj = compile(pycode, "test", "exec")
 
         mibBuilder = MibBuilder()
         mibBuilder.loadTexts = True
 
-        self.ctx = {'mibBuilder': mibBuilder}
+        self.ctx = {"mibBuilder": mibBuilder}
 
         exec(codeobj, self.ctx, self.ctx)
 
     def protoTestSymbol(self, symbol, klass):
-        self.assertTrue(
-            symbol in self.ctx, 'symbol %s not present' % symbol
-        )
+        self.assertTrue(symbol in self.ctx, "symbol %s not present" % symbol)
 
     def protoTestClass(self, symbol, klass):
         self.assertEqual(
-            self.ctx[symbol].__bases__[0].__name__, klass,
-            f'expected class {klass}, got {self.ctx[symbol].__bases__[0].__name__} at {symbol}'
+            self.ctx[symbol].__bases__[0].__name__,
+            klass,
+            f"expected class {klass}, got {self.ctx[symbol].__bases__[0].__name__} at {symbol}",
         )
 
     def TestTextualConventionSymbol(self):
-        self.assertTrue(
-            'TestTextualConvention' in self.ctx,
-            'symbol not present'
-        )
+        self.assertTrue("TestTextualConvention" in self.ctx, "symbol not present")
 
     def TestTextualConventionDisplayHint(self):
         self.assertEqual(
-            self.ctx['TestTextualConvention'].getDisplayHint(),
-            '1x:',
-            'bad DISPLAY-HINT'
+            self.ctx["TestTextualConvention"].getDisplayHint(),
+            "1x:",
+            "bad DISPLAY-HINT",
         )
 
     def TestTextualConventionStatus(self):
         self.assertEqual(
-            self.ctx['TestTextualConvention'].getStatus(),
-            'current',
-            'bad STATUS'
+            self.ctx["TestTextualConvention"].getStatus(), "current", "bad STATUS"
         )
 
     def TestTextualConventionDescription(self):
         self.assertEqual(
-            self.ctx['TestTextualConvention'].getDescription(),
-            'Test TC\n',
-            'bad DESCRIPTION'
+            self.ctx["TestTextualConvention"].getDescription(),
+            "Test TC\n",
+            "bad DESCRIPTION",
         )
 
     def TestTextualConventionReference(self):
         self.assertEqual(
-            self.ctx['TestTextualConvention'].getReference(),
-            'Test reference',
-            'bad REFERENCE'
+            self.ctx["TestTextualConvention"].getReference(),
+            "Test reference",
+            "bad REFERENCE",
         )
 
     def TestTextualConventionClass(self):
         self.assertEqual(
-            self.ctx['TestTextualConvention'].__class__.__name__,
-            'TextualConvention',
-            'bad SYNTAX class'
+            self.ctx["TestTextualConvention"].__class__.__name__,
+            "TextualConvention",
+            "bad SYNTAX class",
         )
 
 
@@ -155,22 +152,22 @@ END
 
 typesMap = (
     # TODO: Integer/Integer32?
-    ('TestTypeInteger', 'Integer32'),
-    ('TestTypeOctetString', 'OctetString'),
-    ('TestTypeObjectIdentifier', 'ObjectIdentifier'),
-    ('TestTypeIpAddress', 'IpAddress'),
-    ('TestTypeInteger32', 'Integer32'),
-    ('TestTypeCounter32', 'Counter32'),
-    ('TestTypeGauge32', 'Gauge32'),
-    ('TestTypeTimeTicks', 'TimeTicks'),
-    ('TestTypeOpaque', 'Opaque'),
-    ('TestTypeCounter64', 'Counter64'),
-    ('TestTypeUnsigned32', 'Unsigned32'),
-    ('TestTypeTestTypeEnum', 'Integer32'),
-    ('TestTypeSizeRangeConstraint', 'OctetString'),
-    ('TestTypeSizeConstraint', 'OctetString'),
-    ('TestTypeRangeConstraint', 'Integer32'),
-    ('TestTypeSingleValueConstraint', 'Integer32')
+    ("TestTypeInteger", "Integer32"),
+    ("TestTypeOctetString", "OctetString"),
+    ("TestTypeObjectIdentifier", "ObjectIdentifier"),
+    ("TestTypeIpAddress", "IpAddress"),
+    ("TestTypeInteger32", "Integer32"),
+    ("TestTypeCounter32", "Counter32"),
+    ("TestTypeGauge32", "Gauge32"),
+    ("TestTypeTimeTicks", "TimeTicks"),
+    ("TestTypeOpaque", "Opaque"),
+    ("TestTypeCounter64", "Counter64"),
+    ("TestTypeUnsigned32", "Unsigned32"),
+    ("TestTypeTestTypeEnum", "Integer32"),
+    ("TestTypeSizeRangeConstraint", "OctetString"),
+    ("TestTypeSizeConstraint", "OctetString"),
+    ("TestTypeRangeConstraint", "Integer32"),
+    ("TestTypeSingleValueConstraint", "Integer32"),
 )
 
 
@@ -182,14 +179,20 @@ def decor(func, symbol, klass):
 
 
 for s, k in typesMap:
-    setattr(TypeDeclarationTestCase, 'testTypeDeclaration' + k + 'SymbolTestCase',
-            decor(TypeDeclarationTestCase.protoTestSymbol, s, k))
-    setattr(TypeDeclarationTestCase, 'testTypeDeclaration' + k + 'ClassTestCase',
-            decor(TypeDeclarationTestCase.protoTestClass, s, k))
+    setattr(
+        TypeDeclarationTestCase,
+        "testTypeDeclaration" + k + "SymbolTestCase",
+        decor(TypeDeclarationTestCase.protoTestSymbol, s, k),
+    )
+    setattr(
+        TypeDeclarationTestCase,
+        "testTypeDeclaration" + k + "ClassTestCase",
+        decor(TypeDeclarationTestCase.protoTestClass, s, k),
+    )
 
 # XXX constraints flavor not checked
 
 suite = unittest.TestLoader().loadTestsFromModule(sys.modules[__name__])
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.TextTestRunner(verbosity=2).run(suite)

@@ -17,15 +17,16 @@ class CallbackReader(AbstractReader):
     *CallbackReader* class instance tries to retrieve ASN.1 MIB files
     by name and return their contents to caller.
     """
+
     def __init__(self, cbFun, cbCtx=None):
         """Create an instance of *CallbackReader* bound to specific URL.
 
-           Args:
-               cbFun (callable): user callable accepting *MIB name* and *cbCtx* objects
+        Args:
+            cbFun (callable): user callable accepting *MIB name* and *cbCtx* objects
 
-           Keyword Args:
-               cbCtx (object): user object that can be used to communicate state information
-                   between user-scope code and the *cbFun* callable scope
+        Keyword Args:
+            cbCtx (object): user object that can be used to communicate state information
+                between user-scope code and the *cbFun* callable scope
         """
         self._cbFun = cbFun
         self._cbCtx = cbCtx
@@ -34,10 +35,17 @@ class CallbackReader(AbstractReader):
         return f'{self.__class__.__name__}{{"{self._cbFun}"}}'
 
     def getData(self, mibname, **options):
-        debug.logger & debug.flagReader and debug.logger(f'calling user callback {self._cbFun} for MIB {mibname}')
+        debug.logger & debug.flagReader and debug.logger(
+            f"calling user callback {self._cbFun} for MIB {mibname}"
+        )
 
         res = self._cbFun(mibname, self._cbCtx)
         if res:
-            return MibInfo(path='file:///dev/stdin', file='', name=mibname, mtime=time.time()), res
+            return (
+                MibInfo(
+                    path="file:///dev/stdin", file="", name=mibname, mtime=time.time()
+                ),
+                res,
+            )
 
         raise error.PySmiReaderFileNotFoundError(mibname=mibname, reader=self)

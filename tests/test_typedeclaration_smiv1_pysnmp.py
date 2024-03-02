@@ -5,6 +5,7 @@
 # License: https://www.pysnmp.com/pysmi/license.html
 #
 import sys
+
 try:
     import unittest2 as unittest
 
@@ -20,70 +21,71 @@ from pysnmp.smi.builder import MibBuilder
 
 class TypeDeclarationTestCase(unittest.TestCase):
     """
-TEST-MIB DEFINITIONS ::= BEGIN
-IMPORTS
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
 
-  NetworkAddress,
-  IpAddress,
-  Counter,
-  Gauge,
-  TimeTicks,
-  Opaque
-    FROM RFC1155-SMI;
+      NetworkAddress,
+      IpAddress,
+      Counter,
+      Gauge,
+      TimeTicks,
+      Opaque
+        FROM RFC1155-SMI;
 
--- simple types
-TestTypeInteger ::= INTEGER
-TestTypeOctetString ::= OCTET STRING
-TestTypeObjectIdentifier ::= OBJECT IDENTIFIER
+    -- simple types
+    TestTypeInteger ::= INTEGER
+    TestTypeOctetString ::= OCTET STRING
+    TestTypeObjectIdentifier ::= OBJECT IDENTIFIER
 
--- application types
-TestTypeNetworkAddress::= NetworkAddress
-TestTypeIpAddress ::= IpAddress
-TestTypeCounter ::= Counter
-TestTypeGauge ::= Gauge
-TestTypeTimeTicks ::= TimeTicks
-TestTypeOpaque ::= Opaque
+    -- application types
+    TestTypeNetworkAddress::= NetworkAddress
+    TestTypeIpAddress ::= IpAddress
+    TestTypeCounter ::= Counter
+    TestTypeGauge ::= Gauge
+    TestTypeTimeTicks ::= TimeTicks
+    TestTypeOpaque ::= Opaque
 
-END
- """
+    END
+    """
 
     def setUp(self):
         ast = parserFactory(**smiV1Relaxed)().parse(self.__class__.__doc__)[0]
         mibInfo, symtable = SymtableCodeGen().genCode(ast, {}, genTexts=True)
-        self.mibInfo, pycode = PySnmpCodeGen().genCode(ast, {mibInfo.name: symtable}, genTexts=True)
-        codeobj = compile(pycode, 'test', 'exec')
+        self.mibInfo, pycode = PySnmpCodeGen().genCode(
+            ast, {mibInfo.name: symtable}, genTexts=True
+        )
+        codeobj = compile(pycode, "test", "exec")
 
         mibBuilder = MibBuilder()
         mibBuilder.loadTexts = True
 
-        self.ctx = {'mibBuilder': mibBuilder}
+        self.ctx = {"mibBuilder": mibBuilder}
 
         exec(codeobj, self.ctx, self.ctx)
 
     def protoTestSymbol(self, symbol, klass):
-        self.assertTrue(
-            symbol in self.ctx, 'symbol %s not present' % symbol
-        )
+        self.assertTrue(symbol in self.ctx, "symbol %s not present" % symbol)
 
     def protoTestClass(self, symbol, klass):
         self.assertEqual(
-            self.ctx[symbol].__bases__[0].__name__, klass,
-            f'expected class {klass}, got {self.ctx[symbol].__bases__[0].__name__} at {symbol}'
+            self.ctx[symbol].__bases__[0].__name__,
+            klass,
+            f"expected class {klass}, got {self.ctx[symbol].__bases__[0].__name__} at {symbol}",
         )
 
 
 # populate test case class with per-type methods
 
 typesMap = (
-    ('TestTypeInteger', 'Integer32'),
-    ('TestTypeOctetString', 'OctetString'),
-    ('TestTypeObjectIdentifier', 'ObjectIdentifier'),
-    ('TestTypeNetworkAddress', 'IpAddress'),
-    ('TestTypeIpAddress', 'IpAddress'),
-    ('TestTypeCounter', 'Counter32'),
-    ('TestTypeGauge', 'Gauge32'),
-    ('TestTypeTimeTicks', 'TimeTicks'),
-    ('TestTypeOpaque', 'Opaque')
+    ("TestTypeInteger", "Integer32"),
+    ("TestTypeOctetString", "OctetString"),
+    ("TestTypeObjectIdentifier", "ObjectIdentifier"),
+    ("TestTypeNetworkAddress", "IpAddress"),
+    ("TestTypeIpAddress", "IpAddress"),
+    ("TestTypeCounter", "Counter32"),
+    ("TestTypeGauge", "Gauge32"),
+    ("TestTypeTimeTicks", "TimeTicks"),
+    ("TestTypeOpaque", "Opaque"),
 )
 
 
@@ -95,14 +97,20 @@ def decor(func, symbol, klass):
 
 
 for s, k in typesMap:
-    setattr(TypeDeclarationTestCase, 'testTypeDeclaration' + k + 'SymbolTestCase',
-            decor(TypeDeclarationTestCase.protoTestSymbol, s, k))
-    setattr(TypeDeclarationTestCase, 'testTypeDeclaration' + k + 'ClassTestCase',
-            decor(TypeDeclarationTestCase.protoTestClass, s, k))
+    setattr(
+        TypeDeclarationTestCase,
+        "testTypeDeclaration" + k + "SymbolTestCase",
+        decor(TypeDeclarationTestCase.protoTestSymbol, s, k),
+    )
+    setattr(
+        TypeDeclarationTestCase,
+        "testTypeDeclaration" + k + "ClassTestCase",
+        decor(TypeDeclarationTestCase.protoTestClass, s, k),
+    )
 
 # XXX constraints flavor not checked
 
 suite = unittest.TestLoader().loadTestsFromModule(sys.modules[__name__])
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.TextTestRunner(verbosity=2).run(suite)

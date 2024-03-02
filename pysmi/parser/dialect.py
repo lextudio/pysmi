@@ -12,10 +12,7 @@
 smiV2 = {}
 
 smiV1 = smiV2.copy()
-smiV1.update(
-    supportSmiV1Keywords=True,
-    supportIndex=True
-)
+smiV1.update(supportSmiV1Keywords=True, supportIndex=True)
 
 smiV1Relaxed = smiV1.copy()
 smiV1Relaxed.update(
@@ -25,5 +22,5 @@ smiV1Relaxed.update(
     uppercaseIdentifier=True,
     lowcaseIdentifier=True,
     curlyBracesAroundEnterpriseInTrap=True,
-    noCells=True
+    noCells=True,
 )

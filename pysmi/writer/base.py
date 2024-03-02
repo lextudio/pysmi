@@ -5,6 +5,7 @@
 # License: https://www.pysnmp.com/pysmi/license.html
 #
 
+
 class AbstractWriter:
     def setOptions(self, **kwargs):
         for k in kwargs:
