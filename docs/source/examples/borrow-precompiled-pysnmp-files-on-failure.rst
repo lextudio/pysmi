@@ -1,11 +1,10 @@
 
 .. include:: /../../examples/borrow-precompiled-pysnmp-files-on-failure.py
    :start-after: """
-   :end-before: """#
+   :end-before: """  #
 
 .. literalinclude:: /../../examples/borrow-precompiled-pysnmp-files-on-failure.py
-   :start-after: """#
+   :start-after: """  #
    :language: python
 
 :download:`Download</../../examples/borrow-precompiled-pysnmp-files-on-failure.py>` script.
-

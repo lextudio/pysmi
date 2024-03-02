@@ -1,11 +1,10 @@
 
 .. include:: /../../examples/always-borrow-precompiled-pysnmp-files.py
    :start-after: """
-   :end-before: """#
+   :end-before: """  #
 
 .. literalinclude:: /../../examples/always-borrow-precompiled-pysnmp-files.py
-   :start-after: """#
+   :start-after: """  #
    :language: python
 
 :download:`Download</../../examples/always-borrow-precompiled-pysnmp-files.py>` script.
-
