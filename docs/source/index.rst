@@ -60,7 +60,7 @@ of publicly available ASN.1 MIB files collected on the Internet. You are
 welcome to use this MIBs archive however we can't guarantee any degree
 of consistency or reliability when it comes to these MIB modules.
 
-The *mibdump.py* tool as well as many other utilities based on PySMI
+The *mibdump* tool as well as many other utilities based on PySMI
 are programmed to use this MIB repository for automatic download and
 dependency resolution.
 
