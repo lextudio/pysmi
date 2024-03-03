@@ -35,6 +35,7 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.todo",
     "sphinx_sitemap",
+    "sphinx_copybutton",
 ]
 
 html_baseurl = "https://www.pysnmp.com/pysmi/"
@@ -56,15 +57,15 @@ master_doc = "index"
 
 # General information about the project.
 project = "SNMP SMI compiler"
-copyright = "2015-2020, Ilya Etingof <etingof@gmail.com>; 2022, LeXtudio Inc. <support@lextudio.com>"
-author = "Ilya Etingof <etingof@gmail.com>; LeXtudio Inc. <support@lextudio.com>"
+copyright = "2015-2020, Ilya Etingof; © Copyright 2022-2024, LeXtudio Inc."
+author = "LeXtudio Inc. <support@lextudio.com>"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
 # The short X.Y version.
-version = "1.1"
+version = "1.3"
 # The full version, including alpha/beta/rc tags.
 release = "1.3.2"
 
@@ -73,7 +74,7 @@ release = "1.3.2"
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = "en"
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
@@ -115,32 +116,21 @@ todo_include_todos = True
 
 # -- Options for HTML output ----------------------------------------------
 
+html_context = {
+    "display_github": True,
+    "github_user": "lextudio",
+    "github_repo": "pysmi",
+    "github_version": "main/docs/source/",
+}
+
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = "alabaster"
+html_theme = "sphinx-rtd-theme"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
 # html_theme_options = { 'collapse_navigation': False }
-html_theme_options = {
-    "logo": "logo.svg",
-    "description": "<p align=left><i><b>Brewing free software for the communities</i></b></p>",
-    "show_powered_by": False,
-    "github_user": "lextudio",
-    "github_repo": "pysmi",
-    "fixed_sidebar": True,
-}
-
-html_sidebars = {
-    "**": [
-        "about.html",
-        "navigation.html",
-        "relations.html",
-        "searchbox.html",
-        "donate.html",
-    ]
-}
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
