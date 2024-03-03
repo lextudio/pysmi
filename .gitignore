@@ -27,3 +27,4 @@ out
 cache
 *.log
 index.*
+.python-version

@@ -2,7 +2,7 @@
 Compile MIBs from web
 +++++++++++++++++++++
 
-Look up specific ASN.1 MIBs at configured Web and FTP sites,
+Look up specific ASN.1 MIBs at configured Web sites,
 compile them into pysnmp form and save Python modules as plain-text
 files in a local directory.
 
@@ -24,14 +24,13 @@ from pysmi.compiler import MibCompiler
 
 inputMibs = ["IF-MIB", "IP-MIB"]
 httpSources = [("mibs.pysnmp.com", 443, "/asn1/@mib@")]
-ftpSources = [("ftp.cisco.com", "/pub/mibs/v2/@mib@")]
 dstDirectory = ".pysnmp-mibs"
 
 # Initialize compiler infrastructure
 
 mibCompiler = MibCompiler(SmiStarParser(), PySnmpCodeGen(), PyFileWriter(dstDirectory))
 
-# search for source MIBs at Web and FTP sites
+# search for source MIBs at Web sites
 mibCompiler.addSources(HttpReader("https://mibs.pysnmp.com/asn1/@mib@"))
 
 # never recompile MIBs with MACROs

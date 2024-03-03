@@ -2,7 +2,7 @@
 Borrow pysnmp MIBs on failure
 +++++++++++++++++++++++++++++
 
-Look up specific ASN.1 MIBs at configured Web/FTP sites.
+Look up specific ASN.1 MIBs at configured Web sites.
 If no required MIB is found or its compilation fails for
 some reason, attempt to download precompiled version of
 failed MIB and store it locally as if we had compiled it.

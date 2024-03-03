@@ -50,7 +50,7 @@ all named after their canonical names.
           [--dry-run]
           <SOURCE [SOURCE...]> <DESTINATION>
     Where:
-        URI      - file, zip, http, https, ftp, sftp schemes are
+        URI      - file, zip, http, https schemes are
                    supported. Use @mib@ placeholder token in URI to
                    refer directly to the required MIB module when
                    source does not support directory listing
@@ -65,23 +65,18 @@ looked up and downloaded from. At this moment three MIB sourcing
 methods are supported:
 
 * Local files. This could be a top-level directory where MIB files are
-  located. Subdirectories will be automatically traversed as well. 
+  located. Subdirectories will be automatically traversed as well.
   Example: file:///usr/share/snmp
 * ZIP archives containing MIB files. Subdirectories and embedded ZIP
   archives will be automatically traversed.
   Example: zip://mymibs.zip
 * HTTP/HTTPS. A fully specified URL where MIB module name is specified by
   a @mib@ placeholder. When specific MIB is looked up, PySMI will replace
-  that placeholder with MIB module name it is looking for. 
-  Example: `https://mibs.pysnmp.com/asn1/@mib@ <https://mibs.pysnmp.com/asn1/>`_
-* SFTP/FTP. A fully specified URL including FTP username and password. 
-  MIB module name is specified by a @mib@ placeholder. When specific MIB
-  is looked up, PySMI will replace that placeholder with MIB module name
-  it is looking for. 
+  that placeholder with MIB module name it is looking for.
   Example: `https://mibs.pysnmp.com/asn1/@mib@ <https://mibs.pysnmp.com/asn1/>`_
 
 When trying to fetch a MIB module, the *mibcopy* tool will try each of
-configured --mib-source transports in order of specification till 
+configured --mib-source transports in order of specification till
 first successful hit.
 
 By default *mibcopy* will search:
@@ -112,5 +107,5 @@ Minor speedups
 --------------
 
 The --cache-directory option may be used to point to a temporary
-writable directory where PySMI parser (e.g. Ply) would store its 
+writable directory where PySMI parser (e.g. Ply) would store its
 lookup tables. That should improve PySMI performance a tad bit.

@@ -2,7 +2,7 @@
 Compile MIBs into JSON
 ++++++++++++++++++++++
 
-Look up specific ASN.1 MIBs at configured Web and FTP sites,
+Look up specific ASN.1 MIBs at configured Web sites,
 compile them into JSON documents and print them out to stdout.
 
 Try to support both SMIv1 and SMIv2 flavors of SMI as well as

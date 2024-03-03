@@ -19,7 +19,7 @@ Features
 * Turns MIBs into pysnmp classes and JSON documents
 * Maintains an index of MIB objects over many MIB modules
 * Automatically pulls ASN.1 MIBs from local directories, ZIP archives,
-  HTTP and FTP servers
+  and HTTP servers
 * 100% Python, works with Python 3.7+
 
 Rendered PySMI documentation can be found at [pysmi site](https://www.pysnmp.com/pysmi).
@@ -37,7 +37,7 @@ To turn ASN.1 MIB into a JSON document, call *mibdump* tool like this:
 $ mibdump --generate-mib-texts  --destination-format json IF-MIB
 Source MIB repositories: file:///usr/share/snmp/mibs, https://mibs.pysnmp.com/asn1/@mib@
 Borrow missing/failed MIBs from: https://mibs.pysnmp.com/json/fulltexts/@mib@
-Existing/compiled MIB locations: 
+Existing/compiled MIB locations:
 Compiled MIBs destination directory: .
 MIBs excluded from code generation: RFC-1212, RFC-1215, RFC1065-SMI, RFC1155-SMI,
 RFC1158-MIB, RFC1213-MIB, SNMPv2-CONF, SNMPv2-SMI, SNMPv2-TC, SNMPv2-TM
@@ -54,11 +54,11 @@ Generate texts in MIBs: yes
 Keep original texts layout: no
 Try various filenames while searching for MIB module: yes
 Created/updated MIBs: IANAifType-MIB, IF-MIB, SNMPv2-MIB
-Pre-compiled MIBs borrowed: 
+Pre-compiled MIBs borrowed:
 Up to date MIBs: SNMPv2-CONF, SNMPv2-SMI, SNMPv2-TC
-Missing source MIBs: 
-Ignored MIBs: 
-Failed MIBs: 
+Missing source MIBs:
+Ignored MIBs:
+Failed MIBs:
 ```
 
 JSON document build from
@@ -178,7 +178,7 @@ list top-level OIDs branches defined in MIB modules. Full index
 build over thousands of MIBs could be seen
 [here](https://mibs.pysnmp.com/json/index.json).
 
-The PySMI library can automatically fetch required MIBs from HTTP, FTP sites
+The PySMI library can automatically fetch required MIBs from HTTP sites
 or local directories. You could configure any MIB source available to you (including
 [https://mibs.pysnmp.com/asn1/](https://mibs.pysnmp.com/asn1/)) for that purpose.
 

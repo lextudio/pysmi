@@ -40,7 +40,7 @@ into various formats.
          [--keep-texts-layout]
          <MIB-NAME> [MIB-NAME [...]]]
    Where:
-       URI      - file, zip, http, https, ftp, sftp schemes are supported.
+       URI      - file, zip, http, https schemes are supported.
                   Use @mib@ placeholder token in URI to refer directly to
                   the required MIB module when source does not support
                   directory listing (e.g. HTTP).
@@ -111,23 +111,18 @@ looked up and downloaded from. At this moment three MIB sourcing
 methods are supported:
 
 * Local files. This could be a top-level directory where MIB files are
-  located. Subdirectories will be automatically traversed as well. 
+  located. Subdirectories will be automatically traversed as well.
   Example: file:///usr/share/snmp
 * ZIP archives containing MIB files. Subdirectories and embedded ZIP
   archives will be automatically traversed.
   Example: zip://mymibs.zip
 * HTTP/HTTPS. A fully specified URL where MIB module name is specified by
   a @mib@ placeholder. When specific MIB is looked up, PySMI will replace
-  that placeholder with MIB module name it is looking for. 
-  Example: `https://mibs.pysnmp.com/asn1/@mib@ <https://mibs.pysnmp.com/asn1/>`_
-* SFTP/FTP. A fully specified URL including FTP username and password. 
-  MIB module name is specified by a @mib@ placeholder. When specific MIB
-  is looked up, PySMI will replace that placeholder with MIB module name
-  it is looking for. 
+  that placeholder with MIB module name it is looking for.
   Example: `https://mibs.pysnmp.com/asn1/@mib@ <https://mibs.pysnmp.com/asn1/>`_
 
 When trying to fetch a MIB module, the *mibdump* tool will try each of
-configured --mib-source transports in order of specification till 
+configured --mib-source transports in order of specification till
 first successful hit.
 
 By default *mibdump* will search:
@@ -143,7 +138,7 @@ Fuzzying MIB module names
 
 There is no single convention on how MIB module files should be named. By
 default *mibdump* will try a handful of guesses when trying to find a file
-containing specific MIB module. It will try upper and lower cases, a file 
+containing specific MIB module. It will try upper and lower cases, a file
 named after MIB module, try adding different extensions to a file (.mib,
 .my etc), try adding/cutting the '-MIB' part of the file name.
 If nothing matches, *mibdump* will consider that probed --mib-source
@@ -181,15 +176,15 @@ and should be manually given to *mibdump* if needed.
 Blacklisting MIBs
 -----------------
 
-Some MIBs may not be automatically transformed into another form and 
+Some MIBs may not be automatically transformed into another form and
 therefore must be explicitly excluded from processing. Such MIBs are
 normally manually implemented for each target MIB format. Examples
 include MIBs containing base SMI types or ASN.1 MACRO definitions
-(SNMPv2-SMI, SNMPV2-TC), initially compiled but later manually modified 
+(SNMPv2-SMI, SNMPV2-TC), initially compiled but later manually modified
 MIBs and others.
 
-Default list of blacklisted MIBs for pysnmp transformation target 
-is: RFC-1212, RFC-1215, RFC1065-SMI, RFC1155-SMI, RFC1158-MIB, 
+Default list of blacklisted MIBs for pysnmp transformation target
+is: RFC-1212, RFC-1215, RFC1065-SMI, RFC1155-SMI, RFC1158-MIB,
 RFC1213-MIB, SNMP-FRAMEWORK-MIB, SNMP-TARGET-MIB, SNMPv2-CONF, SNMPv2-SMI,
 SNMPv2-TC, SNMPv2-TM, TRANSPORT-ADDRESS-MIB.
 
@@ -198,12 +193,12 @@ If you need to modify this list use the --mib-stub option.
 Dealing with broken MIBs
 ------------------------
 
-Curiously enough, some MIBs coming from quite prominent vendors 
+Curiously enough, some MIBs coming from quite prominent vendors
 appear syntactically incorrect. That leads to MIB compilers fail on
 such MIBs. While many MIB compiler implementations (PySMI included)
 introduce workarounds and grammar relaxations allowing slightly
 broken MIBs to compile, however severely broken MIBs can't be
-reliably compiled. 
+reliably compiled.
 
 As another workaround PySMI offers the *borrow* feature. It allows
 PySMI to fetch already transformed MIBs even if corresponding
@@ -278,11 +273,11 @@ Generating MIB texts
 --------------------
 
 Most MIBs are very verbose. They contain many human-oriented descriptions
-and clarifications written in plain English. Those texts may be useful 
+and clarifications written in plain English. Those texts may be useful
 for MIB browser applications (to display those texts to human operator)
 but might not make any sense in other applications.
 
-To save space and CPU time, PySMI does not by default include those texts 
+To save space and CPU time, PySMI does not by default include those texts
 into transformed MIBs. However this can be reverted by adding
 --generate-mib-texts option.
 
@@ -364,11 +359,10 @@ Minor speedups
 There are a few options that may improve PySMI performance.
 
 The --cache-directory option may be used to point to a temporary
-writable directory where PySMI parser (e.g. Ply) would store its 
+writable directory where PySMI parser (e.g. Ply) would store its
 lookup tables.
 
-By default PySMI performing transformation into pysnmp format will 
+By default PySMI performing transformation into pysnmp format will
 also pre-compile Python source into interpreter bytecode. That takes
 some time and space. If you wish not to cache Python bytecode
 or to do that later, use the --no-python-compile option.
-

@@ -80,7 +80,7 @@ def start():
         [--keep-texts-layout]
         <MIB-NAME> [MIB-NAME [...]]]
     Where:
-        URI      - file, zip, http, https, ftp, sftp schemes are supported.
+        URI      - file, zip, http, https schemes are supported.
                 Use @mib@ placeholder token in URI to refer directly to
                 the required MIB module when source does not support
                 directory listing (e.g. HTTP).
