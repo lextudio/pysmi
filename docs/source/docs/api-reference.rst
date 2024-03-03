@@ -1,5 +1,4 @@
-
-PySMI library
+PySMI Library
 =============
 
 The *MibCompiler* object is the top-most interface to PySMI library features.
@@ -43,8 +42,8 @@ This example showcases some of its features:
 .. toctree::
    :maxdepth: 2
 
-   /pysmi/compiler/mibcompiler
-   /pysmi/compiler/mibstatus
+   /docs/compiler/mibcompiler
+   /docs/compiler/mibstatus
 
 MIB sources
 -----------
@@ -57,10 +56,10 @@ possible changes to MIB file name.
 .. toctree::
    :maxdepth: 2
 
-   /pysmi/reader/localfile/filereader
-   /pysmi/reader/zipreader/zipreader
-   /pysmi/reader/httpclient/httpreader
-   /pysmi/reader/callback/callbackreader
+   /docs/reader/localfile/filereader
+   /docs/reader/zipreader/zipreader
+   /docs/reader/httpclient/httpreader
+   /docs/reader/callback/callbackreader
 
 Conditional compilation
 -----------------------
@@ -83,9 +82,9 @@ such filtering.
 .. toctree::
    :maxdepth: 2
 
-   /pysmi/searcher/pyfile/pyfilesearcher
-   /pysmi/searcher/pypackage/pypackagesearcher
-   /pysmi/searcher/stub/stubsearcher
+   /docs/searcher/pyfile/pyfilesearcher
+   /docs/searcher/pypackage/pypackagesearcher
+   /docs/searcher/stub/stubsearcher
 
 Parser configuration
 --------------------
@@ -99,8 +98,8 @@ grammars as well as to recover from well-known errors in MIB files.
 .. toctree::
    :maxdepth: 2
 
-   /pysmi/parser/smi/parserfactory
-   /pysmi/parser/smi/dialect
+   /docs/parser/smi/parserfactory
+   /docs/parser/smi/dialect
 
 Code generators
 ---------------
@@ -111,9 +110,9 @@ AST into desired representation of the MIB.
 .. toctree::
    :maxdepth: 2
 
-   /pysmi/codegen/jsondoc/jsoncodegen
-   /pysmi/codegen/pysnmp/pysnmpcodegen
-   /pysmi/codegen/null/nullcodegen
+   /docs/codegen/jsondoc/jsoncodegen
+   /docs/codegen/pysnmp/pysnmpcodegen
+   /docs/codegen/null/nullcodegen
 
 Borrow pre-compiled MIBs
 ------------------------
@@ -127,8 +126,8 @@ already transformed MIB to complete the request successfully.
 .. toctree::
    :maxdepth: 2
 
-   /pysmi/borrower/anyfile/anyfileborrower
-   /pysmi/borrower/pyfile/pyfileborrower
+   /docs/borrower/anyfile/anyfileborrower
+   /docs/borrower/pyfile/pyfileborrower
 
 Write compiled MIBs
 -------------------
@@ -139,31 +138,6 @@ object given to :ref:`MibCompiler <compiler.MibCompiler>` on instantiation.
 .. toctree::
    :maxdepth: 2
 
-   /pysmi/writer/localfile/filewriter
-   /pysmi/writer/pyfile/pyfilewriter
-   /pysmi/writer/callback/callbackwriter
-
-Examples
---------
-
-The following examples focus on various feature of the PySMI library.
-
-.. toctree::
-   :maxdepth: 2
-
-   /examples/download-and-compile-smistar-mibs-into-json.rst
-   /examples/download-and-compile-smistar-mibs-into-pysnmp-files.rst
-   /examples/compile-smistar-mibs-into-pysnmp-files-if-needed.rst
-   /examples/compile-smiv2-mibs-from-text-into-pysnmp-code.rst
-   /examples/borrow-precompiled-pysnmp-files-on-failure.rst
-   /examples/always-borrow-precompiled-pysnmp-files.rst
-
-In case of any troubles or confusion, try enabling PySMI debugging
-and watch the output:
-
-.. code-block:: python
-
-   from pysmi import debug
-
-   debug.setLogger(debug.Debug('all'))
-
+   /docs/writer/localfile/filewriter
+   /docs/writer/pyfile/pyfilewriter
+   /docs/writer/callback/callbackwriter

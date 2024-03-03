@@ -56,7 +56,7 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = "SNMP SMI compiler"
+project = "SNMP SMI Compiler"
 copyright = "2015-2020, Ilya Etingof; © Copyright 2022-2024, LeXtudio Inc."
 author = "LeXtudio Inc. <support@lextudio.com>"
 

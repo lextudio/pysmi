@@ -1,5 +1,5 @@
 
-The *mibcopy* tool
+The *mibcopy* Tool
 ==================
 
 .. toctree::

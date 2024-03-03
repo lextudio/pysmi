@@ -1,6 +1,8 @@
 
-SNMP MIB parser
----------------
+SNMP MIB Compiler
+-----------------
+
+[![Become a Sponsor](https://img.shields.io/badge/Become%20a%20Sponsor-lextudio-orange.svg?style=for-readme)](https://github.com/sponsors/lextudio)
 [![PyPI](https://img.shields.io/pypi/v/pysmi-lextudio.svg?maxAge=2592000)](https://pypi.org/project/pysmi-lextudio)
 [![PyPI Downloads](https://img.shields.io/pypi/dd/pysmi-lextudio)](https://pypi.python.org/pypi/pysmi-lextudio/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/pysmi-lextudio.svg)](https://pypi.org/project/pysmi-lextudio/)
@@ -9,26 +11,26 @@ SNMP MIB parser
 PySMI is a pure-Python implementation of
 [SNMP SMI](https://en.wikipedia.org/wiki/Management_information_base) MIB parser.
 This tool is designed to turn ASN.1 MIBs into various formats. As of this moment,
-JSON and [pysnmp](https://github.com/lextudio/pysnmp) modules can be generated
+JSON and [PySNMP](https://github.com/lextudio/pysnmp) modules can be generated
 from ASN.1 MIBs.
 
 Features
 --------
 
 * Understands SMIv1, SMIv2 and de-facto SMI dialects
-* Turns MIBs into pysnmp classes and JSON documents
+* Turns MIBs into PySNMP classes and JSON documents
 * Maintains an index of MIB objects over many MIB modules
 * Automatically pulls ASN.1 MIBs from local directories, ZIP archives,
   and HTTP servers
-* 100% Python, works with Python 3.7+
+* 100% Python, works with Python 3.8+
 
-Rendered PySMI documentation can be found at [pysmi site](https://www.pysnmp.com/pysmi).
+Rendered PySMI documentation can be found at [PySMI site](https://www.pysnmp.com/pysmi).
 
 How to use PySMI
 ----------------
 
-If you are using pysnmp, you might never notice pysmi presence - pysnmp
-calls pysmi for MIB download and compilation behind the scenes (you can
+If you are using PySNMP, you might never notice PySMI presence - PySNMP
+calls PySMI for MIB download and compilation behind the scenes (you can
 still can do that manually by invoking *mibdump* tool).
 
 To turn ASN.1 MIB into a JSON document, call *mibdump* tool like this:
@@ -65,7 +67,7 @@ JSON document build from
 [IF-MIB module](https://mibs.pysnmp.com/asn1/IF-MIB)
 would hold information such as:
 
-```
+``` json
    {
       "ifMIB": {
           "name": "ifMIB",
@@ -77,7 +79,7 @@ would hold information such as:
             "1993-11-08 21:55"
           ]
         },
-      ...
+      // ...
       "ifTestTable": {
         "name": "ifTestTable",
         "oid": "1.3.6.1.2.1.31.1.3",
@@ -108,7 +110,7 @@ would hold information such as:
         },
         "maxaccess": "read-write"
       },
-      ...
+      // ...
    }
 ```
 
@@ -119,13 +121,14 @@ file.
 
 Besides one-to-one MIB conversion, PySMI library can produce JSON index to
 facilitate fast MIB information lookup across large collection of MIB files.
+
 For example, JSON index for
 [IP-MIB.json](https://mibs.pysnmp.com/json/asn1/IP-MIB),
 [TCP-MIB.json](https://mibs.pysnmp.com/json/asn1/TCP-MIB) and
 [UDP-MIB.json](https://mibs.pysnmp.com/json/asn1/UDP-MIB)
 modules would keep information like this:
 
-```
+``` json
    {
       "compliance": {
          "1.3.6.1.2.1.48.2.1.1": [
@@ -196,5 +199,5 @@ If something does not work as expected,
 post your question [on Stack Overflow](https://stackoverflow.com/questions/ask).
 
 Copyright (c) 2015-2020, [Ilya Etingof](mailto:etingof@gmail.com).
-Copyright (c) 2022, [LeXtudio Inc.](mailto:support@lextudio.com).
+Copyright (c) 2022-2024, [LeXtudio Inc.](mailto:support@lextudio.com).
 All rights reserved.

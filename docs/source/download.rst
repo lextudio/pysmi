@@ -1,15 +1,24 @@
+.. include:: /includes/_links.rst
 
-Download & Install
-==================
+Downloads
+=========
 
-The best way to obtain SNMP SMI library is by running `pip`:
+.. toctree::
+   :maxdepth: 2
+
+The PySMI software is provided under terms and conditions of BSD-style
+license, and can be freely downloaded from `PySMI PyPI package`_.
+
+Besides official releases, if you want to try the cutting-edge development
+code then it could be taken from `PySMI GitHub repository`_. It may
+be less stable in regards to general operation and changes to public
+interfaces, but it's first to contain fixes to recently discovered bugs.
+
+The best way to obtain PySMI and dependencies is to run:
 
 .. code-block:: bash
 
-   $ virtualenv venv
-   $ source venv/bin/activate
-   $ pip install pysmi-lextudio
+   pip install pysmi-lextudio
 
-Alternatively, you can download the latest release from
-`GitHub <https://github.com/lextudio/pysmi/releases>`_
-or `PyPI <https://pypi.org/project/pysmi-lextudio/>`_.
+In case of any issues, please open a new `GitHub issue`_ so we could try to
+help out.

@@ -1,5 +1,5 @@
 
-The *mibdump* tool
+The *mibdump* Tool
 ==================
 
 .. toctree::
