@@ -10,6 +10,7 @@
 import os
 import sys
 import getopt
+from pathlib import Path
 from pysmi.reader import getReadersFromUrls
 from pysmi.searcher import (
     AnyFileSearcher,
@@ -231,9 +232,9 @@ def start():
         mibSources = (
             sorted(
                 {
-                    os.path.abspath(os.path.dirname(x))
+                    Path(x.replace("file:///", "")).resolve().parent.as_uri()
                     for x in inputMibs
-                    if os.path.sep in x
+                    if "\\" in x or "/" in x
                 }
             )
             + mibSources
