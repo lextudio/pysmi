@@ -373,24 +373,24 @@ def start():
     if verboseFlag:
         sys.stderr.write(
             """Source MIB repositories: {}
-    Borrow missing/failed MIBs from: {}
-    Existing/compiled MIB locations: {}
-    Compiled MIBs destination directory: {}
-    MIBs excluded from code generation: {}
-    MIBs to compile: {}
-    Destination format: {}
-    Parser grammar cache directory: {}
-    Also compile all relevant MIBs: {}
-    Rebuild MIBs regardless of age: {}
-    Dry run mode: {}
-    Create/update MIBs: {}
-    Byte-compile Python modules: {} (optimization level {})
-    Ignore compilation errors: {}
-    Generate OID->MIB index: {}
-    Generate texts in MIBs: {}
-    Keep original texts layout: {}
-    Try various file names while searching for MIB module: {}
-    """.format(
+Borrow missing/failed MIBs from: {}
+Existing/compiled MIB locations: {}
+Compiled MIBs destination directory: {}
+MIBs excluded from code generation: {}
+MIBs to compile: {}
+Destination format: {}
+Parser grammar cache directory: {}
+Also compile all relevant MIBs: {}
+Rebuild MIBs regardless of age: {}
+Dry run mode: {}
+Create/update MIBs: {}
+Byte-compile Python modules: {} (optimization level {})
+Ignore compilation errors: {}
+Generate OID->MIB index: {}
+Generate texts in MIBs: {}
+Keep original texts layout: {}
+Try various file names while searching for MIB module: {}
+""".format(
                 ", ".join(mibSources),
                 ", ".join([x[0] for x in mibBorrowers if x[1] == genMibTextsFlag]),
                 ", ".join(mibSearchers),
