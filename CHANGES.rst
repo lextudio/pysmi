@@ -1,3 +1,8 @@
+Revision 1.3.3, 03-04-2024
+--------------------------
+
+- Fixed Windows path handling in mibdump.
+
 Revision 1.3.2, 03-02-2024
 --------------------------
 
