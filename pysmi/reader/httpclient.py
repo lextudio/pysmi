@@ -54,13 +54,7 @@ class HttpReader(AbstractReader):
 
         self.session = session()
 
-        self._user_agent = "pysmi-{}; python-{}.{}.{}; {}".format(
-            pysmi_version,
-            sys.version_info[0],
-            sys.version_info[1],
-            sys.version_info[2],
-            sys.platform,
-        )
+        self._user_agent = f"pysmi-{pysmi_version}; python-{sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}; {sys.platform}"
 
     def __str__(self):
         return self._url
@@ -70,7 +64,7 @@ class HttpReader(AbstractReader):
 
         mibname = decode(mibname)
 
-        debug.logger & debug.flagReader and debug.logger("looking for MIB %s" % mibname)
+        debug.logger & debug.flagReader and debug.logger(f"looking for MIB {mibname}")
 
         for mibalias, mibfile in self.getMibVariants(mibname, **options):
             if self.MIB_MAGIC in self._url:
@@ -79,7 +73,7 @@ class HttpReader(AbstractReader):
                 url = self._url + mibfile
 
             debug.logger & debug.flagReader and debug.logger(
-                "trying to fetch MIB from %s" % url
+                f"trying to fetch MIB from {url}"
             )
 
             try:
@@ -92,7 +86,7 @@ class HttpReader(AbstractReader):
                 continue
 
             debug.logger & debug.flagReader and debug.logger(
-                "HTTP response %s" % response.status_code
+                f"HTTP response {response.status_code}"
             )
 
             if response.status_code == 200:
@@ -106,14 +100,12 @@ class HttpReader(AbstractReader):
 
                 except Exception:
                     debug.logger & debug.flagReader and debug.logger(
-                        "malformed HTTP headers: %s" % sys.exc_info()[1]
+                        f"malformed HTTP headers: {sys.exc_info()[1]}"
                     )
                     mtime = time.time()
 
                 debug.logger & debug.flagReader and debug.logger(
-                    "fetching source MIB {}, mtime {}".format(
-                        url, response.headers["Last-Modified"]
-                    )
+                    f"fetching source MIB {url}, mtime {response.headers['Last-Modified']}"
                 )
 
                 return MibInfo(
@@ -121,5 +113,5 @@ class HttpReader(AbstractReader):
                 ), response.content.decode("utf-8")
 
         raise error.PySmiReaderFileNotFoundError(
-            "source MIB %s not found" % mibname, reader=self
+            f"source MIB {mibname} not found", reader=self
         )

@@ -32,7 +32,7 @@ class AnyFileSearcher(AbstractSearcher):
     def fileExists(self, mibname, mtime, rebuild=False):
         if rebuild:
             debug.logger & debug.flagSearcher and debug.logger(
-                "pretend %s is very old" % mibname
+                f"pretend {mibname} is very old"
             )
             return
 
@@ -43,7 +43,7 @@ class AnyFileSearcher(AbstractSearcher):
             f = basename + sfx
             if not os.path.exists(f) or not os.path.isfile(f):
                 debug.logger & debug.flagSearcher and debug.logger(
-                    "%s not present or not a file" % f
+                    f"{f} not present or not a file"
                 )
                 continue
 
@@ -57,14 +57,12 @@ class AnyFileSearcher(AbstractSearcher):
                 )
 
             debug.logger & debug.flagSearcher and debug.logger(
-                "found {}, mtime {}".format(
-                    f, time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime(fileTime))
-                )
+                f"found {f}, mtime {time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.gmtime(fileTime))}"
             )
 
             if fileTime >= mtime:
                 raise error.PySmiFileNotModifiedError()
 
         raise error.PySmiFileNotFoundError(
-            "no compiled file %s found" % mibname, searcher=self
+            f"no compiled file {mibname} found", searcher=self
         )

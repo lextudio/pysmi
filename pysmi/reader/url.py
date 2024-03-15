@@ -39,6 +39,6 @@ def getReadersFromUrls(*sourceUrls, **options):
             readers.append(HttpReader(sourceUrl).setOptions(**options))
 
         else:
-            raise error.PySmiError("Unsupported URL scheme %s" % sourceUrl)
+            raise error.PySmiError(f"Unsupported URL scheme {sourceUrl}")
 
     return readers

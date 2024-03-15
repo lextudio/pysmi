@@ -60,18 +60,10 @@ class JsonCodeGen(IntermediateCodeGen):
 
         except jinja2.exceptions.TemplateError:
             err = sys.exc_info()[1]
-            raise error.PySmiCodegenError("Jinja template rendering error: %s" % err)
+            raise error.PySmiCodegenError(f"Jinja template rendering error: {err}")
 
         debug.logger & debug.flagCodegen and debug.logger(
-            "canonical MIB name %s (%s), imported MIB(s) %s, rendered from "
-            "%s, JSON document size %d bytes"
-            % (
-                mibInfo.name,
-                mibInfo.identity,
-                ",".join(mibInfo.imported) or "<none>",
-                dstTemplate,
-                len(text),
-            )
+            f"canonical MIB name {mibInfo.name} ({mibInfo.identity}), imported MIB(s) {','.join(mibInfo.imported) or '<none>'}, rendered from {dstTemplate}, JSON document size {len(text)} bytes"
         )
 
         return mibInfo, text
@@ -90,9 +82,7 @@ class JsonCodeGen(IntermediateCodeGen):
                 outDict.update(json.loads(kwargs["old_index_data"]))
 
             except Exception:
-                raise error.PySmiCodegenError(
-                    "Index load error: %s" % sys.exc_info()[1]
-                )
+                raise error.PySmiCodegenError(f"Index load error: {sys.exc_info()[1]}")
 
         def order(top):
             if isinstance(top, dict):
@@ -165,7 +155,7 @@ class JsonCodeGen(IntermediateCodeGen):
             outDict["meta"]["comments"] = kwargs["comments"]
 
         debug.logger & debug.flagCodegen and debug.logger(
-            "OID->MIB index built, %s entries" % len(processed)
+            f"OID->MIB index built, {len(processed)} entries"
         )
 
         return json.dumps(order(outDict), indent=2)

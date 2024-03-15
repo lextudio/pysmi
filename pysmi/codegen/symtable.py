@@ -187,7 +187,7 @@ class SymtableCodeGen(AbstractCodeGen):
         if (
             symbol in self._out or symbol in self._postponedSyms
         ):  # add to strict mode - or symbol in self._importMap:
-            raise error.PySmiSemanticError("Duplicate symbol found: %s" % symbol)
+            raise error.PySmiSemanticError(f"Duplicate symbol found: {symbol}")
 
         if self.allParentsExists(parents):
             self._out[symbol] = symProps
@@ -506,7 +506,7 @@ class SymtableCodeGen(AbstractCodeGen):
                 out += (el[1],)  # XXX Do we need to create a new object el[0]?
 
             else:
-                raise error.PySmiSemanticError("unknown datatype for OID: %s" % el)
+                raise error.PySmiSemanticError(f"unknown datatype for OID: {el}")
 
         return out
 
@@ -644,24 +644,19 @@ class SymtableCodeGen(AbstractCodeGen):
 
         if self._postponedSyms:
             raise error.PySmiSemanticError(
-                "Unknown parents for symbols: %s" % ", ".join(self._postponedSyms)
+                f"Unknown parents for symbols: {', '.join(self._postponedSyms)}"
             )
 
         for sym in self._parentOids:
             if sym not in self._out and sym not in self._importMap:
-                raise error.PySmiSemanticError("Unknown parent symbol: %s" % sym)
+                raise error.PySmiSemanticError(f"Unknown parent symbol: {sym}")
 
         self._out["_symtable_order"] = list(self._symsOrder)
         self._out["_symtable_cols"] = list(self._cols)
         self._out["_symtable_rows"] = list(self._rows)
 
         debug.logger & debug.flagCodegen and debug.logger(
-            "canonical MIB name {} ({}), imported MIB(s) {}, Symbol table size {} symbols".format(
-                self.moduleName[0],
-                moduleOid,
-                ",".join(importedModules) or "<none>",
-                len(self._out),
-            )
+            f"canonical MIB name {self.moduleName[0]} ({moduleOid}), imported MIB(s) {','.join(importedModules) or '<none>'}, Symbol table size {len(self._out)} symbols"
         )
 
         return (

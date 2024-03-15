@@ -168,7 +168,7 @@ class IntermediateCodeGen(AbstractCodeGen):
         moduleCompliance=False,
     ):
         if symbol in self._seenSyms and symbol not in self._importMap:
-            raise error.PySmiSemanticError("Duplicate symbol found: %s" % symbol)
+            raise error.PySmiSemanticError(f"Duplicate symbol found: {symbol}")
 
         self.addToExports(symbol, moduleIdentity)
         self._out[symbol] = outDict
@@ -202,9 +202,9 @@ class IntermediateCodeGen(AbstractCodeGen):
                     continue
 
                 if module not in self.symbolTable:
-                    # XXX do getname for possible future borrowed mibs
+                    # TODO: do getname for possible future borrowed mibs
                     raise error.PySmiSemanticError(
-                        'no module "%s" in symbolTable' % module
+                        f'no module "{module}" in symbolTable'
                     )
 
                 if parent not in self.symbolTable[module]:
@@ -222,7 +222,7 @@ class IntermediateCodeGen(AbstractCodeGen):
 
     def getBaseType(self, symName, module):
         if module not in self.symbolTable:
-            raise error.PySmiSemanticError('no module "%s" in symbolTable' % module)
+            raise error.PySmiSemanticError(f'no module "{module}" in symbolTable')
 
         if symName not in self.symbolTable[module]:
             raise error.PySmiSemanticError(
@@ -233,7 +233,7 @@ class IntermediateCodeGen(AbstractCodeGen):
             "syntax", (("", ""), "")
         )
         if not symType[0]:
-            raise error.PySmiSemanticError('unknown type for symbol "%s"' % symName)
+            raise error.PySmiSemanticError(f'unknown type for symbol "{symName}"')
 
         if symType[0] in self.baseTypes:
             return symType, symSubtype
@@ -767,8 +767,7 @@ class IntermediateCodeGen(AbstractCodeGen):
 
             else:
                 raise error.PySmiSemanticError(
-                    'unknown type "%s" for defval "%s" of symbol "%s"'
-                    % (defvalType, defval, objname)
+                    f'unknown type "{defvalType}" for defval "{defval}" of symbol "{objname}"'
                 )
 
         return {"default": outDict}
@@ -866,7 +865,7 @@ class IntermediateCodeGen(AbstractCodeGen):
                 out += (el[1],)  # XXX Do we need to create a new object el[0]?
 
             else:
-                raise error.PySmiSemanticError("unknown datatype for OID: %s" % el)
+                raise error.PySmiSemanticError(f"unknown datatype for OID: {el}")
 
         return ".".join([str(x) for x in self.genNumericOid(out)]), parent
 
@@ -885,17 +884,17 @@ class IntermediateCodeGen(AbstractCodeGen):
             if len(timeStr) == 11:
                 timeStr = "19" + timeStr
 
-            # XXX raise in strict mode
+            # TODO: raise in strict mode
             # elif lenTimeStr != 13:
-            #  raise error.PySmiSemanticError("Invalid date %s" % t)
+            # raise error.PySmiSemanticError(f"Invalid date {t}")
             try:
                 times.append(
                     strftime("%Y-%m-%d %H:%M", strptime(timeStr, "%Y%m%d%H%MZ"))
                 )
 
             except ValueError:
-                # XXX raise in strict mode
-                # raise error.PySmiSemanticError("Invalid date %s: %s" % (t, sys.exc_info()[1]))
+                # TODO: raise in strict mode
+                # raise error.PySmiSemanticError(f"Invalid date {t}")
                 timeStr = "197001010000Z"  # dummy date for dates with typos
                 times.append(
                     strftime("%Y-%m-%d %H:%M", strptime(timeStr, "%Y%m%d%H%MZ"))
@@ -1068,7 +1067,7 @@ class IntermediateCodeGen(AbstractCodeGen):
                 true_sym = sym[len(RESERVED_KEYWORDS_PREFIX) :]
 
             if true_sym not in self._out:
-                raise error.PySmiCodegenError("No generated code for symbol %s" % sym)
+                raise error.PySmiCodegenError(f"No generated code for symbol {sym}")
 
             outDict[sym] = self._out[true_sym]
 
@@ -1079,8 +1078,7 @@ class IntermediateCodeGen(AbstractCodeGen):
             outDict["meta"]["comments"] = kwargs["comments"]
 
         debug.logger & debug.flagCodegen and debug.logger(
-            "canonical MIB name %s (%s), imported MIB(s) %s"
-            % (self.moduleName[0], moduleOid, ",".join(importedModules) or "<none>")
+            f"canonical MIB name {self.moduleName[0]} ({moduleOid}), imported MIB(s) {','.join(importedModules) or '<none>'}"
         )
 
         return (

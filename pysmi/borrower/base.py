@@ -28,9 +28,7 @@ class AbstractBorrower:
         self._reader = reader
 
     def __str__(self):
-        return "{}{{{}, genTexts={}, exts={}}}".format(
-            self.__class__.__name__, self._reader, self.genTexts, self.exts
-        )
+        return f"{self.__class__.__name__}{{{self._reader}, genTexts={self.genTexts}, exts={self.exts}}}"
 
     def setOptions(self, **kwargs):
         self._reader.setOptions(**kwargs)

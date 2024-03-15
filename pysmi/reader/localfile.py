@@ -103,28 +103,21 @@ class FileReader(AbstractReader):
 
     def getData(self, mibname, **options):
         debug.logger & debug.flagReader and debug.logger(
-            "{}looking for MIB {}".format(
-                self._recursive and "recursively " or "", mibname
-            )
+            f"looking for MIB {mibname}{' recursively' if self._recursive else ''}"
         )
 
         for path in self.getSubdirs(self._path, self._recursive, self._ignoreErrors):
             for mibalias, mibfile in self.getMibVariants(mibname, **options):
                 f = os.path.join(decode(path), decode(mibfile))
 
-                debug.logger & debug.flagReader and debug.logger("trying MIB %s" % f)
+                debug.logger & debug.flagReader and debug.logger(f"trying MIB {f}")
 
                 if os.path.exists(f) and os.path.isfile(f):
                     try:
                         mtime = os.stat(f)[8]
 
                         debug.logger & debug.flagReader and debug.logger(
-                            "source MIB {} mtime is {}, fetching data...".format(
-                                f,
-                                time.strftime(
-                                    "%a, %d %b %Y %H:%M:%S GMT", time.gmtime(mtime)
-                                ),
-                            )
+                            f"source MIB {f} mtime is {time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.gmtime(mtime))}, fetching data..."
                         )
 
                         fp = open(f, mode="rb")
@@ -132,10 +125,10 @@ class FileReader(AbstractReader):
                         fp.close()
 
                         if len(mibData) == self.maxMibSize:
-                            raise OSError("MIB %s too large" % f)
+                            raise OSError(f"MIB {f} too large")
 
                         return MibInfo(
-                            path="file://%s" % f,
+                            path=f"file://{f}",
                             file=mibfile,
                             name=mibalias,
                             mtime=mtime,
@@ -152,9 +145,9 @@ class FileReader(AbstractReader):
                             )
 
                     raise error.PySmiReaderFileNotModifiedError(
-                        "source MIB %s is older than needed" % f, reader=self
+                        f"source MIB {f} is older than needed", reader=self
                     )
 
         raise error.PySmiReaderFileNotFoundError(
-            "source MIB %s not found" % mibname, reader=self
+            f"source MIB {mibname} not found", reader=self
         )

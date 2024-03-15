@@ -36,12 +36,12 @@ def start():
     dryrunFlag = False
     ignoreErrorsFlag = False
 
-    helpMessage = """\
-    Usage: {} [--help]
+    helpMessage = f"""\
+    Usage: {sys.argv[0]} [--help]
         [--version]
         [--verbose]
         [--quiet]
-        [--debug=<{}>]
+        [--debug=<{"|".join(sorted(debug.flagMap))}>]
         [--mib-source=<URI>]
         [--cache-directory=<DIRECTORY>]
         [--ignore-errors]
@@ -52,9 +52,7 @@ def start():
                 Use @mib@ placeholder token in URI to refer directly to
                 the required MIB module when source does not support
                 directory listing (e.g. HTTP).
-    """.format(
-        sys.argv[0], "|".join([x for x in sorted(debug.flagMap)])
-    )
+    """
 
     # TODO(etingof): add the option to copy MIBs into enterprise-indexed subdirs
 
@@ -82,7 +80,7 @@ def start():
     for opt in opts:
         if opt[0] == "-h" or opt[0] == "--help":
             sys.stderr.write(
-                """\
+                f"""\
     Synopsis:
     SNMP SMI/MIB files copying tool. When given MIB file(s) or directory(ies)
     on input and a destination directory, the tool parses MIBs to figure out
@@ -93,9 +91,8 @@ def start():
 
     Documentation:
     https://www.pysnmp.com/pysmi
-    %s
+    {helpMessage}
     """
-                % helpMessage
             )
             sys.exit(EX_OK)
 
@@ -103,14 +100,12 @@ def start():
             from pysmi import __version__
 
             sys.stderr.write(
-                """\
-    SNMP SMI/MIB library version {}, written by Ilya Etingof <etingof@gmail.com>
-    Python interpreter: {}
+                f"""\
+    SNMP SMI/MIB library version {__version__}, written by Ilya Etingof <etingof@gmail.com>
+    Python interpreter: {sys.version}
     Software documentation and support at https://www.pysnmp.com/pysmi
-    {}
-    """.format(
-                    __version__, sys.version, helpMessage
-                )
+    {helpMessage}
+    """
             )
             sys.exit(EX_OK)
 
@@ -140,8 +135,7 @@ def start():
 
     if len(inputMibs) < 2:
         sys.stderr.write(
-            "ERROR: MIB source and/or destination arguments not given\r\n%s\r\n"
-            % helpMessage
+            f"ERROR: MIB source and/or destination arguments not given{os.linesep}{helpMessage}{os.linesep}"
         )
         sys.exit(EX_USAGE)
 
@@ -149,7 +143,7 @@ def start():
 
     if os.path.exists(dstDirectory) and not os.path.isdir(dstDirectory):
         sys.stderr.write(
-            "ERROR: given destination is not a directory\r\n%s\r\n" % helpMessage
+            f"ERROR: given destination '{dstDirectory}' is not a directory{os.linesep}{helpMessage}{os.linesep}"
         )
         sys.exit(EX_USAGE)
 
@@ -187,7 +181,7 @@ def start():
             )
 
         except error.PySmiError:
-            sys.stderr.write("ERROR: %s\r\n" % sys.exc_info()[1])
+            sys.stderr.write(f"ERROR: {sys.exc_info()[1]}{os.linesep}")
             sys.exit(EX_SOFTWARE)
 
         for canonicalMibName in processed:
@@ -205,7 +199,7 @@ def start():
                 return canonicalMibName, revision
 
         raise error.PySmiError(
-            'Can\'t read or parse MIB "%s"' % os.path.join(mibDir, mibFile)
+            f'Can\'t read or parse MIB "{os.path.join(mibDir, mibFile)}"'
         )
 
     def shortenPath(path, maxLength=45):
@@ -220,7 +214,8 @@ def start():
 
     for srcDirectory in inputMibs:
         if verboseFlag:
-            sys.stderr.write('Reading "%s"...\r\n' % srcDirectory)
+            if verboseFlag:
+                sys.stderr.write(f'Reading "{srcDirectory}"...{os.linesep}')
 
         if os.path.isfile(srcDirectory):
             mibFiles = [
@@ -253,8 +248,7 @@ def start():
 
                 if not quietFlag:
                     sys.stderr.write(
-                        "FAILED %s\r\n"
-                        % shortenPath(os.path.join(srcDirectory, mibFile))
+                        f"FAILED {shortenPath(os.path.join(srcDirectory, mibFile))}{os.linesep}"
                     )
 
                 mibsFailed += 1
@@ -271,9 +265,7 @@ def start():
                 except error.PySmiError as ex:
                     if verboseFlag:
                         sys.stderr.write(
-                            'MIB "%s" is not available at the '
-                            'destination directory "%s": %s\r\n'
-                            % (os.path.join(srcDirectory, mibFile), dstDirectory, ex)
+                            f'MIB "{os.path.join(srcDirectory, mibFile)}" is not available at the destination directory "{dstDirectory}": {ex}{os.linesep}'
                         )
 
                     dstMibRevision = datetime.fromtimestamp(0)
@@ -283,18 +275,11 @@ def start():
             if dstMibRevision >= srcMibRevision:
                 if verboseFlag:
                     sys.stderr.write(
-                        'Destination MIB "%s" has the same or newer revision as the '
-                        'source MIB "%s"\r\n'
-                        % (
-                            os.path.join(dstDirectory, mibName),
-                            os.path.join(srcDirectory, mibFile),
-                        )
+                        f'Destination MIB "{os.path.join(dstDirectory, mibName)}" has the same or newer revision as the source MIB "{os.path.join(srcDirectory, mibFile)}"{os.linesep}'
                     )
                 if not quietFlag:
                     sys.stderr.write(
-                        "NOT COPIED {} ({})\r\n".format(
-                            shortenPath(os.path.join(srcDirectory, mibFile)), mibName
-                        )
+                        f"NOT COPIED {shortenPath(os.path.join(srcDirectory, mibFile))} ({mibName}){os.linesep}"
                     )
 
                 continue
@@ -302,14 +287,10 @@ def start():
             mibsRevisions[mibName] = srcMibRevision
 
             if verboseFlag:
-                sys.stderr.write(
-                    'Copying "{}" (revision "{}") -> "{}" (revision "{}")\r\n'.format(
-                        os.path.join(srcDirectory, mibFile),
-                        srcMibRevision,
-                        os.path.join(dstDirectory, mibName),
-                        dstMibRevision,
+                if verboseFlag:
+                    sys.stderr.write(
+                        f'Copying "{os.path.join(srcDirectory, mibFile)}" (revision "{srcMibRevision}") -> "{os.path.join(dstDirectory, mibName)}" (revision "{dstMibRevision}"){os.linesep}'
                     )
-                )
 
             try:
                 shutil.copy(
@@ -320,19 +301,12 @@ def start():
             except Exception as ex:
                 if verboseFlag:
                     sys.stderr.write(
-                        'Failed to copy MIB "{}" -> "{}" ({}): "{}"\r\n'.format(
-                            os.path.join(srcDirectory, mibFile),
-                            os.path.join(dstDirectory, mibName),
-                            mibName,
-                            ex,
-                        )
+                        f'Failed to copy MIB "{os.path.join(srcDirectory, mibFile)}" -> "{os.path.join(dstDirectory, mibName)}" ({mibName}): "{ex}"{os.linesep}'
                     )
 
                 if not quietFlag:
                     sys.stderr.write(
-                        "FAILED {} ({})\r\n".format(
-                            shortenPath(os.path.join(srcDirectory, mibFile)), mibName
-                        )
+                        f"FAILED {shortenPath(os.path.join(srcDirectory, mibFile))} ({mibName}){os.linesep}"
                     )
 
                 mibsFailed += 1
@@ -340,9 +314,7 @@ def start():
             else:
                 if not quietFlag:
                     sys.stderr.write(
-                        "COPIED {} ({})\r\n".format(
-                            shortenPath(os.path.join(srcDirectory, mibFile)), mibName
-                        )
+                        f"COPIED {shortenPath(os.path.join(srcDirectory, mibFile))} ({mibName}){os.linesep}"
                     )
 
                 mibsCopied += 1

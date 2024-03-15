@@ -94,7 +94,7 @@ class Debug:
             else:
                 self._printer = Printer()
 
-        self("running pysmi version %s" % __version__)
+        self(f"running pysmi version {__version__}")
 
         for flag in flags:
             inverse = flag and flag[0] in ("!", "~")
@@ -109,13 +109,9 @@ class Debug:
                     self._flags |= flagMap[flag]
 
             except KeyError:
-                raise error.PySmiError("bad debug flag %s" % flag)
+                raise error.PySmiError(f"bad debug flag {flag}")
 
-            self(
-                "debug category '{}' {}".format(
-                    flag, inverse and "disabled" or "enabled"
-                )
-            )
+            self(f"debug category '{flag}' {'disabled' if inverse else 'enabled'}")
 
     def __str__(self):
         return f"logger {self._printer}, flags {self._flags:x}"

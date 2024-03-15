@@ -102,7 +102,7 @@ class TypeDeclarationTestCase(unittest.TestCase):
         exec(codeobj, self.ctx, self.ctx)
 
     def protoTestSymbol(self, symbol, klass):
-        self.assertTrue(symbol in self.ctx, "symbol %s not present" % symbol)
+        self.assertTrue(symbol in self.ctx, f"symbol {symbol} not present")
 
     def protoTestClass(self, symbol, klass):
         self.assertEqual(

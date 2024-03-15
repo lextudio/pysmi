@@ -57,12 +57,12 @@ def start():
     buildIndexFlag = False
     writeMibsFlag = True
 
-    helpMessage = """\
-    Usage: {} [--help]
+    helpMessage = f"""\
+    Usage: {sys.argv[0]} [--help]
         [--version]
         [--quiet]
         [--strict]
-        [--debug=<{}>]
+        [--debug=<{"|".join(sorted(debug.flagMap))}>]
         [--mib-source=<URI>]
         [--mib-searcher=<PATH|PACKAGE>]
         [--mib-stub=<MIB-NAME>]
@@ -87,9 +87,8 @@ def start():
                 Use @mib@ placeholder token in URI to refer directly to
                 the required MIB module when source does not support
                 directory listing (e.g. HTTP).
-        FORMAT   - pysnmp, json, null""".format(
-        sys.argv[0], "|".join([x for x in sorted(debug.flagMap)])
-    )
+        FORMAT   - pysnmp, json, null"""
+
 
     try:
         opts, inputMibs = getopt.getopt(
@@ -131,14 +130,13 @@ def start():
     for opt in opts:
         if opt[0] == "-h" or opt[0] == "--help":
             sys.stderr.write(
-                """\
+                f"""\
     Synopsis:
     SNMP SMI/MIB files conversion tool
     Documentation:
     https://www.pysnmp.com/pysmi
-    %s
+    {helpMessage}
     """
-                % helpMessage
             )
             sys.exit(EX_OK)
 
@@ -146,14 +144,12 @@ def start():
             from pysmi import __version__
 
             sys.stderr.write(
-                """\
-    SNMP SMI/MIB library version {}, written by Ilya Etingof <etingof@gmail.com>
-    Python interpreter: {}
+                f"""\
+    SNMP SMI/MIB library version {__version__}, written by Ilya Etingof <etingof@gmail.com>
+    Python interpreter: {sys.version}
     Software documentation and support at https://www.pysnmp.com/pysmi
-    {}
-    """.format(
-                    __version__, sys.version, helpMessage
-                )
+    {helpMessage}
+    """
             )
             sys.exit(EX_OK)
 
@@ -199,8 +195,7 @@ def start():
 
             except ValueError:
                 sys.stderr.write(
-                    "ERROR: known Python optimization levels: -1, 0, 1, 2\r\n%s\r\n"
-                    % helpMessage
+                    f"ERROR: known Python optimization levels: -1, 0, 1, 2{os.linesep}{helpMessage}{os.linesep}"
                 )
                 sys.exit(EX_USAGE)
 
@@ -250,7 +245,7 @@ def start():
 
     if not inputMibs:
         sys.stderr.write(
-            "ERROR: MIB modules names not specified\r\n%s\r\n" % helpMessage
+            f"ERROR: MIB module names not specified{os.linesep}{helpMessage}{os.linesep}"
         )
         sys.exit(EX_USAGE)
 
@@ -380,45 +375,26 @@ def start():
 
     if verboseFlag:
         sys.stderr.write(
-            """Source MIB repositories: {}
-Borrow missing/failed MIBs from: {}
-Existing/compiled MIB locations: {}
-Compiled MIBs destination directory: {}
-MIBs excluded from code generation: {}
-MIBs to compile: {}
-Destination format: {}
-Parser grammar cache directory: {}
-Also compile all relevant MIBs: {}
-Rebuild MIBs regardless of age: {}
-Dry run mode: {}
-Create/update MIBs: {}
-Byte-compile Python modules: {} (optimization level {})
-Ignore compilation errors: {}
-Generate OID->MIB index: {}
-Generate texts in MIBs: {}
-Keep original texts layout: {}
-Try various file names while searching for MIB module: {}
-""".format(
-                ", ".join(mibSources),
-                ", ".join([x[0] for x in mibBorrowers if x[1] == genMibTextsFlag]),
-                ", ".join(mibSearchers),
-                dstDirectory,
-                ", ".join(sorted(mibStubs)),
-                ", ".join(inputMibs),
-                dstFormat,
-                cacheDirectory or "not used",
-                nodepsFlag and "no" or "yes",
-                rebuildFlag and "yes" or "no",
-                dryrunFlag and "yes" or "no",
-                writeMibsFlag and "yes" or "no",
-                dstFormat == "pysnmp" and pyCompileFlag and "yes" or "no",
-                dstFormat == "pysnmp" and pyOptimizationLevel and "yes" or "no",
-                ignoreErrorsFlag and "yes" or "no",
-                buildIndexFlag and "yes" or "no",
-                genMibTextsFlag and "yes" or "no",
-                keepTextsLayout and "yes" or "no",
-                doFuzzyMatchingFlag and "yes" or "no",
-            )
+            f"""\
+Source MIB repositories: {', '.join(mibSources)}
+Borrow missing/failed MIBs from: {', '.join([x[0] for x in mibBorrowers if x[1] == genMibTextsFlag])}
+Existing/compiled MIB locations: {', '.join(mibSearchers)}
+Compiled MIBs destination directory: {dstDirectory}
+MIBs excluded from code generation: {', '.join(sorted(mibStubs))}
+MIBs to compile: {', '.join(inputMibs)}
+Destination format: {dstFormat}
+Parser grammar cache directory: {cacheDirectory or "not used"}
+Also compile all relevant MIBs: {"no" if nodepsFlag else "yes"}
+Rebuild MIBs regardless of age: {"yes" if rebuildFlag else "no"}
+Dry run mode: {"yes" if dryrunFlag else "no"}
+Create/update MIBs: {"yes" if writeMibsFlag else "no"}
+Byte-compile Python modules: {"yes" if dstFormat == "pysnmp" and pyCompileFlag else "no"} (optimization level {"yes" if dstFormat == "pysnmp" and pyOptimizationLevel else "no"})
+Ignore compilation errors: {"yes" if ignoreErrorsFlag else "no"}
+Generate OID->MIB index: {"yes" if buildIndexFlag else "no"}
+Generate texts in MIBs: {"yes" if genMibTextsFlag else "no"}
+Keep original texts layout: {"yes" if keepTextsLayout else "no"}
+Try various file names while searching for MIB module: {"yes" if doFuzzyMatchingFlag else "no"}
+"""
         )
 
     # Initialize compiler infrastructure
@@ -458,76 +434,39 @@ Try various file names while searching for MIB module: {}
             mibCompiler.buildIndex(safe, dryRun=dryrunFlag, ignoreErrors=True)
 
     except error.PySmiError:
-        sys.stderr.write("ERROR: %s\r\n" % sys.exc_info()[1])
+        sys.stderr.write(f"ERROR: {sys.exc_info()[1]}{os.linesep}")
         sys.exit(EX_SOFTWARE)
 
     else:
+        sorted_files = sorted(processed)
+        compiled = [x for x in sorted_files if processed[x] == "compiled"]
+        borrowed = [x for x in sorted_files if processed[x] == 'borrowed']
+        untouched = [x for x in sorted_files if processed[x] == 'untouched']
+        missing = [x for x in sorted_files if processed[x] == 'missing']
+        unprocessed = [x for x in sorted_files if processed[x] == 'unprocessed']
+        failed = [x for x in sorted_files if processed[x] == 'failed']
         if verboseFlag:
             sys.stdout.write(
-                "{}reated/updated MIBs: {}\r\n".format(
-                    dryrunFlag and "Would be c" or "C",
-                    ", ".join(
-                        [
-                            "{}{}".format(
-                                x,
-                                x != processed[x].alias
-                                and " (%s)" % processed[x].alias
-                                or "",
-                            )
-                            for x in sorted(processed)
-                            if processed[x] == "compiled"
-                        ]
-                    ),
-                )
+                f"{'Would be c' if dryrunFlag else 'C'}reated/updated MIBs: {', '.join([f'{x}{'' if x == processed[x].alias else f' ({processed[x].alias})'}' for x in compiled])}{os.linesep}"
             )
 
             sys.stdout.write(
-                "Pre-compiled MIBs {}borrowed: {}\r\n".format(
-                    dryrunFlag and "Would be " or "",
-                    ", ".join(
-                        [
-                            f"{x} ({processed[x].path})"
-                            for x in sorted(processed)
-                            if processed[x] == "borrowed"
-                        ]
-                    ),
-                )
+                f"Pre-compiled MIBs {'Would be ' if dryrunFlag else ''}borrowed: "
+                f"{', '.join([f'{x} ({processed[x].path})' for x in borrowed])}{os.linesep}"
             )
 
             sys.stdout.write(
-                "Up to date MIBs: %s\r\n"
-                % ", ".join(
-                    ["%s" % x for x in sorted(processed) if processed[x] == "untouched"]
-                )
-            )
+                f"Up to date MIBs: {', '.join(x for x in untouched)}{os.linesep}")
             sys.stderr.write(
-                "Missing source MIBs: %s\n"
-                % "\n ".join(
-                    ["%s" % x for x in sorted(processed) if processed[x] == "missing"]
-                )
-            )
+                f"Missing source MIBs: {f'{os.linesep} '.join(x for x in missing)}{os.linesep}")
+            sys.stderr.write(
+                f"Ignored MIBs: {', '.join(x for x in unprocessed)}\n")
 
             sys.stderr.write(
-                "Ignored MIBs: %s\r\n"
-                % ", ".join(
-                    [
-                        "%s" % x
-                        for x in sorted(processed)
-                        if processed[x] == "unprocessed"
-                    ]
-                )
+                f"Failed MIBs: "
+                f"{f'{os.linesep} '.join([f"{x} ({processed[x].error})" for x in failed])}{os.linesep}"
             )
 
-            sys.stderr.write(
-                "Failed MIBs: %s\n"
-                % "\n ".join(
-                    [
-                        f"{x} ({processed[x].error})"
-                        for x in sorted(processed)
-                        if processed[x] == "failed"
-                    ]
-                )
-            )
 
         exitCode = EX_OK
 

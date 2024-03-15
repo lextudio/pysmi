@@ -50,4 +50,4 @@ mibCompiler.addSearchers(StubSearcher(*PySnmpCodeGen.baseMibs))
 # run [possibly recursive] MIB compilation
 results = mibCompiler.compile(*inputMibs)  # , rebuild=True, genTexts=True)
 
-print("Results: %s" % ", ".join([f"{x}:{results[x]}" for x in results]))
+print(f"Results: {', '.join(f'{x}:{results[x]}' for x in results)}")

@@ -66,7 +66,7 @@ class PyFileWriter(AbstractWriter):
                 )
 
         if comments:
-            data = "#\n" + "".join(["# %s\n" % x for x in comments]) + "#\n" + data
+            data = f"#{os.linesep}{os.linesep.join([f'# {x}' for x in comments])}{os.linesep}#{os.linesep}{data}"
 
         pyfile = os.path.join(self._path, decode(mibname))
         pyfile += SOURCE_SUFFIXES[0]
@@ -88,7 +88,7 @@ class PyFileWriter(AbstractWriter):
                 f"failure writing file {pyfile}: {exc[1]}", file=pyfile, writer=self
             )
 
-        debug.logger & debug.flagWriter and debug.logger("created file %s" % pyfile)
+        debug.logger & debug.flagWriter and debug.logger(f"created file {pyfile}")
 
         if self.pyCompile:
             try:
@@ -109,7 +109,7 @@ class PyFileWriter(AbstractWriter):
                     writer=self,
                 )
 
-        debug.logger & debug.flagWriter and debug.logger("%s stored" % mibname)
+        debug.logger & debug.flagWriter and debug.logger(f"{mibname} stored")
 
     def getData(self, filename):
         return ""

@@ -194,10 +194,10 @@ class SmiV2Lexer(AbstractLexer):
     def t_UPPERCASE_IDENTIFIER(self, t):
         r'[A-Z][-a-zA-z0-9]*'
         if t.value in self.forbidden_words:
-            raise error.PySmiLexerError("%s is forbidden" % t.value, lineno=t.lineno)
+            raise error.PySmiLexerError(f"{t.value} is forbidden", lineno=t.lineno)
 
         if t.value[-1] == '-':
-            raise error.PySmiLexerError("Identifier should not end with '-': %s" % t.value, lineno=t.lineno)
+            raise error.PySmiLexerError(f"Identifier should not end with '-': {t.value}", lineno=t.lineno)
 
         t.type = self.reserved.get(t.value, 'UPPERCASE_IDENTIFIER')
 
@@ -206,7 +206,7 @@ class SmiV2Lexer(AbstractLexer):
     def t_LOWERCASE_IDENTIFIER(self, t):
         r'[0-9]*[a-z][-a-zA-z0-9]*'
         if t.value[-1] == '-':
-            raise error.PySmiLexerError("Identifier should not end with '-': %s" % t.value, lineno=t.lineno)
+            raise error.PySmiLexerError(f"Identifier should not end with '-': {t.value}", lineno=t.lineno)
         return t
 
     def t_NUMBER(self, t):
@@ -229,7 +229,7 @@ class SmiV2Lexer(AbstractLexer):
                 t.type = 'NUMBER64'
 
         else:
-            raise error.PySmiLexerError("Number %s is too big" % t.value, lineno=t.lineno)
+            raise error.PySmiLexerError(f"Number {t.value} is too big", lineno=t.lineno)
 
         return t
 
@@ -238,9 +238,9 @@ class SmiV2Lexer(AbstractLexer):
         value = t.value[1:-2]
         while value and value[0] == '0' and len(value) % 8:
             value = value[1:]
-        # XXX raise in strict mode
+        # TODO: raise in strict mode
         #    if len(value) % 8:
-        #      raise error.PySmiLexerError("Number of 0s and 1s have to divide by 8 in binary string %s" % t.value, lineno=t.lineno)
+        #      raise error.PySmiLexerError(f"Number of 0s and 1s have to divide by 8 in binary string {t.value}", lineno=t.lineno)
         return t
 
     def t_HEX_STRING(self, t):
@@ -248,9 +248,9 @@ class SmiV2Lexer(AbstractLexer):
         value = t.value[1:-2]
         while value and value[0] == '0' and len(value) % 2:
             value = value[1:]
-        # XXX raise in strict mode
+        # TODO: raise in strict mode
         #    if len(value) % 2:
-        #      raise error.PySmiLexerError("Number of symbols have to be even in hex string %s" % t.value, lineno=t.lineno)
+        raise error.PySmiLexerError(f"Number of symbols have to be even in hex string {t.value}", lineno=t.lineno)
         return t
 
     def t_QUOTED_STRING(self, t):
@@ -353,7 +353,7 @@ def lexerFactory(**grammarOptions):
     for option in grammarOptions:
         if grammarOptions[option]:
             if option not in relaxedGrammar:
-                raise error.PySmiError('Unknown lexer relaxation option: %s' % option)
+                raise error.PySmiError(f'Unknown lexer relaxation option: {option}')
 
             for func in relaxedGrammar[option]:
                 classAttr[func.__name__] = func()

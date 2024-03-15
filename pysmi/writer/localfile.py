@@ -65,7 +65,7 @@ class FileWriter(AbstractWriter):
                 )
 
         if comments:
-            data = "#\n" + "".join(["# %s\n" % x for x in comments]) + "#\n" + data
+            data = f"#{os.linesep}{os.linesep.join([f'# {x}' for x in comments])}{os.linesep}#{os.linesep}{data}"
 
         filename = os.path.join(self._path, decode(mibname)) + self.suffix
 

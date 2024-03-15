@@ -170,11 +170,11 @@ class ZipReader(AbstractReader):
 
         if not self._members:
             raise error.PySmiReaderFileNotFoundError(
-                "source MIB %s not found" % mibname, reader=self
+                f"source MIB {mibname} not found", reader=self
             )
 
         for mibalias, mibfile in self.getMibVariants(mibname, **options):
-            debug.logger & debug.flagReader and debug.logger("trying MIB %s" % mibfile)
+            debug.logger & debug.flagReader and debug.logger(f"trying MIB {mibfile}")
 
             try:
                 refs = self._members[mibfile]
@@ -188,12 +188,7 @@ class ZipReader(AbstractReader):
                 continue
 
             debug.logger & debug.flagReader and debug.logger(
-                "source MIB {}, mtime {}, read from {}/{}".format(
-                    mibfile,
-                    time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime(mtime)),
-                    self._name,
-                    mibfile,
-                )
+                f"source MIB {mibfile}, mtime {time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.gmtime(mtime))}, read from {self._name}/{mibfile}"
             )
 
             if len(mibData) == self.maxMibSize:
@@ -207,5 +202,5 @@ class ZipReader(AbstractReader):
             ), decode(mibData)
 
         raise error.PySmiReaderFileNotFoundError(
-            "source MIB %s not found" % mibname, reader=self
+            f"source MIB {mibname} not found", reader=self
         )

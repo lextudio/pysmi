@@ -1476,7 +1476,7 @@ def parserFactory(**grammarOptions):
     for option in grammarOptions:
         if grammarOptions[option]:
             if option not in relaxedGrammar:
-                raise error.PySmiError("Unknown parser relaxation option: %s" % option)
+                raise error.PySmiError(f"Unknown parser relaxation option: {option}")
 
             for func in relaxedGrammar[option]:
                 classAttr[func.__name__] = func

@@ -153,18 +153,10 @@ class PySnmpCodeGen(IntermediateCodeGen):
 
         except jinja2.exceptions.TemplateError:
             err = sys.exc_info()[1]
-            raise error.PySmiCodegenError("Jinja template rendering error: %s" % err)
+            raise error.PySmiCodegenError(f"Jinja template rendering error: {err}")
 
         debug.logger & debug.flagCodegen and debug.logger(
-            "canonical MIB name %s (%s), imported MIB(s) %s, rendered from "
-            "%s, Python code size %d bytes"
-            % (
-                mibInfo.name,
-                mibInfo.identity,
-                ",".join(mibInfo.imported) or "<none>",
-                dstTemplate,
-                len(text),
-            )
+            f"canonical MIB name {mibInfo.name} ({mibInfo.identity}), imported MIB(s) {','.join(mibInfo.imported) or '<none>'}, rendered from {dstTemplate}, Python code size {len(text)} bytes"
         )
 
         return mibInfo, text

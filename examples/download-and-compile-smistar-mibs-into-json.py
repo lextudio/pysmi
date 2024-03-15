@@ -14,6 +14,7 @@ from pysmi.writer import CallbackWriter
 from pysmi.parser import SmiStarParser
 from pysmi.codegen import JsonCodeGen
 from pysmi.compiler import MibCompiler
+import os
 
 # from pysmi import debug
 
@@ -25,7 +26,7 @@ httpSources = [("mibs.pysnmp.com", 443, "/asn1/@mib@")]
 
 
 def printOut(mibName, jsonDoc, cbCtx):
-    print("\n\n# MIB module %s" % mibName)
+    print(f"{os.linesep}{os.linesep}# MIB module {mibName}")
     print(jsonDoc)
 
 
@@ -45,4 +46,4 @@ mibCompiler.addSearchers(StubSearcher(*JsonCodeGen.baseMibs))
 # run recursive MIB compilation
 results = mibCompiler.compile(*inputMibs)
 
-print("\n# Results: %s" % ", ".join([f"{x}:{results[x]}" for x in results]))
+print(f"{os.linesep}# Results: {'', ''.join(f'{x}:{results[x]}' for x in results)}")

@@ -46,4 +46,4 @@ mibCompiler.addBorrowers(
 # run non-recursive MIB compilation
 results = mibCompiler.compile(*inputMibs)
 
-print("Results: %s" % ", ".join([f"{x}:{results[x]}" for x in results]))
+print("Results: {', '.join(f'{x}:{results[x]}' for x in results}")

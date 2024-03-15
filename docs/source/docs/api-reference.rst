@@ -22,7 +22,7 @@ This example showcases some of its features:
 
    # store compiled MIBs by calling this function
    def store_mibs(mibName, jsonDoc, cbCtx):
-       print('# MIB module %s' % mibName)
+       print(f'# MIB module {mibName}')
        print(jsonDoc)
 
    mibCompiler = MibCompiler(

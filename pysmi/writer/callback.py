@@ -49,7 +49,7 @@ class CallbackWriter(AbstractWriter):
             )
 
         debug.logger & debug.flagWriter and debug.logger(
-            "user callback for %s succeeded" % mibname
+            f"user callback for {mibname} succeeded"
         )
 
     def getData(self, filename):

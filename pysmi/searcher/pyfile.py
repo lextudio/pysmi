@@ -52,7 +52,7 @@ class PyFileSearcher(AbstractSearcher):
     def fileExists(self, mibname, mtime, rebuild=False):
         if rebuild:
             debug.logger & debug.flagSearcher and debug.logger(
-                "pretend %s is very old" % mibname
+                f"pretend {mibname} is very old"
             )
             return
 
@@ -64,7 +64,7 @@ class PyFileSearcher(AbstractSearcher):
 
             if not os.path.exists(f) or not os.path.isfile(f):
                 debug.logger & debug.flagSearcher and debug.logger(
-                    "%s not present or not a file" % f
+                    f"{f} not present or not a file"
                 )
                 continue
 
@@ -82,23 +82,18 @@ class PyFileSearcher(AbstractSearcher):
                 pyData = pyData[4:]
                 pyTime = struct.unpack("<L", pyData[:4])[0]
                 debug.logger & debug.flagSearcher and debug.logger(
-                    "found {}, mtime {}".format(
-                        f,
-                        time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime(pyTime)),
-                    )
+                    f"found {f}, mtime {time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.gmtime(pyTime))}"
                 )
                 if pyTime >= mtime:
                     raise error.PySmiFileNotModifiedError()
 
                 else:
                     raise error.PySmiFileNotFoundError(
-                        "older file %s exists" % mibname, searcher=self
+                        f"older file {mibname} exists", searcher=self
                     )
 
             else:
-                debug.logger & debug.flagSearcher and debug.logger(
-                    "bad magic in %s" % f
-                )
+                debug.logger & debug.flagSearcher and debug.logger(f"bad magic in {f}")
                 continue
 
         for pySfx in SOURCE_SUFFIXES:
@@ -106,7 +101,7 @@ class PyFileSearcher(AbstractSearcher):
 
             if not os.path.exists(f) or not os.path.isfile(f):
                 debug.logger & debug.flagSearcher and debug.logger(
-                    "%s not present or not a file" % f
+                    f"{f} not present or not a file"
                 )
                 continue
 
@@ -120,14 +115,12 @@ class PyFileSearcher(AbstractSearcher):
                 )
 
             debug.logger & debug.flagSearcher and debug.logger(
-                "found {}, mtime {}".format(
-                    f, time.strftime("%a, %d %b %Y %H:%M:%S GMT", time.gmtime(pyTime))
-                )
+                f"found {f}, mtime {time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.gmtime(pyTime))}"
             )
 
             if pyTime >= mtime:
                 raise error.PySmiFileNotModifiedError()
 
         raise error.PySmiFileNotFoundError(
-            "no compiled file %s found" % mibname, searcher=self
+            f"no compiled file {mibname} found", searcher=self
         )
