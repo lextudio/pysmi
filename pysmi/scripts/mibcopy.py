@@ -243,7 +243,7 @@ def start():
             except error.PySmiError as ex:
                 if verboseFlag:
                     sys.stderr.write(
-                        f'Failed to read source MIB "{os.path.join(srcDirectory, mibFile)}": {ex}\r\n'
+                        f'Failed to read source MIB "{os.path.join(srcDirectory, mibFile)}": {ex}{os.linesep}'
                     )
 
                 if not quietFlag:
@@ -321,8 +321,7 @@ def start():
 
     if not quietFlag:
         sys.stderr.write(
-            "MIBs seen: %d, copied: %d, failed: %d\r\n"
-            % (mibsSeen, mibsCopied, mibsFailed)
+            f"MIBs seen: {mibsSeen}, copied: {mibsCopied}, failed: {mibsFailed}{os.linesep}"
         )
 
     sys.exit(EX_OK)

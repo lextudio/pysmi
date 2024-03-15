@@ -123,7 +123,7 @@ def start():
 
     except getopt.GetoptError:
         if verboseFlag:
-            sys.stderr.write(f"ERROR: {sys.exc_info()[1]}\r\n{helpMessage}\r\n")
+            sys.stderr.write(f"ERROR: {sys.exc_info()[1]}{os.linesep}{helpMessage}{os.linesep}")
 
         sys.exit(EX_USAGE)
 
@@ -369,7 +369,7 @@ def start():
 
     else:
         sys.stderr.write(
-            f"ERROR: unknown destination format: {dstFormat}\r\n{helpMessage}\r\n"
+            f"ERROR: unknown destination format: {dstFormat}{os.linesep}{helpMessage}{os.linesep}"
         )
         sys.exit(EX_USAGE)
 
@@ -426,7 +426,8 @@ Try various file names while searching for MIB module: {"yes" if doFuzzyMatching
         )
 
         safe = {}
-        for x in sorted(processed):
+        sorted_files = sorted(processed)
+        for x in sorted_files:
             if processed[x] != "failed":
                 safe[x] = processed[x]
 
@@ -438,7 +439,6 @@ Try various file names while searching for MIB module: {"yes" if doFuzzyMatching
         sys.exit(EX_SOFTWARE)
 
     else:
-        sorted_files = sorted(processed)
         compiled = [x for x in sorted_files if processed[x] == "compiled"]
         borrowed = [x for x in sorted_files if processed[x] == 'borrowed']
         untouched = [x for x in sorted_files if processed[x] == 'untouched']
@@ -449,31 +449,28 @@ Try various file names while searching for MIB module: {"yes" if doFuzzyMatching
             sys.stdout.write(
                 f"{'Would be c' if dryrunFlag else 'C'}reated/updated MIBs: {', '.join([f'{x}{'' if x == processed[x].alias else f' ({processed[x].alias})'}' for x in compiled])}{os.linesep}"
             )
-
             sys.stdout.write(
                 f"Pre-compiled MIBs {'Would be ' if dryrunFlag else ''}borrowed: "
                 f"{', '.join([f'{x} ({processed[x].path})' for x in borrowed])}{os.linesep}"
             )
-
             sys.stdout.write(
                 f"Up to date MIBs: {', '.join(x for x in untouched)}{os.linesep}")
             sys.stderr.write(
                 f"Missing source MIBs: {f'{os.linesep} '.join(x for x in missing)}{os.linesep}")
             sys.stderr.write(
-                f"Ignored MIBs: {', '.join(x for x in unprocessed)}\n")
-
+                f"Ignored MIBs: {', '.join(x for x in unprocessed)}{os.linesep}")
             sys.stderr.write(
                 f"Failed MIBs: "
-                f"{f'{os.linesep} '.join([f"{x} ({processed[x].error})" for x in failed])}{os.linesep}"
+                f"{f'{os.linesep} '.join([f'{x} ({processed[x].error})' for x in failed])}{os.linesep}"
             )
 
 
         exitCode = EX_OK
 
-        if any(x for x in processed.values() if x == "missing"):
+        if len(missing) > 0:
             exitCode = EX_MIB_MISSING
 
-        if any(x for x in processed.values() if x == "failed"):
+        if len(failed) > 0:
             exitCode = EX_MIB_FAILED
 
         sys.exit(exitCode)
