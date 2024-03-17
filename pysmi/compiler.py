@@ -372,10 +372,10 @@ class MibCompiler:
             platform_info, user_info = self._get_system_info()
 
             comments = [
-                f"ASN.1 source {fileInfo.path}",
-                f"Produced by {packageName}-{packageVersion} at {time.asctime()}",
-                f"On host {platform_info[1]} platform {platform_info[0]} version {platform_info[2]} by user {user_info[0]}",
-                f"Using Python version {sys.version.split('\n')[0]}",
+                "ASN.1 source {}".format(fileInfo.path.replace('\\', '\\\\')),
+                "Produced by {}-{} at {}".format(packageName, packageVersion, time.asctime()),
+                "On host {} platform {} version {} by user {}".format(platform_info[1], platform_info[0], platform_info[2], user_info[0]),
+                "Using Python version {}".format(sys.version.split('\n')[0]),
             ]
 
             try:
