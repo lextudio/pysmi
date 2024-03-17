@@ -1,3 +1,8 @@
+Revision 1.4.0, 03-17-2024
+--------------------------
+
+- Changed compiled Python file header comment style.
+
 Revision 1.3.4, 03-17-2024
 --------------------------
 
