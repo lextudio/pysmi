@@ -135,11 +135,6 @@ html_theme_options = {
     "source_repository": "https://github.com/lextudio/pysmi",
     "source_branch": "main",
     "source_directory": "docs/source/",
-    "light_css_variables": {
-        "color-brand-primary": "white",
-        "color-brand-content": "#CC3333",
-        "color-admonition-background": "blue",
-    },
     "footer_icons": [
         {
             "name": "GitHub",
