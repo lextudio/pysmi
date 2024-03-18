@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pysmi-lextudio"
-version = "1.4.0"
+version = "1.4.1"
 description = "A pure-Python implementation of SNMP/SMI MIB parsing and conversion library."
 authors = ["Ilya Etingof <etingof@gmail.com>", "Lex Li <support@lextudio.com>"]
 license = "BSD-2-Clause"
