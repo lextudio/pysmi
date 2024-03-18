@@ -89,7 +89,6 @@ def start():
                 directory listing (e.g. HTTP).
         FORMAT   - pysnmp, json, null"""
 
-
     try:
         opts, inputMibs = getopt.getopt(
             sys.argv[1:],
@@ -123,7 +122,9 @@ def start():
 
     except getopt.GetoptError:
         if verboseFlag:
-            sys.stderr.write(f"ERROR: {sys.exc_info()[1]}{os.linesep}{helpMessage}{os.linesep}")
+            sys.stderr.write(
+                f"ERROR: {sys.exc_info()[1]}{os.linesep}{helpMessage}{os.linesep}"
+            )
 
         sys.exit(EX_USAGE)
 
@@ -440,30 +441,63 @@ Try various file names while searching for MIB module: {"yes" if doFuzzyMatching
 
     else:
         compiled = [x for x in sorted_files if processed[x] == "compiled"]
-        borrowed = [x for x in sorted_files if processed[x] == 'borrowed']
-        untouched = [x for x in sorted_files if processed[x] == 'untouched']
-        missing = [x for x in sorted_files if processed[x] == 'missing']
-        unprocessed = [x for x in sorted_files if processed[x] == 'unprocessed']
-        failed = [x for x in sorted_files if processed[x] == 'failed']
+        borrowed = [x for x in sorted_files if processed[x] == "borrowed"]
+        untouched = [x for x in sorted_files if processed[x] == "untouched"]
+        missing = [x for x in sorted_files if processed[x] == "missing"]
+        unprocessed = [x for x in sorted_files if processed[x] == "unprocessed"]
+        failed = [x for x in sorted_files if processed[x] == "failed"]
         if verboseFlag:
             sys.stdout.write(
-                f"{'Would be c' if dryrunFlag else 'C'}reated/updated MIBs: {', '.join([f'{x}{'' if x == processed[x].alias else f' ({processed[x].alias})'}' for x in compiled])}{os.linesep}"
-            )
-            sys.stdout.write(
-                f"Pre-compiled MIBs {'Would be ' if dryrunFlag else ''}borrowed: "
-                f"{', '.join([f'{x} ({processed[x].path})' for x in borrowed])}{os.linesep}"
-            )
-            sys.stdout.write(
-                f"Up to date MIBs: {', '.join(x for x in untouched)}{os.linesep}")
-            sys.stderr.write(
-                f"Missing source MIBs: {f'{os.linesep} '.join(x for x in missing)}{os.linesep}")
-            sys.stderr.write(
-                f"Ignored MIBs: {', '.join(x for x in unprocessed)}{os.linesep}")
-            sys.stderr.write(
-                f"Failed MIBs: "
-                f"{f'{os.linesep} '.join([f'{x} ({processed[x].error})' for x in failed])}{os.linesep}"
+                "{}reated/updated MIBs: {}{}".format(
+                    dryrunFlag and "Would be c" or "C",
+                    ", ".join(
+                        [
+                            f"{x} ({processed[x].alias})"
+                            if x != processed[x].alias
+                            else f"{x}"
+                            for x in compiled
+                        ]
+                    ),
+                    os.linesep,
+                )
             )
 
+            sys.stdout.write(
+                "Pre-compiled MIBs {}borrowed: {}{}".format(
+                    dryrunFlag and "would be " or "",
+                    ", ".join([f"{x} ({processed[x].path})" for x in borrowed]),
+                    os.linesep,
+                )
+            )
+
+            sys.stdout.write(
+                "Up to date MIBs: {}{}".format(
+                    ", ".join([f"{x}" for x in untouched]),
+                    os.linesep,
+                )
+            )
+            sys.stderr.write(
+                "Missing source MIBs: {}{}".format(
+                    f"{os.linesep} ".join([f"{x}" for x in missing]),
+                    os.linesep,
+                )
+            )
+
+            sys.stderr.write(
+                "Ignored MIBs: {}{}".format(
+                    ", ".join([f"{x}" for x in unprocessed]),
+                    os.linesep,
+                )
+            )
+
+            sys.stderr.write(
+                "Failed MIBs: {}{}".format(
+                    f"{os.linesep} ".join(
+                        [f"{x} ({processed[x].error})" for x in failed]
+                    ),
+                    os.linesep,
+                )
+            )
 
         exitCode = EX_OK
 

@@ -530,7 +530,9 @@ class MibCompiler:
         #
 
         if failedMibs and not options.get("ignoreErrors"):
-            debug.logger & debug.flagCompiler and debug.logger(f"failing with problem MIBs: {", ".join(failedMibs)}")
+            debug.logger & debug.flagCompiler and debug.logger(
+                "failing with problem MIBs: " + ", ".join(failedMibs)
+            )
 
             for mibname in builtMibs:
                 processed[mibname] = statusUnprocessed
@@ -584,7 +586,9 @@ class MibCompiler:
                 failedMibs[mibname] = exc
                 del builtMibs[mibname]
 
-        modified_mibs = [x for x in processed if processed[x] in ("compiled", "borrowed")]
+        modified_mibs = [
+            x for x in processed if processed[x] in ("compiled", "borrowed")
+        ]
         debug.logger & debug.flagCompiler and debug.logger(
             f"MIBs modified: {', '.join(modified_mibs)}"
         )
@@ -597,7 +601,7 @@ class MibCompiler:
         comments = [
             f"Produced by {packageName}-{packageVersion} at {time.asctime()}",
             f"On host {platform_info[1]} platform {platform_info[0]} version {platform_info[2]} by user {user_info[0]}",
-            f"Using Python version {sys.version.split('\n')[0]}",
+            f"Using Python version {sys.version.splitlines()[0]}",
         ]
 
         try:
