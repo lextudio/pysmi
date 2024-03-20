@@ -11,9 +11,7 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys
 import os
-import shlex
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -38,7 +36,7 @@ extensions = [
     "sphinx_copybutton",
 ]
 
-html_baseurl = "https://www.pysnmp.com/pysmi/"
+html_baseurl = "https://docs.lextudio.com/pysmi/"
 sitemap_url_scheme = "{link}"
 
 # Add any paths that contain templates here, relative to this directory.
@@ -350,5 +348,5 @@ def setup(app):
         """Insert Google Analytics tracker
         Based on this Stackoverflow suggestion: https://stackoverflow.com/a/41885884
         """
-        app.add_js_file("https://www.googletagmanager.com/gtag/js?id=G-DYQGY4MKR3")
+        app.add_js_file("https://www.googletagmanager.com/gtag/js?id=G-DFLYZZK12P")
         app.add_js_file("google_analytics_tracker.js")
