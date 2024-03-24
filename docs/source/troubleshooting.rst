@@ -64,8 +64,8 @@ help you out.
 the GitHub repositories but also offers commercial support such as consulting
 services. You can easily open a support ticket via its homepage.
 
-References
-----------
+Related Resources
+-----------------
 
 - :doc:`/quick-start`
 - :doc:`/examples/index`

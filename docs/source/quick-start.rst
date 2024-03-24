@@ -217,8 +217,8 @@ The PySMI library can automatically fetch required MIBs from HTTP sites or
 local directories. You could configure any MIB source available to you
 (including `mibs.pysnmp.com`_) for that purpose.
 
-References
-----------
+Related Resources
+-----------------
 
 - :doc:`/docs/mibdump`
 - :doc:`/troubleshooting`
