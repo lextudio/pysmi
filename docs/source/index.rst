@@ -144,7 +144,15 @@ instead or in addition to this one.
 Contact
 -------
 
-In case of questions or troubles using SNMP SMI library, please open up a
+In case of questions or troubles using PySMI library, please open up a
 `GitHub issue`_ at GitHub or ask on `Stack Overflow`_ .
 
 For other inquiries, please contact `LeXtudio Inc.`_.
+
+More information about support options can be found in the following
+section.
+
+.. toctree::
+   :maxdepth: 1
+
+   Support Options <https://www.pysnmp.com/support>
