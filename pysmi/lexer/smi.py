@@ -8,33 +8,97 @@ import sys
 import re
 import ply.lex as lex
 from pysmi.lexer.base import AbstractLexer
-from pysmi import error
+from pysmi import config, error
 from pysmi import debug
 
 UNSIGNED32_MAX = 4294967295
 UNSIGNED64_MAX = 18446744073709551615
-LEX_VERSION = [int(x) for x in lex.__version__.split('.')]
+LEX_VERSION = [int(x) for x in lex.__version__.split(".")]
+
 
 # Do not overload single lexer methods - overload all or none of them!
 # noinspection PySingleQuotedDocstring,PyMethodMayBeStatic,PyIncorrectDocstring
 class SmiV2Lexer(AbstractLexer):
     reserved_words = [
-        'ACCESS', 'AGENT-CAPABILITIES', 'APPLICATION', 'AUGMENTS', 'BEGIN', 'BITS',
-        'CONTACT-INFO', 'CREATION-REQUIRES', 'Counter', 'Counter32', 'Counter64',
-        'DEFINITIONS', 'DEFVAL', 'DESCRIPTION', 'DISPLAY-HINT', 'END', 'ENTERPRISE',
-        'EXTENDS', 'FROM', 'GROUP', 'Gauge', 'Gauge32', 'IDENTIFIER', 'IMPLICIT',
-        'IMPLIED', 'IMPORTS', 'INCLUDES', 'INDEX', 'INSTALL-ERRORS', 'INTEGER',
-        'Integer32', 'IpAddress', 'LAST-UPDATED', 'MANDATORY-GROUPS',
-        'MAX-ACCESS', 'MIN-ACCESS', 'MODULE', 'MODULE-COMPLIANCE',
-        'MODULE-IDENTITY', 'NOTIFICATION-GROUP', 'NOTIFICATION-TYPE',
-        'NOTIFICATIONS', 'OBJECT', 'OBJECT-GROUP', 'OBJECT-IDENTITY', 'OBJECT-TYPE',
-        'OBJECTS', 'OCTET', 'OF', 'ORGANIZATION', 'Opaque', 'PIB-ACCESS',
-        'PIB-DEFINITIONS', 'PIB-INDEX', 'PIB-MIN-ACCESS', 'PIB-REFERENCES',
-        'PIB-TAG', 'POLICY-ACCESS', 'PRODUCT-RELEASE', 'REFERENCE', 'REVISION',
-        'SEQUENCE', 'SIZE', 'STATUS', 'STRING', 'SUBJECT-CATEGORIES', 'SUPPORTS',
-        'SYNTAX', 'TEXTUAL-CONVENTION', 'TimeTicks', 'TRAP-TYPE', 'UNIQUENESS',
-        'UNITS', 'UNIVERSAL', 'Unsigned32', 'VALUE', 'VARIABLES',
-        'VARIATION', 'WRITE-SYNTAX'
+        "ACCESS",
+        "AGENT-CAPABILITIES",
+        "APPLICATION",
+        "AUGMENTS",
+        "BEGIN",
+        "BITS",
+        "CONTACT-INFO",
+        "CREATION-REQUIRES",
+        "Counter",
+        "Counter32",
+        "Counter64",
+        "DEFINITIONS",
+        "DEFVAL",
+        "DESCRIPTION",
+        "DISPLAY-HINT",
+        "END",
+        "ENTERPRISE",
+        "EXTENDS",
+        "FROM",
+        "GROUP",
+        "Gauge",
+        "Gauge32",
+        "IDENTIFIER",
+        "IMPLICIT",
+        "IMPLIED",
+        "IMPORTS",
+        "INCLUDES",
+        "INDEX",
+        "INSTALL-ERRORS",
+        "INTEGER",
+        "Integer32",
+        "IpAddress",
+        "LAST-UPDATED",
+        "MANDATORY-GROUPS",
+        "MAX-ACCESS",
+        "MIN-ACCESS",
+        "MODULE",
+        "MODULE-COMPLIANCE",
+        "MODULE-IDENTITY",
+        "NOTIFICATION-GROUP",
+        "NOTIFICATION-TYPE",
+        "NOTIFICATIONS",
+        "OBJECT",
+        "OBJECT-GROUP",
+        "OBJECT-IDENTITY",
+        "OBJECT-TYPE",
+        "OBJECTS",
+        "OCTET",
+        "OF",
+        "ORGANIZATION",
+        "Opaque",
+        "PIB-ACCESS",
+        "PIB-DEFINITIONS",
+        "PIB-INDEX",
+        "PIB-MIN-ACCESS",
+        "PIB-REFERENCES",
+        "PIB-TAG",
+        "POLICY-ACCESS",
+        "PRODUCT-RELEASE",
+        "REFERENCE",
+        "REVISION",
+        "SEQUENCE",
+        "SIZE",
+        "STATUS",
+        "STRING",
+        "SUBJECT-CATEGORIES",
+        "SUPPORTS",
+        "SYNTAX",
+        "TEXTUAL-CONVENTION",
+        "TimeTicks",
+        "TRAP-TYPE",
+        "UNIQUENESS",
+        "UNITS",
+        "UNIVERSAL",
+        "Unsigned32",
+        "VALUE",
+        "VARIABLES",
+        "VARIATION",
+        "WRITE-SYNTAX",
     ]
 
     reserved = {}
@@ -47,30 +111,56 @@ class SmiV2Lexer(AbstractLexer):
             reserved[w] = 'GAUGE32'
 
     forbidden_words = [
-        'ABSENT', 'ANY', 'BIT', 'BOOLEAN', 'BY', 'COMPONENT', 'COMPONENTS',
-        'DEFAULT', 'DEFINED', 'ENUMERATED', 'EXPLICIT', 'EXTERNAL', 'FALSE', 'MAX',
-        'MIN', 'MINUS-INFINITY', 'NULL', 'OPTIONAL', 'PLUS-INFINITY', 'PRESENT',
-        'PRIVATE', 'REAL', 'SET', 'TAGS', 'TRUE', 'WITH'
+        "ABSENT",
+        "ANY",
+        "BIT",
+        "BOOLEAN",
+        "BY",
+        "COMPONENT",
+        "COMPONENTS",
+        "DEFAULT",
+        "DEFINED",
+        "ENUMERATED",
+        "EXPLICIT",
+        "EXTERNAL",
+        "FALSE",
+        "MAX",
+        "MIN",
+        "MINUS-INFINITY",
+        "NULL",
+        "OPTIONAL",
+        "PLUS-INFINITY",
+        "PRESENT",
+        "PRIVATE",
+        "REAL",
+        "SET",
+        "TAGS",
+        "TRUE",
+        "WITH",
     ]
 
     # Token names required!
-    tokens = list(set([
-                          'BIN_STRING',
-                          'CHOICE',
-                          'COLON_COLON_EQUAL',
-                          'DOT_DOT',
-                          'EXPORTS',
-                          'HEX_STRING',
-                          'LOWERCASE_IDENTIFIER',
-                          'MACRO',
-                          'NEGATIVENUMBER',
-                          'NEGATIVENUMBER64',
-                          'NUMBER',
-                          'NUMBER64',
-                          'QUOTED_STRING',
-                          'UPPERCASE_IDENTIFIER',
-                      ] + list(reserved.values())
-                      ))
+    tokens = list(
+        set(
+            [
+                "BIN_STRING",
+                "CHOICE",
+                "COLON_COLON_EQUAL",
+                "DOT_DOT",
+                "EXPORTS",
+                "HEX_STRING",
+                "LOWERCASE_IDENTIFIER",
+                "MACRO",
+                "NEGATIVENUMBER",
+                "NEGATIVENUMBER64",
+                "NUMBER",
+                "NUMBER64",
+                "QUOTED_STRING",
+                "UPPERCASE_IDENTIFIER",
+            ]
+            + list(reserved.values())
+        )
+    )
 
     states = (
         ('macro', 'exclusive'),
@@ -179,9 +269,9 @@ class SmiV2Lexer(AbstractLexer):
         t.lexer.begin('comment')
 
     def t_comment_newline(self, t):
-        r'\r\n|\n|\r'
+        r"\r\n|\n|\r"
         t.lexer.lineno += 1
-        t.lexer.begin('INITIAL')
+        t.lexer.begin("INITIAL")
 
     #  def t_comment_end(self, t):
     #    r'--'
@@ -238,9 +328,10 @@ class SmiV2Lexer(AbstractLexer):
         value = t.value[1:-2]
         while value and value[0] == '0' and len(value) % 8:
             value = value[1:]
-        # TODO: raise in strict mode
-        #    if len(value) % 8:
-        #      raise error.PySmiLexerError(f"Number of 0s and 1s have to divide by 8 in binary string {t.value}", lineno=t.lineno)
+
+            if config.STRICT_MODE and len(value) % 8:
+                raise error.PySmiLexerError(f"Number of 0s and 1s have to divide by 8 in binary string {t.value}", lineno=t.lineno)
+
         return t
 
     def t_HEX_STRING(self, t):
@@ -248,9 +339,10 @@ class SmiV2Lexer(AbstractLexer):
         value = t.value[1:-2]
         while value and value[0] == '0' and len(value) % 2:
             value = value[1:]
-        # TODO: raise in strict mode
-        #    if len(value) % 2:
-        #    raise error.PySmiLexerError(f"Number of symbols have to be even in hex string {t.value}", lineno=t.lineno)
+
+            if config.STRICT_MODE and len(value) % 2:
+                raise error.PySmiLexerError(f"Number of symbols have to be even in hex string {t.value}", lineno=t.lineno)
+
         return t
 
     def t_QUOTED_STRING(self, t):
@@ -301,10 +393,31 @@ class SupportSmiV1Keywords:
     @staticmethod
     def forbidden_words():
         return [
-            'ABSENT', 'ANY', 'BIT', 'BOOLEAN', 'BY', 'COMPONENT', 'COMPONENTS',
-            'DEFAULT', 'DEFINED', 'ENUMERATED', 'EXPLICIT', 'EXTERNAL', 'FALSE',
-            'MIN', 'MINUS-INFINITY', 'NULL', 'OPTIONAL', 'PLUS-INFINITY', 'PRESENT',
-            'PRIVATE', 'REAL', 'SET', 'TAGS', 'TRUE', 'WITH'
+            "ABSENT",
+            "ANY",
+            "BIT",
+            "BOOLEAN",
+            "BY",
+            "COMPONENT",
+            "COMPONENTS",
+            "DEFAULT",
+            "DEFINED",
+            "ENUMERATED",
+            "EXPLICIT",
+            "EXTERNAL",
+            "FALSE",
+            "MIN",
+            "MINUS-INFINITY",
+            "NULL",
+            "OPTIONAL",
+            "PLUS-INFINITY",
+            "PRESENT",
+            "PRIVATE",
+            "REAL",
+            "SET",
+            "TAGS",
+            "TRUE",
+            "WITH",
         ]
 
     @staticmethod

@@ -10,7 +10,7 @@ import sys
 from keyword import iskeyword
 from pysmi.mibinfo import MibInfo
 from pysmi.codegen.base import AbstractCodeGen, dorepr
-from pysmi import error
+from pysmi import config, error
 from pysmi import debug
 
 
@@ -185,8 +185,10 @@ class SymtableCodeGen(AbstractCodeGen):
 
     def regSym(self, symbol, symProps, parents=()):
         if (
-            symbol in self._out or symbol in self._postponedSyms
-        ):  # add to strict mode - or symbol in self._importMap:
+            symbol in self._out
+            or symbol in self._postponedSyms
+            or (config.STRICT_MODE and symbol in self._importMap)
+        ):
             raise error.PySmiSemanticError(f"Duplicate symbol found: {symbol}")
 
         if self.allParentsExists(parents):

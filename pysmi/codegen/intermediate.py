@@ -14,7 +14,7 @@ except ImportError:
     from ordereddict import OrderedDict
 from pysmi.mibinfo import MibInfo
 from pysmi.codegen.base import AbstractCodeGen
-from pysmi import error
+from pysmi import config, error
 from pysmi import debug
 
 if sys.version_info[0] > 2:
@@ -74,7 +74,6 @@ class IntermediateCodeGen(AbstractCodeGen):
 
     indent = " " * 4
     fakeidx = 1000  # starting index for fake symbols
-    strictCompliance = True
 
     def __init__(self):
         self._rows = set()
@@ -181,7 +180,7 @@ class IntermediateCodeGen(AbstractCodeGen):
 
             if moduleIdentity:
                 if self._moduleIdentityOid:
-                    if self.strictCompliance:
+                    if config.STRICT_MODE:
                         raise error.PySmiSemanticError("Duplicate module identity")
                     else:
                         pass
@@ -884,17 +883,17 @@ class IntermediateCodeGen(AbstractCodeGen):
             if len(timeStr) == 11:
                 timeStr = "19" + timeStr
 
-            # TODO: raise in strict mode
-            # elif lenTimeStr != 13:
-            # raise error.PySmiSemanticError(f"Invalid date {t}")
+            elif config.STRICT_MODE and len(timeStr) != 13:
+                raise error.PySmiSemanticError(f"Invalid date {timeStr}")
             try:
                 times.append(
                     strftime("%Y-%m-%d %H:%M", strptime(timeStr, "%Y%m%d%H%MZ"))
                 )
 
             except ValueError:
-                # TODO: raise in strict mode
-                # raise error.PySmiSemanticError(f"Invalid date {t}")
+                if config.STRICT_MODE:
+                    raise error.PySmiSemanticError(f"Invalid date {timeStr}")
+
                 timeStr = "197001010000Z"  # dummy date for dates with typos
                 times.append(
                     strftime("%Y-%m-%d %H:%M", strptime(timeStr, "%Y%m%d%H%MZ"))

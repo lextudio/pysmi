@@ -23,8 +23,7 @@ from pysmi.writer import PyFileWriter, FileWriter, CallbackWriter
 from pysmi.parser import SmiV1CompatParser
 from pysmi.codegen import PySnmpCodeGen, JsonCodeGen, NullCodeGen
 from pysmi.compiler import MibCompiler
-from pysmi import debug
-from pysmi import error
+from pysmi import config, debug, error
 
 
 def start():
@@ -37,7 +36,6 @@ def start():
 
     # Defaults
     verboseFlag = True
-    strictFlag = False
     mibSources = []
     doFuzzyMatchingFlag = True
     mibSearchers = []
@@ -158,7 +156,7 @@ def start():
             verboseFlag = False
 
         if opt[0] == "--strict":
-            strictFlag = True
+            config.STRICT_MODE = True
 
         if opt[0] == "--debug":
             debug.setLogger(debug.Debug(*opt[1].split(",")))
@@ -296,7 +294,6 @@ def start():
         searchers.append(StubSearcher(*mibStubs))
 
         codeGenerator = PySnmpCodeGen()
-        codeGenerator.strictCompliance = strictFlag
 
         fileWriter = PyFileWriter(dstDirectory).setOptions(
             pyCompile=pyCompileFlag, pyOptimizationLevel=pyOptimizationLevel
@@ -334,7 +331,6 @@ def start():
         ]
 
         codeGenerator = JsonCodeGen()
-        codeGenerator.strictCompliance = strictFlag
 
         fileWriter = FileWriter(dstDirectory).setOptions(suffix=".json")
 
