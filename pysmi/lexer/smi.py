@@ -250,7 +250,7 @@ class SmiV2Lexer(AbstractLexer):
             value = value[1:]
         # TODO: raise in strict mode
         #    if len(value) % 2:
-        raise error.PySmiLexerError(f"Number of symbols have to be even in hex string {t.value}", lineno=t.lineno)
+        #    raise error.PySmiLexerError(f"Number of symbols have to be even in hex string {t.value}", lineno=t.lineno)
         return t
 
     def t_QUOTED_STRING(self, t):
