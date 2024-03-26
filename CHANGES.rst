@@ -1,3 +1,9 @@
+Revision 1.4.2, 03-17-2024
+--------------------------
+
+- Implemented a better strict mode.
+- Fixed a bug from code merge.
+
 Revision 1.4.1, 03-17-2024
 --------------------------
 
