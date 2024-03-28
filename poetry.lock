@@ -1151,18 +1151,21 @@ code-style = ["pre-commit (==2.12.1)"]
 rtd = ["ipython", "myst-nb", "sphinx", "sphinx-book-theme", "sphinx-examples"]
 
 [[package]]
-name = "sphinx-sitemap"
-version = "2.5.1"
+name = "sphinx-sitemap-lextudio"
+version = "2.5.2"
 description = "Sitemap generator for Sphinx"
 optional = false
 python-versions = "*"
 files = [
-    {file = "sphinx-sitemap-2.5.1.tar.gz", hash = "sha256:984bef068bbdbc26cfae209a8b61392e9681abc9191b477cd30da406e3a60ee5"},
-    {file = "sphinx_sitemap-2.5.1-py3-none-any.whl", hash = "sha256:0b7bce2835f287687f75584d7695e4eb8efaec028e5e7b36e9f791de3c344686"},
+    {file = "sphinx-sitemap-lextudio-2.5.2.tar.gz", hash = "sha256:e4cc4e79efc41a0bb548442562fb419465b156b296ec99d16c48f54862b499e1"},
+    {file = "sphinx_sitemap_lextudio-2.5.2-py3-none-any.whl", hash = "sha256:686f3c542812169330ca5c336557820047cb17cc8d7ad9838d9329d73648cfad"},
 ]
 
 [package.dependencies]
 sphinx = ">=1.2"
+
+[package.extras]
+dev = ["build", "flake8", "pre-commit", "pytest", "sphinx", "tox"]
 
 [[package]]
 name = "sphinxcontrib-applehelp"
@@ -1392,4 +1395,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.7"
-content-hash = "ac1d2156181710cd4475a7619c64461e4474d838c22a8510b55c36a7334ceb9e"
+content-hash = "e5d8832955d80d4c513b4927f40a05794a35a6cf31d31e6a6756c48426ea311b"
