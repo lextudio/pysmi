@@ -1,3 +1,8 @@
+Revision 1.4.3, released on Apr 03, 2024
+----------------------------------------
+
+* Fixed a bug from code merge.
+
 Revision 1.4.2, released on Mar 25, 2024
 ----------------------------------------
 
