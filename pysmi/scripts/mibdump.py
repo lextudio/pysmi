@@ -2,7 +2,7 @@
 #
 # This file is part of pysmi software.
 #
-# Copyright (c) 2015-2019, Ilya Etingof <etingof@gmail.com>
+# Copyright (c) 2015-2020, Ilya Etingof <etingof@gmail.com>
 # License: https://www.pysnmp.com/pysmi/license.html
 #
 # SNMP SMI/MIB data management tool
@@ -42,6 +42,7 @@ def start():
     mibStubs = []
     mibBorrowers = []
     dstFormat = None
+    dstTemplate = None
     dstDirectory = None
     cacheDirectory = ""
     nodepsFlag = False
@@ -66,6 +67,7 @@ def start():
         [--mib-stub=<MIB-NAME>]
         [--mib-borrower=<PATH>]
         [--destination-format=<FORMAT>]
+        [--destination-template=<PATH>]
         [--destination-directory=<DIRECTORY>]
         [--cache-directory=<DIRECTORY>]
         [--disable-fuzzy-source]
@@ -85,7 +87,9 @@ def start():
                 Use @mib@ placeholder token in URI to refer directly to
                 the required MIB module when source does not support
                 directory listing (e.g. HTTP).
-        FORMAT   - pysnmp, json, null"""
+        FORMAT   - pysnmp, json, null
+        TEMPLATE - path to a Jinja2 template extending the base one (see
+                documentation for details)"""
 
     try:
         opts, inputMibs = getopt.getopt(
@@ -102,6 +106,7 @@ def start():
                 "mib-stub=",
                 "mib-borrower=",
                 "destination-format=",
+                "destination-template=",
                 "destination-directory=",
                 "cache-directory=",
                 "no-dependencies",
@@ -175,6 +180,9 @@ def start():
 
         if opt[0] == "--destination-format":
             dstFormat = opt[1]
+
+        if opt[0] == "--destination-template":
+            dstTemplate = opt[1]
 
         if opt[0] == "--destination-directory":
             dstDirectory = opt[1]
@@ -380,6 +388,7 @@ Compiled MIBs destination directory: {dstDirectory}
 MIBs excluded from code generation: {', '.join(sorted(mibStubs))}
 MIBs to compile: {', '.join(inputMibs)}
 Destination format: {dstFormat}
+Custom destination template: {dstTemplate}
 Parser grammar cache directory: {cacheDirectory or "not used"}
 Also compile all relevant MIBs: {"no" if nodepsFlag else "yes"}
 Rebuild MIBs regardless of age: {"yes" if rebuildFlag else "no"}
@@ -415,6 +424,7 @@ Try various file names while searching for MIB module: {"yes" if doFuzzyMatching
                 noDeps=nodepsFlag,
                 rebuild=rebuildFlag,
                 dryRun=dryrunFlag,
+                dstTemplate=dstTemplate,
                 genTexts=genMibTextsFlag,
                 textFilter=keepTextsLayout and (lambda symbol, text: text) or None,
                 writeMibs=writeMibsFlag,
