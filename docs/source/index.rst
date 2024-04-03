@@ -6,6 +6,8 @@ SNMP SMI Compiler for Python
 .. toctree::
    :maxdepth: 2
 
+   Return to PySNMP Homepage <https://pysnmp.com>
+
 The PySMI library and tools are designed to parse, verify and transform
 `SNMP SMI`_ MIB modules from their original ASN.1 form into JSON or `PySNMP`_
 representation.
@@ -58,7 +60,6 @@ this implementation? Try out quick start page!
 .. toctree::
    :maxdepth: 2
 
-   Return to PySNMP Homepage <https://pysnmp.com>
    /quick-start
 
 Documentation
