@@ -34,7 +34,10 @@ extensions = [
     "sphinx.ext.todo",
     "sphinx_sitemap",
     "sphinx_copybutton",
+    "notfound.extension",
 ]
+
+notfound_urls_prefix = "/pysmi/"
 
 html_baseurl = "https://docs.lextudio.com/pysmi/"
 sitemap_url_scheme = "{link}"
