@@ -46,7 +46,6 @@ into various formats.
                   directory listing (e.g. HTTP).
        FORMAT   - pysnmp, json, null
 
-
 When JSON destination format is requested, for each MIB module *mibdump*
 will produce a JSON document containing all MIB objects. For example,
 `IF-MIB <https://mibs.pysnmp.com/asn1/IF-MIB>`_ module in JSON form
@@ -131,7 +130,11 @@ By default *mibdump* will search:
 * https://mibs.pysnmp.com/asn1/@mib@
 
 Once another --mib-source option is given, those defaults will not be used
-and should be manually given to *mibdump* if needed.
+and should be manually given to *mibdump* if needed. For example, if you want
+to use files from the current directory, you might specify ``--mib-source=.``.
+But you should also specify the default sources in case you need them by adding
+two more switches to the command line, ``--mib-source=file:///usr/share/snmp``
+and ``--mib-source=https://mibs.pysnmp.com/asn1/@mib@``.
 
 Fuzzying MIB module names
 -------------------------
@@ -144,7 +147,7 @@ named after MIB module, try adding different extensions to a file (.mib,
 If nothing matches, *mibdump* will consider that probed --mib-source
 does not contain MIB module it is looking for.
 
-There is a small chance, though, that fuzzy natching may result in getting
+There is a small chance, though, that fuzzy matching may result in getting
 a wrong MIB. If that happens, you can disable the above fuzzyness by
 giving *mibdump* the --disable-fuzzy-source flag.
 
