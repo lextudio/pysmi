@@ -1,9 +1,9 @@
 
 SNMP MIB parser
 ---------------
-[![PyPI](https://img.shields.io/pypi/v/pysmi-lextudio.svg?maxAge=2592000)](https://pypi.org/project/pysmi-lextudio)
-[![PyPI Downloads](https://img.shields.io/pypi/dd/pysmi-lextudio)](https://pypi.python.org/pypi/pysmi-lextudio/)
-[![Python Versions](https://img.shields.io/pypi/pyversions/pysmi-lextudio.svg)](https://pypi.org/project/pysmi-lextudio/)
+[![PyPI](https://img.shields.io/pypi/v/pysmi.svg?maxAge=2592000)](https://pypi.org/project/pysmi)
+[![PyPI Downloads](https://img.shields.io/pypi/dd/pysmi)](https://pypi.python.org/pypi/pysmi/)
+[![Python Versions](https://img.shields.io/pypi/pyversions/pysmi.svg)](https://pypi.org/project/pysmi/)
 [![GitHub license](https://img.shields.io/badge/license-BSD-blue.svg)](https://raw.githubusercontent.com/lextudio/pysmi/master/LICENSE.rst)
 
 PySMI is a pure-Python implementation of
@@ -189,12 +189,12 @@ The pysmi package is distributed under terms and conditions of 2-clause
 BSD [license](https://www.pysnmp.com/pysmi/license.html). Source code is freely
 available as a GitHub [repo](https://github.com/lextudio/pysmi).
 
-You could `pip install pysmi-lextudio` or download it from [PyPI](https://pypi.org/project/pysmi-lextudio/).
+You could `pip install pysmi` or download it from [PyPI](https://pypi.org/project/pysmi/).
 
 If something does not work as expected,
 [open an issue](https://github.com/lextudio/pysnmp/issues) at GitHub or
 post your question [on Stack Overflow](https://stackoverflow.com/questions/ask).
 
 Copyright (c) 2015-2020, [Ilya Etingof](mailto:etingof@gmail.com).
-Copyright (c) 2022, [LeXtudio Inc.](mailto:support@lextudio.com).
+Copyright (c) 2022-2024, [LeXtudio Inc.](mailto:support@lextudio.com).
 All rights reserved.
