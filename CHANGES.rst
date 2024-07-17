@@ -1,3 +1,8 @@
+Revision 1.4.4, released on July 16, 2024
+-----------------------------------------
+
+- Removed package postfix. A helper release to enable migration.
+
 Revision 1.4.3, released on Apr 03, 2024
 ----------------------------------------
 
