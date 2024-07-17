@@ -1,11 +1,9 @@
-
-SNMP MIB Compiler
------------------
+# SNMP MIB Compiler
 
 [![Become a Sponsor](https://img.shields.io/badge/Become%20a%20Sponsor-lextudio-orange.svg?style=for-readme)](https://github.com/sponsors/lextudio)
-[![PyPI](https://img.shields.io/pypi/v/pysmi-lextudio.svg?maxAge=2592000)](https://pypi.org/project/pysmi-lextudio)
-[![PyPI Downloads](https://img.shields.io/pypi/dd/pysmi-lextudio)](https://pypi.python.org/pypi/pysmi-lextudio/)
-[![Python Versions](https://img.shields.io/pypi/pyversions/pysmi-lextudio.svg)](https://pypi.org/project/pysmi-lextudio/)
+[![PyPI](https://img.shields.io/pypi/v/pysmi.svg?maxAge=2592000)](https://pypi.org/project/pysmi)
+[![PyPI Downloads](https://img.shields.io/pypi/dd/pysmi)](https://pypi.python.org/pypi/pysmi/)
+[![Python Versions](https://img.shields.io/pypi/pyversions/pysmi.svg)](https://pypi.org/project/pysmi/)
 [![GitHub license](https://img.shields.io/badge/license-BSD-blue.svg)](https://raw.githubusercontent.com/lextudio/pysmi/master/LICENSE.rst)
 
 PySMI is a pure-Python implementation of
@@ -14,8 +12,7 @@ This tool is designed to turn ASN.1 MIBs into various formats. As of this moment
 JSON and [PySNMP](https://github.com/lextudio/pysnmp) modules can be generated
 from ASN.1 MIBs.
 
-Features
---------
+## Features
 
 * Understands SMIv1, SMIv2 and de-facto SMI dialects
 * Turns MIBs into PySNMP classes and JSON documents
@@ -26,8 +23,7 @@ Features
 
 Rendered PySMI documentation can be found at [PySMI site](https://www.pysnmp.com/pysmi).
 
-How to use PySMI
-----------------
+## How to use PySMI
 
 If you are using PySNMP, you might never notice PySMI presence - PySNMP
 calls PySMI for MIB download and compilation behind the scenes (you can
@@ -35,7 +31,7 @@ still can do that manually by invoking *mibdump* tool).
 
 To turn ASN.1 MIB into a JSON document, call *mibdump* tool like this:
 
-```
+``` bash
 $ mibdump --generate-mib-texts  --destination-format json IF-MIB
 Source MIB repositories: file:///usr/share/snmp/mibs, https://mibs.pysnmp.com/asn1/@mib@
 Borrow missing/failed MIBs from: https://mibs.pysnmp.com/json/fulltexts/@mib@
@@ -185,14 +181,13 @@ The PySMI library can automatically fetch required MIBs from HTTP sites
 or local directories. You could configure any MIB source available to you (including
 [https://mibs.pysnmp.com/asn1/](https://mibs.pysnmp.com/asn1/)) for that purpose.
 
-How to get PySMI
-----------------
+## How to get PySMI
 
 The pysmi package is distributed under terms and conditions of 2-clause
 BSD [license](https://www.pysnmp.com/pysmi/license.html). Source code is freely
 available as a GitHub [repo](https://github.com/lextudio/pysmi).
 
-You could `pip install pysmi-lextudio` or download it from [PyPI](https://pypi.org/project/pysmi-lextudio/).
+You could `pip install pysmi` or download it from [PyPI](https://pypi.org/project/pysmi/).
 
 If something does not work as expected,
 [open an issue](https://github.com/lextudio/pysnmp/issues) at GitHub or

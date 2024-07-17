@@ -18,7 +18,7 @@ The best way to obtain PySMI and dependencies is to run:
 
 .. code-block:: bash
 
-   pip install pysmi-lextudio
+   pip install pysmi
 
 In case of any issues, please open a new `GitHub issue`_ so we could try to
 help out.
