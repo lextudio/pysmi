@@ -25,15 +25,15 @@ initialize a folder for us,
    cd test-field
    pyenv local 3.12
    pip install pipenv
-   pipenv install pysmi-lextudio
+   pipenv install pysmi
    pipenv run pip list
 
 Here we created a virtual environment using ``pipenv`` for this folder, and
-installed ``pysmi-lextudio`` so that you can move on with the following
+installed ``pysmi`` so that you can move on with the following
 sections.
 
 The final command should print out the dependencies and you should be able to
-see ``pysmi-lextudio`` version 1.3+ there.
+see ``pysmi`` version 1.3+ there.
 
 .. note::
 

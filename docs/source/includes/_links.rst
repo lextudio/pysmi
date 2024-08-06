@@ -1,8 +1,8 @@
 .. toctree::
 
 .. _LeXtudio Inc.: https://www.lextudio.com
-.. _PySNMP PyPI package: http://pypi.python.org/pypi/pysnmp-lextudio
-.. _PySMI PyPI package: http://pypi.python.org/pypi/pysmi-lextudio
+.. _PySNMP PyPI package: http://pypi.python.org/pypi/pysnmp
+.. _PySMI PyPI package: http://pypi.python.org/pypi/pysmi
 .. _PySNMP GitHub repository: https://github.com/lextudio/pysnmp
 .. _PySMI GitHub repository: https://github.com/lextudio/pysmi
 .. _GitHub issue: https://github.com/lextudio/pysnmp/issues/new
