@@ -68,7 +68,7 @@ Documentation
 You can find conceptual and API documentation in the following section.
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
 
    /docs/index
 
@@ -78,7 +78,7 @@ Samples
 We have a collection of sample scripts to help you get started with PySMI.
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
 
    /examples/index
 
