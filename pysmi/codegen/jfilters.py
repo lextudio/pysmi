@@ -11,3 +11,11 @@ def capfirst(text):
         return text
 
     return text[0].upper() + text[1:]
+
+
+def bitstring(bits):
+    mask = sum(1 << bit for bit in bits)
+
+    # The left-most character of the returned string is for bit number zero,
+    # so reverse the bits, while also stripping off the "0b" prefix.
+    return bin(mask)[:1:-1]

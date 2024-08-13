@@ -361,6 +361,82 @@ class ObjectTypeBitsTestCase(unittest.TestCase):
         )
 
 
+class ObjectTypeBitsDefaultTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      OBJECT-TYPE
+        FROM SNMPv2-SMI;
+
+    testObjectType OBJECT-TYPE
+        SYNTAX          BITS { present(0), absent(1), changed(2) }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "Test object"
+        DEFVAL          { { present, absent } }
+     ::= { 1 3 }
+
+    END
+    """
+
+    def setUp(self):
+        ast = parserFactory()().parse(self.__class__.__doc__)[0]
+        mibInfo, symtable = SymtableCodeGen().genCode(ast, {}, genTexts=True)
+        self.mibInfo, pycode = PySnmpCodeGen().genCode(
+            ast, {mibInfo.name: symtable}, genTexts=True
+        )
+        codeobj = compile(pycode, "test", "exec")
+
+        self.ctx = {"mibBuilder": MibBuilder()}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+    def testObjectTypeSyntax(self):
+        self.assertEqual(
+            self.ctx["testObjectType"].getSyntax(),
+            bytes((0xC0,)),
+            "bad DEFVAL",
+        )
+
+
+class ObjectTypeBitsDefaultMultiOctetTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      OBJECT-TYPE
+        FROM SNMPv2-SMI;
+
+    testObjectType OBJECT-TYPE
+        SYNTAX          BITS { a(0), b(1), c(2), d(3), e(4), f(5), g(6), h(7), i(8), j(9), k(10), l(11), m(12), n(13), o(14), p(15), q(16) }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "Test object"
+        DEFVAL          { { b, c, m } }
+     ::= { 1 3 }
+
+    END
+    """
+
+    def setUp(self):
+        ast = parserFactory()().parse(self.__class__.__doc__)[0]
+        mibInfo, symtable = SymtableCodeGen().genCode(ast, {}, genTexts=True)
+        self.mibInfo, pycode = PySnmpCodeGen().genCode(
+            ast, {mibInfo.name: symtable}, genTexts=True
+        )
+        codeobj = compile(pycode, "test", "exec")
+
+        self.ctx = {"mibBuilder": MibBuilder()}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+    def testObjectTypeSyntax(self):
+        self.assertEqual(
+            self.ctx["testObjectType"].getSyntax(),
+            bytes((0x60, 0x08)),
+            "bad DEFVAL",
+        )
+
+
 class ObjectTypeMibTableTestCase(unittest.TestCase):
     """
     TEST-MIB DEFINITIONS ::= BEGIN

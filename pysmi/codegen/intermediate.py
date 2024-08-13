@@ -762,8 +762,6 @@ class IntermediateCodeGen(AbstractCodeGen):
 
                 outDict.update(value=self.genBits([defvalBits])[1], format="bits")
 
-                return outDict
-
             else:
                 raise error.PySmiSemanticError(
                     f'unknown type "{defvalType}" for defval "{defval}" of symbol "{objname}"'

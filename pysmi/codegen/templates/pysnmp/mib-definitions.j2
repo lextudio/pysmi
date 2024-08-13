@@ -185,7 +185,7 @@ if mibBuilder.loadTexts:
     defaultValue = {{ definition['syntax']['constraints']['enumeration'][definition['default']['default']['value']] }}
     {% elif definition['default']['default']['format'] == 'bits' %}
     {# TODO: pyasn1 does not like default named bits #}
-    defaultValue = {{ definition['syntax']['constraints']['enumeration'][definition['default']['default']['value']] }}
+    defaultBinValue = "{{ definition['default']['default']['value']['bits'].values()|bitstring }}"
     {%  endif %}
 {% endmacro -%}
 
