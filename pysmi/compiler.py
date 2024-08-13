@@ -298,7 +298,9 @@ class MibCompiler:
                 if mibname not in processed:
                     processed[mibname] = statusMissing
 
-        print(f"MIBs analyzed {len(parsedMibs)}, MIBs failed {len(failedMibs)}")
+        debug.logger & debug.flagCompiler and debug.logger(
+            f"MIBs analyzed {len(parsedMibs)}, MIBs failed {len(failedMibs)}"
+        )
 
         #
         # See what MIBs need generating
