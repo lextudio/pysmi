@@ -509,6 +509,51 @@ class ObjectTypeBitsDefaultEmptySetTestCase(unittest.TestCase):
         )
 
 
+class ObjectTypeObjectIdentifierTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      OBJECT-TYPE
+        FROM SNMPv2-SMI;
+
+    testTargetObjectType OBJECT-TYPE
+        SYNTAX          Integer32
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "Test target object"
+     ::= { 1 3 }
+
+    testObjectType OBJECT-TYPE
+        SYNTAX          OBJECT IDENTIFIER
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "Test object"
+        DEFVAL          { testTargetObjectType }
+     ::= { 1 4 }
+
+    END
+    """
+
+    def setUp(self):
+        ast = parserFactory()().parse(self.__class__.__doc__)[0]
+        mibInfo, symtable = SymtableCodeGen().genCode(ast, {}, genTexts=True)
+        self.mibInfo, pycode = PySnmpCodeGen().genCode(
+            ast, {mibInfo.name: symtable}, genTexts=True
+        )
+        codeobj = compile(pycode, "test", "exec")
+
+        self.ctx = {"mibBuilder": MibBuilder()}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+    def testObjectTypeSyntax(self):
+        self.assertEqual(
+            self.ctx["testObjectType"].getSyntax(),
+            (1, 3),
+            "bad DEFVAL",
+        )
+
+
 class ObjectTypeObjectIdentifierInvalidTestCase(unittest.TestCase):
     """
     TEST-MIB DEFINITIONS ::= BEGIN
