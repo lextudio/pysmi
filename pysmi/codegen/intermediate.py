@@ -701,7 +701,7 @@ class IntermediateCodeGen(AbstractCodeGen):
                 outDict.update(value=hexval, format="hex")
 
         # quoted string
-        elif defval[0] == defval[-1] and defval[0] == '"':
+        elif defval and defval[0] == defval[-1] and defval[0] == '"':
             # common bug in MIBs
             if defval[1:-1] == "" and defvalType != "OctetString":
                 # a warning should be here

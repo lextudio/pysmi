@@ -761,7 +761,7 @@ class SmiV2Parser(AbstractParser):
     def p_DefValPart(self, p):
         """DefValPart : DEFVAL '{' Value '}'
         | empty"""
-        if p[1] and p[3]:
+        if p[1] and p[3] is not None:
             p[0] = (p[1], p[3])
 
     def p_Value(self, p):
@@ -776,8 +776,7 @@ class SmiV2Parser(AbstractParser):
     def p_BitsValue(self, p):
         """BitsValue : BitNames
         | empty"""
-        if p[1]:
-            p[0] = p[1]
+        p[0] = p[1] or []
 
     def p_BitNames(self, p):
         """BitNames : BitNames ',' LOWERCASE_IDENTIFIER

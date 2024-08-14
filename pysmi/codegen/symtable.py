@@ -433,7 +433,7 @@ class SymtableCodeGen(AbstractCodeGen):
         elif isinstance(defval, list):  # bits list
             val = defval
 
-        elif defval[0] == defval[-1] and defval[0] == '"':  # quoted strimg
+        elif defval and defval[0] == defval[-1] and defval[0] == '"':  # quoted string
             val = dorepr(defval[1:-1])
 
         else:  # symbol (oid as defval) or name for enumeration member

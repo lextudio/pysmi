@@ -134,6 +134,41 @@ class ObjectTypeIntegerDefaultTestCase(unittest.TestCase):
         self.assertEqual(self.ctx["testObjectType"].getSyntax(), 123456, "bad DEFVAL")
 
 
+class ObjectTypeIntegerDefaultZeroTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      OBJECT-TYPE,
+      Integer32
+        FROM SNMPv2-SMI;
+
+    testObjectType OBJECT-TYPE
+        SYNTAX          Integer32
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "Test object"
+        DEFVAL          { 0 }
+     ::= { 1 3 }
+
+    END
+    """
+
+    def setUp(self):
+        ast = parserFactory()().parse(self.__class__.__doc__)[0]
+        mibInfo, symtable = SymtableCodeGen().genCode(ast, {}, genTexts=True)
+        self.mibInfo, pycode = PySnmpCodeGen().genCode(
+            ast, {mibInfo.name: symtable}, genTexts=True
+        )
+        codeobj = compile(pycode, "test", "exec")
+
+        self.ctx = {"mibBuilder": MibBuilder()}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+    def testObjectTypeSyntax(self):
+        self.assertEqual(self.ctx["testObjectType"].getSyntax(), 0, "bad DEFVAL")
+
+
 class ObjectTypeEnumDefaultTestCase(unittest.TestCase):
     """
     TEST-MIB DEFINITIONS ::= BEGIN
@@ -221,7 +256,6 @@ class ObjectTypeWithIntegerConstraintTestCase(unittest.TestCase):
         MAX-ACCESS      read-only
         STATUS          current
         DESCRIPTION     "Test object"
-        DEFVAL          { 0 }
      ::= { 1 3 }
 
     END
@@ -435,6 +469,81 @@ class ObjectTypeBitsDefaultMultiOctetTestCase(unittest.TestCase):
             bytes((0x60, 0x08)),
             "bad DEFVAL",
         )
+
+
+class ObjectTypeBitsDefaultEmptySetTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      OBJECT-TYPE
+        FROM SNMPv2-SMI;
+
+    testObjectType OBJECT-TYPE
+        SYNTAX          BITS { present(0), absent(1), changed(2) }
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "Test object"
+        DEFVAL          { { } }
+     ::= { 1 3 }
+
+    END
+    """
+
+    def setUp(self):
+        ast = parserFactory()().parse(self.__class__.__doc__)[0]
+        mibInfo, symtable = SymtableCodeGen().genCode(ast, {}, genTexts=True)
+        self.mibInfo, pycode = PySnmpCodeGen().genCode(
+            ast, {mibInfo.name: symtable}, genTexts=True
+        )
+        codeobj = compile(pycode, "test", "exec")
+
+        self.ctx = {"mibBuilder": MibBuilder()}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+    def testObjectTypeSyntax(self):
+        self.assertEqual(
+            self.ctx["testObjectType"].getSyntax(),
+            bytes((0x00,)),
+            "bad DEFVAL",
+        )
+
+
+class ObjectTypeObjectIdentifierInvalidTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      OBJECT-TYPE
+        FROM SNMPv2-SMI;
+
+    testObjectType OBJECT-TYPE
+        SYNTAX          OBJECT IDENTIFIER
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "Test object"
+        DEFVAL          { { 0 0 } }
+     ::= { 1 3 }
+
+    END
+    """
+
+    def testObjectTypeSyntax(self):
+        # The "{{0 0}}" type notation is invalid and currently not supported.
+        # This test verifies that such notations can be parsed at all, which
+        # is why the parsing is part of the actual test, and why successful
+        # instantiation of the syntax is enough here.
+        ast = parserFactory()().parse(self.__class__.__doc__)[0]
+        mibInfo, symtable = SymtableCodeGen().genCode(ast, {}, genTexts=True)
+        self.mibInfo, pycode = PySnmpCodeGen().genCode(
+            ast, {mibInfo.name: symtable}, genTexts=True
+        )
+        codeobj = compile(pycode, "test", "exec")
+
+        self.ctx = {"mibBuilder": MibBuilder()}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+        self.ctx["testObjectType"].getSyntax()
 
 
 class ObjectTypeMibTableTestCase(unittest.TestCase):
