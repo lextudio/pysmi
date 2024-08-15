@@ -327,13 +327,6 @@ _{{ symbol|replace('-', '_')|capfirst }}_Object = MibTableRow
             {% endfor %}
 )
         {% endif %}
-        {% if 'augmention' in definition %}
-{{ definition['augmention']['object'] }}.registerAugmentions(
-    ("{{ mib['meta']['module'] }}",
-     "{{ symbol|replace('-', '_') }}")
-)
-{{ symbol|replace('-', '_') }}.setIndexNames(*{{ definition['augmention']['object'] }}.getIndexNames())
-        {% endif %}
     {% elif definition['nodetype'] == 'column' %}
         {% block mib_table_column_object_definition scoped %}
 _{{ symbol|replace('-', '_')|capfirst }}_Object = MibTableColumn
@@ -366,6 +359,16 @@ if mibBuilder.loadTexts:
 {{ definition['description']|wordwrap }}
 """)
     {% endif %}
+{% endfor %}
+{% for symbol, definition in mib.items()
+   if definition['class'] == 'objecttype'
+   and definition['nodetype'] == 'row'
+   and 'augmention' in definition %}
+{{ definition['augmention']['object'] }}.registerAugmentions(
+    ("{{ mib['meta']['module'] }}",
+     "{{ symbol|replace('-', '_') }}")
+)
+{{ symbol|replace('-', '_') }}.setIndexNames(*{{ definition['augmention']['object'] }}.getIndexNames())
 {% endfor %}
 {% endblock -%}
 
