@@ -568,7 +568,8 @@ mibBuilder.exportSymbols(
                                   'agentcapabilities', 'moduleidentity',
                                   'modulecompliance', 'notificationgroup',
                                   'notificationtype', 'objectgroup',
-                                  'objectidentity', 'textualconvention') %}
+                                  'objectidentity', 'textualconvention',
+                                  'type') %}
         {% if loop.first and loop.last %}
     **{"{{ definition['name'] }}": {{ symbol }}}
         {% elif loop.first %}

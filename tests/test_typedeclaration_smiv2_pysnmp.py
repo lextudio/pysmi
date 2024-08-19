@@ -16,6 +16,7 @@ from pysmi.parser.smi import parserFactory
 from pysmi.codegen.pysnmp import PySnmpCodeGen
 from pysmi.codegen.symtable import SymtableCodeGen
 from pysnmp.smi.builder import MibBuilder
+from pysnmp.smi.view import MibViewController
 
 
 class TypeDeclarationTestCase(unittest.TestCase):
@@ -101,6 +102,8 @@ class TypeDeclarationTestCase(unittest.TestCase):
 
         exec(codeobj, self.ctx, self.ctx)
 
+        self.mibViewController = MibViewController(mibBuilder)
+
     def protoTestSymbol(self, symbol, klass):
         self.assertTrue(symbol in self.ctx, f"symbol {symbol} not present")
 
@@ -109,6 +112,13 @@ class TypeDeclarationTestCase(unittest.TestCase):
             self.ctx[symbol].__bases__[0].__name__,
             klass,
             f"expected class {klass}, got {self.ctx[symbol].__bases__[0].__name__} at {symbol}",
+        )
+
+    def protoTestExport(self, symbol, klass):
+        self.assertEqual(
+            self.mibViewController.getTypeName(symbol),
+            ("TEST-MIB", symbol),
+            f"Symbol {symbol} not exported",
         )
 
     def testTextualConventionSymbol(self):
@@ -146,6 +156,13 @@ class TypeDeclarationTestCase(unittest.TestCase):
                 self.ctx["TestTextualConvention"], self.ctx["TextualConvention"]
             ),
             "bad SYNTAX class",
+        )
+
+    def testTextualConventionExport(self):
+        self.assertEqual(
+            self.mibViewController.getTypeName("TestTextualConvention"),
+            ("TEST-MIB", "TestTextualConvention"),
+            f"not exported",
         )
 
 
@@ -190,6 +207,12 @@ for s, k in typesMap:
         "testTypeDeclaration" + k + "ClassTestCase",
         decor(TypeDeclarationTestCase.protoTestClass, s, k),
     )
+    setattr(
+        TypeDeclarationTestCase,
+        "testTypeDeclaration" + k + "ExportTestCase",
+        decor(TypeDeclarationTestCase.protoTestExport, s, k),
+    )
+
 
 # XXX constraints flavor not checked
 
@@ -224,8 +247,17 @@ class TypeDeclarationHyphenTestCase(unittest.TestCase):
 
         exec(codeobj, self.ctx, self.ctx)
 
+        self.mibViewController = MibViewController(mibBuilder)
+
     def testTextualConventionSymbol(self):
         self.assertTrue("Test_Textual_Convention" in self.ctx, "symbol not present")
+
+    def testTextualConventionExport(self):
+        self.assertEqual(
+            self.mibViewController.getTypeName("Test-Textual-Convention"),
+            ("TEST-MIB", "Test-Textual-Convention"),
+            f"Symbol not exported",
+        )
 
     def testTextualConventionDisplayHint(self):
         self.assertEqual(

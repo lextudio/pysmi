@@ -17,6 +17,7 @@ from pysmi.parser.dialect import smiV1Relaxed
 from pysmi.codegen.pysnmp import PySnmpCodeGen
 from pysmi.codegen.symtable import SymtableCodeGen
 from pysnmp.smi.builder import MibBuilder
+from pysnmp.smi.view import MibViewController
 
 
 class TypeDeclarationTestCase(unittest.TestCase):
@@ -63,6 +64,8 @@ class TypeDeclarationTestCase(unittest.TestCase):
 
         exec(codeobj, self.ctx, self.ctx)
 
+        self.mibViewController = MibViewController(mibBuilder)
+
     def protoTestSymbol(self, symbol, klass):
         self.assertTrue(symbol in self.ctx, f"Symbol {symbol} not present")
 
@@ -71,6 +74,13 @@ class TypeDeclarationTestCase(unittest.TestCase):
             self.ctx[symbol].__bases__[0].__name__,
             klass,
             f"expected class {klass}, got {self.ctx[symbol].__bases__[0].__name__} at {symbol}",
+        )
+
+    def protoTestExport(self, symbol, klass):
+        self.assertEqual(
+            self.mibViewController.getTypeName(symbol),
+            ("TEST-MIB", symbol),
+            f"Symbol {symbol} not exported",
         )
 
 
@@ -106,6 +116,11 @@ for s, k in typesMap:
         TypeDeclarationTestCase,
         "testTypeDeclaration" + k + "ClassTestCase",
         decor(TypeDeclarationTestCase.protoTestClass, s, k),
+    )
+    setattr(
+        TypeDeclarationTestCase,
+        "testTypeDeclaration" + k + "ExportTestCase",
+        decor(TypeDeclarationTestCase.protoTestExport, s, k),
     )
 
 # XXX constraints flavor not checked
