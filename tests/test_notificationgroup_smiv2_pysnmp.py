@@ -77,6 +77,46 @@ class NotificationGroupTestCase(unittest.TestCase):
         )
 
 
+class NotificationGroupHyphenTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      NOTIFICATION-GROUP
+        FROM SNMPv2-CONF;
+
+    test-notification-group NOTIFICATION-GROUP
+       NOTIFICATIONS    {
+                            testStatusChangeNotify
+                        }
+        STATUS          current
+        DESCRIPTION
+            "A collection of test notifications."
+     ::= { 1 3 }
+
+    END
+    """
+
+    def setUp(self):
+        ast = parserFactory()().parse(self.__class__.__doc__)[0]
+        mibInfo, symtable = SymtableCodeGen().genCode(ast, {})
+        self.mibInfo, pycode = PySnmpCodeGen().genCode(ast, {mibInfo.name: symtable})
+        codeobj = compile(pycode, "test", "exec")
+
+        self.ctx = {"mibBuilder": MibBuilder()}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+    def testNotificationGroupSymbol(self):
+        self.assertTrue("test_notification_group" in self.ctx, "symbol not present")
+
+    def testNotificationGroupLabel(self):
+        self.assertEqual(
+            self.ctx["test_notification_group"].getLabel(),
+            "test-notification-group",
+            "bad label",
+        )
+
+
 suite = unittest.TestLoader().loadTestsFromModule(sys.modules[__name__])
 
 if __name__ == "__main__":

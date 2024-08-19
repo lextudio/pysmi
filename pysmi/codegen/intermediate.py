@@ -150,10 +150,6 @@ class IntermediateCodeGen(AbstractCodeGen):
 
         return OrderedDict(imports=outDict), tuple(sorted(imports))
 
-    # noinspection PyMethodMayBeStatic
-    def genLabel(self, symbol):
-        return "-" in symbol and symbol or ""
-
     def addToExports(self, symbol, moduleIdentity=0):
         self._seenSyms.add(symbol)
 
@@ -253,8 +249,7 @@ class IntermediateCodeGen(AbstractCodeGen):
     def genAgentCapabilities(self, data):
         name, productRelease, status, description, reference, oid = data
 
-        label = self.genLabel(name)
-        name = self.transOpers(name)
+        pysmiName = self.transOpers(name)
 
         oidStr, parentOid = oid
 
@@ -275,7 +270,7 @@ class IntermediateCodeGen(AbstractCodeGen):
         if self.genRules["text"] and reference:
             outDict["reference"] = reference
 
-        self.regSym(name, outDict, parentOid)
+        self.regSym(pysmiName, outDict, parentOid)
 
         return outDict
 
@@ -283,8 +278,7 @@ class IntermediateCodeGen(AbstractCodeGen):
     def genModuleIdentity(self, data):
         name, lastUpdated, organization, contactInfo, description, revisions, oid = data
 
-        label = self.genLabel(name)
-        name = self.transOpers(name)
+        pysmiName = self.transOpers(name)
 
         oidStr, parentOid = oid
 
@@ -308,7 +302,7 @@ class IntermediateCodeGen(AbstractCodeGen):
             if description:
                 outDict["description"] = description
 
-        self.regSym(name, outDict, parentOid, moduleIdentity=True)
+        self.regSym(pysmiName, outDict, parentOid, moduleIdentity=True)
 
         return outDict
 
@@ -316,8 +310,7 @@ class IntermediateCodeGen(AbstractCodeGen):
     def genModuleCompliance(self, data):
         name, status, description, reference, compliances, oid = data
 
-        label = self.genLabel(name)
-        name = self.transOpers(name)
+        pysmiName = self.transOpers(name)
 
         oidStr, parentOid = oid
 
@@ -338,7 +331,7 @@ class IntermediateCodeGen(AbstractCodeGen):
         if self.genRules["text"] and reference:
             outDict["reference"] = reference
 
-        self.regSym(name, outDict, parentOid, moduleCompliance=True)
+        self.regSym(pysmiName, outDict, parentOid, moduleCompliance=True)
 
         return outDict
 
@@ -346,8 +339,7 @@ class IntermediateCodeGen(AbstractCodeGen):
     def genNotificationGroup(self, data):
         name, objects, status, description, reference, oid = data
 
-        label = self.genLabel(name)
-        name = self.transOpers(name)
+        pysmiName = self.transOpers(name)
 
         oidStr, parentOid = oid
         outDict = OrderedDict()
@@ -373,7 +365,7 @@ class IntermediateCodeGen(AbstractCodeGen):
         if self.genRules["text"] and reference:
             outDict["reference"] = reference
 
-        self.regSym(name, outDict, parentOid)
+        self.regSym(pysmiName, outDict, parentOid)
 
         return outDict
 
@@ -381,8 +373,7 @@ class IntermediateCodeGen(AbstractCodeGen):
     def genNotificationType(self, data):
         name, objects, status, description, reference, oid = data
 
-        label = self.genLabel(name)
-        name = self.transOpers(name)
+        pysmiName = self.transOpers(name)
 
         oidStr, parentOid = oid
         outDict = OrderedDict()
@@ -408,7 +399,7 @@ class IntermediateCodeGen(AbstractCodeGen):
         if self.genRules["text"] and reference:
             outDict["reference"] = reference
 
-        self.regSym(name, outDict, parentOid)
+        self.regSym(pysmiName, outDict, parentOid)
 
         return outDict
 
@@ -416,8 +407,7 @@ class IntermediateCodeGen(AbstractCodeGen):
     def genObjectGroup(self, data):
         name, objects, status, description, reference, oid = data
 
-        label = self.genLabel(name)
-        name = self.transOpers(name)
+        pysmiName = self.transOpers(name)
 
         oidStr, parentOid = oid
         outDict = OrderedDict({"name": name, "oid": oidStr, "class": "objectgroup"})
@@ -440,7 +430,7 @@ class IntermediateCodeGen(AbstractCodeGen):
         if self.genRules["text"] and reference:
             outDict["reference"] = reference
 
-        self.regSym(name, outDict, parentOid)
+        self.regSym(pysmiName, outDict, parentOid)
 
         return outDict
 
@@ -448,8 +438,7 @@ class IntermediateCodeGen(AbstractCodeGen):
     def genObjectIdentity(self, data):
         name, status, description, reference, oid = data
 
-        label = self.genLabel(name)
-        name = self.transOpers(name)
+        pysmiName = self.transOpers(name)
 
         oidStr, parentOid = oid
 
@@ -467,7 +456,7 @@ class IntermediateCodeGen(AbstractCodeGen):
         if self.genRules["text"] and reference:
             outDict["reference"] = reference
 
-        self.regSym(name, outDict, parentOid)
+        self.regSym(pysmiName, outDict, parentOid)
 
         return outDict
 
@@ -487,13 +476,12 @@ class IntermediateCodeGen(AbstractCodeGen):
             oid,
         ) = data
 
-        label = self.genLabel(name)
-        name = self.transOpers(name)
+        pysmiName = self.transOpers(name)
 
         oidStr, parentOid = oid
         indexStr, fakeStrlist, fakeSyms = index or ("", "", [])
 
-        defval = self.genDefVal(defval, objname=name)
+        defval = self.genDefVal(defval, objname=pysmiName)
 
         outDict = OrderedDict()
         outDict["name"] = name
@@ -502,7 +490,7 @@ class IntermediateCodeGen(AbstractCodeGen):
         if syntax[0]:
             nodetype = syntax[0] == "Bits" and "scalar" or syntax[0]  # Bits hack
             nodetype = (
-                name in self.symbolTable[self.moduleName[0]]["_symtable_cols"]
+                pysmiName in self.symbolTable[self.moduleName[0]]["_symtable_cols"]
                 and "column"
                 or nodetype
             )
@@ -534,7 +522,7 @@ class IntermediateCodeGen(AbstractCodeGen):
         if self.genRules["text"] and description:
             outDict["description"] = description
 
-        self.regSym(name, outDict, parentOid)
+        self.regSym(pysmiName, outDict, parentOid)
         # TODO
         #        if fakeSyms:  # fake symbols for INDEX to support SMIv1
         #            for i in range(len(fakeSyms)):
@@ -547,8 +535,7 @@ class IntermediateCodeGen(AbstractCodeGen):
     def genTrapType(self, data):
         name, enterprise, variables, description, reference, value = data
 
-        label = self.genLabel(name)
-        name = self.transOpers(name)
+        pysmiName = self.transOpers(name)
 
         enterpriseStr, parentOid = enterprise
 
@@ -572,7 +559,7 @@ class IntermediateCodeGen(AbstractCodeGen):
         if self.genRules["text"] and reference:
             outDict["reference"] = reference
 
-        self.regSym(name, outDict, parentOid)
+        self.regSym(pysmiName, outDict, parentOid)
 
         return outDict
 
@@ -587,9 +574,9 @@ class IntermediateCodeGen(AbstractCodeGen):
         if declaration:
             parentType, attrs = declaration
             if parentType:  # skipping SEQUENCE case
-                name = self.transOpers(name)
+                pysmiName = self.transOpers(name)
                 outDict.update(attrs)
-                self.regSym(name, outDict)
+                self.regSym(pysmiName, outDict)
 
         return outDict
 
@@ -597,8 +584,7 @@ class IntermediateCodeGen(AbstractCodeGen):
     def genValueDeclaration(self, data):
         name, oid = data
 
-        label = self.genLabel(name)
-        name = self.transOpers(name)
+        pysmiName = self.transOpers(name)
 
         oidStr, parentOid = oid
         outDict = OrderedDict()
@@ -606,7 +592,7 @@ class IntermediateCodeGen(AbstractCodeGen):
         outDict["oid"] = oidStr
         outDict["class"] = "objectidentity"
 
-        self.regSym(name, outDict, parentOid)
+        self.regSym(pysmiName, outDict, parentOid)
 
         return outDict
 

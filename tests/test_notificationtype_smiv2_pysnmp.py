@@ -74,6 +74,47 @@ class NotificationTypeTestCase(unittest.TestCase):
         )
 
 
+class NotificationTypeHyphenTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      NOTIFICATION-TYPE
+        FROM SNMPv2-SMI;
+
+    test-notification-type NOTIFICATION-TYPE
+       OBJECTS         {
+                            testChangeConfigType,
+                            testChangeConfigValue
+                        }
+        STATUS          current
+        DESCRIPTION
+            "A collection of test notification types."
+     ::= { 1 3 }
+
+    END
+    """
+
+    def setUp(self):
+        ast = parserFactory()().parse(self.__class__.__doc__)[0]
+        mibInfo, symtable = SymtableCodeGen().genCode(ast, {})
+        self.mibInfo, pycode = PySnmpCodeGen().genCode(ast, {mibInfo.name: symtable})
+        codeobj = compile(pycode, "test", "exec")
+
+        self.ctx = {"mibBuilder": MibBuilder()}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+    def testNotificationTypeSymbol(self):
+        self.assertTrue("test_notification_type" in self.ctx, "symbol not present")
+
+    def testNotificationTypeLabel(self):
+        self.assertEqual(
+            self.ctx["test_notification_type"].getLabel(),
+            "test-notification-type",
+            "bad name",
+        )
+
+
 suite = unittest.TestLoader().loadTestsFromModule(sys.modules[__name__])
 
 if __name__ == "__main__":

@@ -102,7 +102,7 @@ if mibBuilder.loadTexts:
     {% endif %}
     {% if 'description' in definition %}
 if mibBuilder.loadTexts:
-    {{ symbol|replace('-', '_') }}.setDescription("""\
+    {{ symbol }}.setDescription("""\
 {{ definition['description']|wordwrap }}
 """)
     {% endif %}
@@ -250,7 +250,7 @@ class {{ symbol }}(TextualConvention, {{ definition['type']['type'] }}):
             {% if 'default' in definition or 'constraints' in definition['syntax'] or 'bits' in definition['syntax'] %}
 
 
-class _{{ symbol|replace('-', '_')|capfirst }}_Type({{ definition['syntax']['type'] }}):
+class _{{ symbol|capfirst }}_Type({{ definition['syntax']['type'] }}):
     """Custom type {{ symbol }} based on {{ definition['syntax']['type'] }}"""
                 {% if 'default' in definition %}
 {{ default(definition) }}
@@ -275,53 +275,53 @@ class _{{ symbol|replace('-', '_')|capfirst }}_Type({{ definition['syntax']['typ
                 {% endif %}
 
                 {% if 'constraints' in definition['syntax'] or 'bits' in definition['syntax'] %}
-_{{ symbol|replace('-', '_')|capfirst }}_Type.__name__ = "{{ definition['syntax']['type'] }}"
+_{{ symbol|capfirst }}_Type.__name__ = "{{ definition['syntax']['type'] }}"
                 {% endif %}
             {% else %}
-_{{ symbol|replace('-', '_')|capfirst }}_Type = {{ definition['syntax']['type'] }}
+_{{ symbol|capfirst }}_Type = {{ definition['syntax']['type'] }}
             {% endif %}
         {% endblock %}
     {% endif %}
     {% if definition['class'] == 'objectidentity' %}
         {% block mib_scalar_object_identity_definition scoped %}
-_{{ symbol|replace('-', '_')|capfirst }}_ObjectIdentity = ObjectIdentity
+_{{ symbol|capfirst }}_ObjectIdentity = ObjectIdentity
         {% endblock %}
         {% block mib_object_identity_instantiation scoped %}
-{{ symbol|replace('-', '_') }} = _{{ symbol|replace('-', '_')|capfirst }}_ObjectIdentity(
+{{ symbol }} = _{{ symbol|capfirst }}_ObjectIdentity(
     {{ definition['oid'] }}
 )
         {% endblock %}
     {% elif definition['nodetype'] == 'scalar' %}
         {% block mib_scalar_object_definition scoped %}
-_{{ symbol|replace('-', '_')|capfirst }}_Object = MibScalar
+_{{ symbol|capfirst }}_Object = MibScalar
         {% endblock %}
         {% block mib_scalar_object_instantiation scoped %}
-{{ symbol|replace('-', '_') }} = _{{ symbol|replace('-', '_')|capfirst }}_Object(
+{{ symbol }} = _{{ symbol|capfirst }}_Object(
     {{ definition['oid'] }},
-    _{{ symbol|replace('-', '_')|capfirst }}_Type()
+    _{{ symbol|capfirst }}_Type()
 )
         {% endblock %}
-{{ symbol|replace('-', '_') }}.setMaxAccess("{{ definition['maxaccess'] }}")
+{{ symbol }}.setMaxAccess("{{ definition['maxaccess'] }}")
     {% elif definition['nodetype'] == 'table' %}
         {% block mib_table_object_definition scoped %}
-_{{ symbol|replace('-', '_')|capfirst }}_Object = MibTable
+_{{ symbol|capfirst }}_Object = MibTable
         {% endblock %}
         {% block mib_table_object_instantiation scoped %}
-{{ symbol|replace('-', '_') }} = _{{ symbol|replace('-', '_')|capfirst }}_Object(
+{{ symbol }} = _{{ symbol|capfirst }}_Object(
     {{ definition['oid'] }}
 )
         {% endblock %}
     {% elif definition['nodetype'] == 'row' %}
         {% block mib_table_row_object_definition scoped %}
-_{{ symbol|replace('-', '_')|capfirst }}_Object = MibTableRow
+_{{ symbol|capfirst }}_Object = MibTableRow
         {% endblock %}
         {% block mib_table_row_object_instantiation scoped %}
-{{ symbol|replace('-', '_') }} = _{{ symbol|replace('-', '_')|capfirst }}_Object(
+{{ symbol }} = _{{ symbol|capfirst }}_Object(
     {{ definition['oid'] }}
 )
         {% endblock %}
         {% if 'indices' in definition %}
-{{ symbol|replace('-', '_') }}.setIndexNames(
+{{ symbol }}.setIndexNames(
             {% for index in definition['indices'] %}
     ({{ index['implied'] }}, "{{ index['module'] }}", "{{ index['object'] }}"),
             {% endfor %}
@@ -329,33 +329,33 @@ _{{ symbol|replace('-', '_')|capfirst }}_Object = MibTableRow
         {% endif %}
     {% elif definition['nodetype'] == 'column' %}
         {% block mib_table_column_object_definition scoped %}
-_{{ symbol|replace('-', '_')|capfirst }}_Object = MibTableColumn
+_{{ symbol|capfirst }}_Object = MibTableColumn
         {% endblock %}
         {% block mib_table_column_object_instantiation scoped %}
-{{ symbol|replace('-', '_') }} = _{{ symbol|replace('-', '_')|capfirst }}_Object(
+{{ symbol }} = _{{ symbol|capfirst }}_Object(
     {{ definition['oid'] }},
-    _{{ symbol|replace('-', '_')|capfirst }}_Type()
+    _{{ symbol|capfirst }}_Type()
 )
         {% endblock %}
-{{ symbol|replace('-', '_') }}.setMaxAccess("{{ definition['maxaccess'] }}")
+{{ symbol }}.setMaxAccess("{{ definition['maxaccess'] }}")
     {% endif %}
     {% if 'status' in definition %}
 if mibBuilder.loadTexts:
-    {{ symbol|replace('-', '_') }}.setStatus("{{ definition['status'] }}")
+    {{ symbol }}.setStatus("{{ definition['status'] }}")
     {% endif %}
     {% if 'units' in definition %}
 if mibBuilder.loadTexts:
-    {{ symbol|replace('-', '_') }}.setUnits("{{ definition['units'] }}")
+    {{ symbol }}.setUnits("{{ definition['units'] }}")
     {% endif %}
     {% if 'reference' in definition %}
 if mibBuilder.loadTexts:
-    {{ symbol|replace('-', '_') }}.setReference("""\
+    {{ symbol }}.setReference("""\
 {{ definition['reference']|wordwrap }}
 """)
     {% endif %}
     {% if 'description' in definition %}
 if mibBuilder.loadTexts:
-    {{ symbol|replace('-', '_') }}.setDescription("""\
+    {{ symbol }}.setDescription("""\
 {{ definition['description']|wordwrap }}
 """)
     {% endif %}
@@ -366,9 +366,9 @@ if mibBuilder.loadTexts:
    and 'augmention' in definition %}
 {{ definition['augmention']['object'] }}.registerAugmentions(
     ("{{ mib['meta']['module'] }}",
-     "{{ symbol|replace('-', '_') }}")
+     "{{ symbol }}")
 )
-{{ symbol|replace('-', '_') }}.setIndexNames(*{{ definition['augmention']['object'] }}.getIndexNames())
+{{ symbol }}.setIndexNames(*{{ definition['augmention']['object'] }}.getIndexNames())
 {% endfor %}
 {% endblock -%}
 
@@ -378,11 +378,11 @@ if mibBuilder.loadTexts:
 
 {% for symbol, definition in mib.items()
    if definition['class'] == 'objectgroup' %}
-{{ symbol|replace('-', '_') }} = ObjectGroup(
+{{ symbol }} = ObjectGroup(
     {{ definition['oid'] }}
 )
     {% if 'objects' in definition %}
-{{ symbol|replace('-', '_') }}.setObjects(
+{{ symbol }}.setObjects(
     {% for obj in definition['objects'] %}
         {% if loop.first and loop.last %}
     ("{{ obj['module'] }}", "{{  obj['object'] }}")
@@ -397,10 +397,10 @@ if mibBuilder.loadTexts:
 )
     {% endif %}
 if mibBuilder.loadTexts:
-    {{ symbol|replace('-', '_') }}.setStatus("{{ definition['status'] }}")
+    {{ symbol }}.setStatus("{{ definition['status'] }}")
     {% if 'description' in definition %}
 if mibBuilder.loadTexts:
-    {{ symbol|replace('-', '_') }}.setDescription("""\
+    {{ symbol }}.setDescription("""\
 {{ definition['description']|wordwrap }}
 """)
     {% endif %}
@@ -414,11 +414,11 @@ if mibBuilder.loadTexts:
 
 {% for symbol, definition in mib.items()
    if definition['class'] == 'notificationtype' %}
-{{ symbol|replace('-', '_') }} = NotificationType(
+{{ symbol }} = NotificationType(
     {{ definition['oid'] }}
 )
     {% if 'objects' in definition %}
-{{ symbol|replace('-', '_') }}.setObjects(
+{{ symbol }}.setObjects(
     {% for obj in definition['objects'] %}
         {% if loop.first and loop.last %}
     ("{{ obj['module'] }}", "{{  obj['object'] }}")
@@ -433,12 +433,12 @@ if mibBuilder.loadTexts:
 )
     {% endif %}
 if mibBuilder.loadTexts:
-    {{ symbol|replace('-', '_') }}.setStatus(
+    {{ symbol }}.setStatus(
         "{{ definition['status'] }}"
     )
     {% if 'description' in definition %}
 if mibBuilder.loadTexts:
-    {{ symbol|replace('-', '_') }}.setDescription("""\
+    {{ symbol }}.setDescription("""\
 {{ definition['description']|wordwrap }}
 """)
     {% endif %}
@@ -452,11 +452,11 @@ if mibBuilder.loadTexts:
 
 {% for symbol, definition in mib.items()
    if definition['class'] == 'notificationgroup' %}
-{{ symbol|replace('-', '_') }} = NotificationGroup(
+{{ symbol }} = NotificationGroup(
     {{ definition['oid'] }}
 )
     {% if 'objects' in definition %}
-{{ symbol|replace('-', '_') }}.setObjects(
+{{ symbol }}.setObjects(
     {% for obj in definition['objects'] %}
         {% if loop.first and loop.last %}
     ("{{ obj['module'] }}", "{{  obj['object'] }}")
@@ -471,12 +471,12 @@ if mibBuilder.loadTexts:
 )
     {% endif %}
 if mibBuilder.loadTexts:
-    {{ symbol|replace('-', '_') }}.setStatus(
+    {{ symbol }}.setStatus(
         "{{ definition['status'] }}"
     )
     {% if 'description' in definition %}
 if mibBuilder.loadTexts:
-    {{ symbol|replace('-', '_') }}.setDescription("""\
+    {{ symbol }}.setDescription("""\
 {{ definition['description']|wordwrap }}
 """)
     {% endif %}
@@ -490,28 +490,28 @@ if mibBuilder.loadTexts:
 
 {% for symbol, definition in mib.items()
    if definition['class'] == 'agentcapabilities' %}
-{{ symbol|replace('-', '_') }} = AgentCapabilities(
+{{ symbol }} = AgentCapabilities(
     {{ definition['oid'] }}
 )
     {% if 'productrelease' in definition %}
 if mibBuilder.loadTexts:
-    {{ symbol|replace('-', '_') }}.setProductRelease(
+    {{ symbol }}.setProductRelease(
         "{{ definition['productrelease'] }}"
     )
     {% endif %}
     {% if 'reference' in definition %}
 if mibBuilder.loadTexts:
-    {{ symbol|replace('-', '_') }}.setReference(
+    {{ symbol }}.setReference(
         "{{ definition['reference'] }}"
     )
     {% endif %}
 if mibBuilder.loadTexts:
-    {{ symbol|replace('-', '_') }}.setStatus(
+    {{ symbol }}.setStatus(
         "{{ definition['status'] }}"
     )
     {% if 'description' in definition %}
 if mibBuilder.loadTexts:
-    {{ symbol|replace('-', '_') }}.setDescription("""\
+    {{ symbol }}.setDescription("""\
 {{ definition['description']|wordwrap }}
 """)
     {% endif %}
@@ -525,11 +525,11 @@ if mibBuilder.loadTexts:
 
 {% for symbol, definition in mib.items()
    if definition['class'] == 'modulecompliance' %}
-{{ symbol|replace('-', '_') }} = ModuleCompliance(
+{{ symbol }} = ModuleCompliance(
     {{ definition['oid'] }}
 )
     {% if 'objects' in definition %}
-{{ symbol|replace('-', '_') }}.setObjects(
+{{ symbol }}.setObjects(
     {% for obj in definition['objects'] %}
         {% if loop.first and loop.last %}
     ("{{ obj['module'] }}", "{{  obj['object'] }}")
@@ -544,12 +544,12 @@ if mibBuilder.loadTexts:
 )
     {% endif %}
 if mibBuilder.loadTexts:
-    {{ symbol|replace('-', '_') }}.setStatus(
+    {{ symbol }}.setStatus(
         "{{ definition['status'] }}"
     )
     {% if 'description' in definition %}
 if mibBuilder.loadTexts:
-    {{ symbol|replace('-', '_') }}.setDescription("""\
+    {{ symbol }}.setDescription("""\
 {{ definition['description']|wordwrap }}
 """)
     {% endif %}
@@ -570,13 +570,13 @@ mibBuilder.exportSymbols(
                                   'notificationtype', 'objectgroup',
                                   'objectidentity', 'textualconvention') %}
         {% if loop.first and loop.last %}
-    **{"{{ symbol }}": {{ symbol|replace('-', '_') }}}
+    **{"{{ definition['name'] }}": {{ symbol }}}
         {% elif loop.first %}
-    **{"{{ symbol }}": {{ symbol|replace('-', '_') }},
+    **{"{{ definition['name'] }}": {{ symbol }},
         {% elif loop.last %}
-       "{{ symbol }}": {{ symbol|replace('-', '_') }}}
+       "{{ definition['name'] }}": {{ symbol }}}
         {% else %}
-       "{{ symbol }}": {{ symbol|replace('-', '_') }},
+       "{{ definition['name'] }}": {{ symbol }},
         {% endif %}
     {%  endfor %}
 )

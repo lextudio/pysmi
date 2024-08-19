@@ -28,9 +28,10 @@ class ValueDeclarationTestCase(unittest.TestCase):
 
     -- simple values
 
-    testValue1  OBJECT IDENTIFIER ::= { 1 }
-    testValue2  OBJECT IDENTIFIER ::= { testValue1 3 }
-    testValue3  OBJECT IDENTIFIER ::= { 1 3 6 1 2 }
+    testValue1    OBJECT IDENTIFIER ::= { 1 }
+    testValue2    OBJECT IDENTIFIER ::= { testValue1 3 }
+    testValue3    OBJECT IDENTIFIER ::= { 1 3 6 1 2 }
+    test-value-4  OBJECT IDENTIFIER ::= { 1 4 }
 
     -- testValue01  INTEGER ::= 123
     -- testValue02  INTEGER ::= -123
@@ -84,6 +85,17 @@ class ValueDeclarationTestCase(unittest.TestCase):
 
     def testValueDeclarationName3(self):
         self.assertEqual(self.ctx["testValue3"].getName(), (1, 3, 6, 1, 2), "bad value")
+
+    def testValueDeclarationLabel3(self):
+        self.assertEqual(self.ctx["testValue3"].getLabel(), "testValue3", "bad label")
+
+    def testValueDeclarationName4(self):
+        self.assertEqual(self.ctx["test_value_4"].getName(), (1, 4), "bad value")
+
+    def testValueDeclarationLabel4(self):
+        self.assertEqual(
+            self.ctx["test_value_4"].getLabel(), "test-value-4", "bad label"
+        )
 
 
 suite = unittest.TestLoader().loadTestsFromModule(sys.modules[__name__])

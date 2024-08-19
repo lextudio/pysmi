@@ -99,6 +99,43 @@ class ObjectTypeBasicTestCase(unittest.TestCase):
         )
 
 
+class ObjectTypeHyphenTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      OBJECT-TYPE
+        FROM SNMPv2-SMI;
+
+    test-object-type OBJECT-TYPE
+        SYNTAX          Integer32
+        UNITS           "seconds"
+        MAX-ACCESS      accessible-for-notify
+        STATUS          current
+        DESCRIPTION     "Test object"
+     ::= { 1 3 }
+
+    END
+    """
+
+    def setUp(self):
+        ast = parserFactory()().parse(self.__class__.__doc__)[0]
+        mibInfo, symtable = SymtableCodeGen().genCode(ast, {})
+        self.mibInfo, pycode = PySnmpCodeGen().genCode(ast, {mibInfo.name: symtable})
+        codeobj = compile(pycode, "test", "exec")
+
+        self.ctx = {"mibBuilder": MibBuilder()}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+    def testObjectTypeSymbol(self):
+        self.assertTrue("test_object_type" in self.ctx, "symbol not present")
+
+    def testObjectTypeLabel(self):
+        self.assertEqual(
+            self.ctx["test_object_type"].getLabel(), "test-object-type", "bad label"
+        )
+
+
 class ObjectTypeIntegerDefaultTestCase(unittest.TestCase):
     """
     TEST-MIB DEFINITIONS ::= BEGIN

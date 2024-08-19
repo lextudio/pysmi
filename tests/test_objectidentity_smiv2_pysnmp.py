@@ -76,6 +76,39 @@ class ObjectIdentityTestCase(unittest.TestCase):
         )
 
 
+class ObjectIdentityHyphenTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+        OBJECT-IDENTITY
+    FROM SNMPv2-SMI;
+
+    test-object OBJECT-IDENTITY
+        STATUS          current
+        DESCRIPTION     "Initial version"
+
+     ::= { 1 3 }
+
+    END
+    """
+
+    def setUp(self):
+        ast = parserFactory()().parse(self.__class__.__doc__)[0]
+        mibInfo, symtable = SymtableCodeGen().genCode(ast, {})
+        self.mibInfo, pycode = PySnmpCodeGen().genCode(ast, {mibInfo.name: symtable})
+        codeobj = compile(pycode, "test", "exec")
+
+        self.ctx = {"mibBuilder": MibBuilder()}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+    def testObjectIdentitySymbol(self):
+        self.assertTrue("test_object" in self.ctx, "symbol not present")
+
+    def testObjectIdentityLabel(self):
+        self.assertEqual(self.ctx["test_object"].getLabel(), "test-object", "bad label")
+
+
 suite = unittest.TestLoader().loadTestsFromModule(sys.modules[__name__])
 
 if __name__ == "__main__":

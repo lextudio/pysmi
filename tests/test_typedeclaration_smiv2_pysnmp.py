@@ -193,6 +193,48 @@ for s, k in typesMap:
 
 # XXX constraints flavor not checked
 
+
+class TypeDeclarationHyphenTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      Unsigned32
+        FROM SNMPv2-SMI
+      TEXTUAL-CONVENTION
+        FROM SNMPv2-TC;
+
+    Test-Textual-Convention ::= TEXTUAL-CONVENTION
+        DISPLAY-HINT "d-2"
+        STATUS       current
+        DESCRIPTION  "Test TC"
+        SYNTAX       Unsigned32
+
+    END
+    """
+
+    def setUp(self):
+        ast = parserFactory()().parse(self.__class__.__doc__)[0]
+        mibInfo, symtable = SymtableCodeGen().genCode(ast, {})
+        self.mibInfo, pycode = PySnmpCodeGen().genCode(ast, {mibInfo.name: symtable})
+        codeobj = compile(pycode, "test", "exec")
+
+        mibBuilder = MibBuilder()
+
+        self.ctx = {"mibBuilder": mibBuilder}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+    def testTextualConventionSymbol(self):
+        self.assertTrue("Test_Textual_Convention" in self.ctx, "symbol not present")
+
+    def testTextualConventionDisplayHint(self):
+        self.assertEqual(
+            self.ctx["Test_Textual_Convention"]().getDisplayHint(),
+            "d-2",
+            "bad DISPLAY-HINT",
+        )
+
+
 suite = unittest.TestLoader().loadTestsFromModule(sys.modules[__name__])
 
 if __name__ == "__main__":

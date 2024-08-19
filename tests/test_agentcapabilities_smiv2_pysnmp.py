@@ -28,7 +28,7 @@ class AgentCapabilitiesTestCase(unittest.TestCase):
             FROM SNMPv2-CONF;
 
     testCapability AGENT-CAPABILITIES
-        PRODUCT-RELEASE "Test produce"
+        PRODUCT-RELEASE "Test product"
         STATUS          current
         DESCRIPTION
             "test capabilities"
@@ -89,6 +89,43 @@ class AgentCapabilitiesTestCase(unittest.TestCase):
             self.ctx["testCapability"].__class__.__name__,
             "AgentCapabilities",
             "bad SYNTAX class",
+        )
+
+
+class AgentCapabilitiesHyphenTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+        AGENT-CAPABILITIES
+            FROM SNMPv2-CONF;
+
+    test-capability AGENT-CAPABILITIES
+        PRODUCT-RELEASE "Test product"
+        STATUS          current
+        DESCRIPTION
+            "test capabilities"
+
+     ::= { 1 3 }
+
+    END
+    """
+
+    def setUp(self):
+        ast = parserFactory()().parse(self.__class__.__doc__)[0]
+        mibInfo, symtable = SymtableCodeGen().genCode(ast, {})
+        self.mibInfo, pycode = PySnmpCodeGen().genCode(ast, {mibInfo.name: symtable})
+        codeobj = compile(pycode, "test", "exec")
+
+        self.ctx = {"mibBuilder": MibBuilder()}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+    def testAgentCapabilitiesSymbol(self):
+        self.assertTrue("test_capability" in self.ctx, "symbol not present")
+
+    def testAgentCapabilitiesLabel(self):
+        self.assertEqual(
+            self.ctx["test_capability"].getLabel(), "test-capability", "bad label"
         )
 
 

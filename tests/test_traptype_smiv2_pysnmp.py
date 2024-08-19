@@ -81,6 +81,52 @@ class TrapTypeTestCase(unittest.TestCase):
         )
 
 
+class TrapTypeHyphenTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      TRAP-TYPE
+        FROM RFC-1215
+
+      OBJECT-TYPE
+        FROM RFC1155-SMI;
+
+    test-id  OBJECT IDENTIFIER ::= { 1 3 }
+
+    test-object OBJECT-TYPE
+        SYNTAX          INTEGER
+        MAX-ACCESS      accessible-for-notify
+        STATUS          current
+        DESCRIPTION     "Test object"
+     ::= { 1 3 }
+
+    test-trap     TRAP-TYPE
+            ENTERPRISE  test-id
+            VARIABLES { test-object }
+            DESCRIPTION
+                    "Test trap"
+      ::= 1
+
+    END
+    """
+
+    def setUp(self):
+        ast = parserFactory()().parse(self.__class__.__doc__)[0]
+        mibInfo, symtable = SymtableCodeGen().genCode(ast, {})
+        self.mibInfo, pycode = PySnmpCodeGen().genCode(ast, {mibInfo.name: symtable})
+        codeobj = compile(pycode, "test", "exec")
+
+        self.ctx = {"mibBuilder": MibBuilder()}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+    def testTrapTypeSymbol(self):
+        self.assertTrue("test_trap" in self.ctx, "symbol not present")
+
+    def testTrapTypeLabel(self):
+        self.assertEqual(self.ctx["test_trap"].getLabel(), "test-trap", "bad label")
+
+
 suite = unittest.TestLoader().loadTestsFromModule(sys.modules[__name__])
 
 if __name__ == "__main__":

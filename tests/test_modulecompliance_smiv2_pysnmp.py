@@ -77,6 +77,48 @@ class ModuleComplianceTestCase(unittest.TestCase):
         )
 
 
+class ModuleComplianceHyphenTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      MODULE-COMPLIANCE
+        FROM SNMPv2-CONF;
+
+    test-compliance MODULE-COMPLIANCE
+     STATUS      current
+     DESCRIPTION  "This is the MIB compliance statement"
+     MODULE
+      MANDATORY-GROUPS {
+       testComplianceInfoGroup,
+       testNotificationInfoGroup
+      }
+      GROUP     testNotificationGroup
+      DESCRIPTION
+            "Support for these notifications is optional."
+      ::= { 1 3 }
+
+    END
+    """
+
+    def setUp(self):
+        ast = parserFactory()().parse(self.__class__.__doc__)[0]
+        mibInfo, symtable = SymtableCodeGen().genCode(ast, {})
+        self.mibInfo, pycode = PySnmpCodeGen().genCode(ast, {mibInfo.name: symtable})
+        codeobj = compile(pycode, "test", "exec")
+
+        self.ctx = {"mibBuilder": MibBuilder()}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+    def testModuleComplianceSymbol(self):
+        self.assertTrue("test_compliance" in self.ctx, "symbol not present")
+
+    def testModuleComplianceLabel(self):
+        self.assertEqual(
+            self.ctx["test_compliance"].getLabel(), "test-compliance", "bad label"
+        )
+
+
 suite = unittest.TestLoader().loadTestsFromModule(sys.modules[__name__])
 
 if __name__ == "__main__":

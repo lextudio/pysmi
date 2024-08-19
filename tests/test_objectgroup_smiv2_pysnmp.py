@@ -82,6 +82,45 @@ class ObjectGroupTestCase(unittest.TestCase):
         )
 
 
+class ObjectGroupHyphenTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      OBJECT-GROUP
+        FROM SNMPv2-CONF;
+
+    test-object-group OBJECT-GROUP
+        OBJECTS         {
+                            testStorageType,
+                            testRowStatus
+                        }
+        STATUS          current
+        DESCRIPTION
+            "A collection of test objects."
+     ::= { 1 3 }
+
+    END
+    """
+
+    def setUp(self):
+        ast = parserFactory(**smiV2)().parse(self.__class__.__doc__)[0]
+        mibInfo, symtable = SymtableCodeGen().genCode(ast, {})
+        self.mibInfo, pycode = PySnmpCodeGen().genCode(ast, {mibInfo.name: symtable})
+        codeobj = compile(pycode, "test", "exec")
+
+        self.ctx = {"mibBuilder": MibBuilder()}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+    def testObjectGroupSymbol(self):
+        self.assertTrue("test_object_group" in self.ctx, "symbol not present")
+
+    def testObjectGroupLabel(self):
+        self.assertEqual(
+            self.ctx["test_object_group"].getLabel(), "test-object-group", "bad label"
+        )
+
+
 suite = unittest.TestLoader().loadTestsFromModule(sys.modules[__name__])
 
 if __name__ == "__main__":
