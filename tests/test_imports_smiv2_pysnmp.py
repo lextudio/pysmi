@@ -15,6 +15,11 @@ except ImportError:
 from pysmi.parser.smi import parserFactory
 from pysmi.codegen.pysnmp import PySnmpCodeGen
 from pysmi.codegen.symtable import SymtableCodeGen
+from pysmi.reader import CallbackReader
+from pysmi.searcher import StubSearcher
+from pysmi.writer import CallbackWriter
+from pysmi.parser import SmiStarParser
+from pysmi.compiler import MibCompiler
 from pysnmp.smi.builder import MibBuilder
 
 
@@ -52,6 +57,100 @@ class ImportClauseTestCase(unittest.TestCase):
 
     def testModuleCheckImportedSymbol(self):
         self.assertTrue("SnmpAdminString" in self.ctx, "imported symbol not present")
+
+
+class ImportSelfTestCase(unittest.TestCase):
+    """
+    Test-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      someObject
+        FROM TEST-MIB;
+
+    END
+    """
+
+    def setUp(self):
+        self.mibCompiler = MibCompiler(
+            SmiStarParser(), PySnmpCodeGen(), CallbackWriter(lambda m, d, c: None)
+        )
+
+        self.testMibLoaded = False
+
+        def getMibData(mibname, context):
+            if mibname in PySnmpCodeGen.baseMibs:
+                return f"{mibname} DEFINITIONS ::= BEGIN\nEND"
+
+            self.assertEqual(mibname, "TEST-MIB", f"unexpected MIB name {mibname}")
+            self.assertFalse(self.testMibLoaded, "TEST-MIB was loaded more than once")
+            self.testMibLoaded = True
+            return self.__class__.__doc__
+
+        self.mibCompiler.addSources(CallbackReader(getMibData))
+        self.mibCompiler.addSearchers(StubSearcher(*PySnmpCodeGen.baseMibs))
+
+    def testCompilerCycleDetection(self):
+        results = self.mibCompiler.compile("TEST-MIB", noDeps=True)
+
+        self.assertTrue(self.testMibLoaded, "TEST-MIB was not loaded at all")
+        self.assertEqual(results["Test-MIB"], "compiled", "Test-MIB was not compiled")
+
+
+class ImportCycleTestCase(unittest.TestCase):
+    """
+    Test-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      someObject
+        FROM OTHER-MIB;
+
+    END
+    """
+
+    OTHER_MIB = """
+    Other-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      otherObject
+        FROM TEST-MIB;
+
+    END
+    """
+
+    def setUp(self):
+        self.mibCompiler = MibCompiler(
+            SmiStarParser(), PySnmpCodeGen(), CallbackWriter(lambda m, d, c: None)
+        )
+
+        self.testMibLoaded = 0
+        self.otherMibLoaded = 0
+
+        def getMibData(mibname, context):
+            if mibname in PySnmpCodeGen.baseMibs:
+                return f"{mibname} DEFINITIONS ::= BEGIN\nEND"
+
+            if mibname == "OTHER-MIB":
+                self.assertFalse(
+                    self.otherMibLoaded, "OTHER-MIB was loaded more than once"
+                )
+                self.otherMibLoaded = True
+                return self.OTHER_MIB
+            else:
+                self.assertEqual(mibname, "TEST-MIB", f"unexpected MIB name {mibname}")
+                self.assertFalse(
+                    self.testMibLoaded, "TEST-MIB was loaded more than once"
+                )
+                self.testMibLoaded = True
+                return self.__class__.__doc__
+
+        self.mibCompiler.addSources(CallbackReader(getMibData))
+        self.mibCompiler.addSearchers(StubSearcher(*PySnmpCodeGen.baseMibs))
+
+    def testCompilerCycleDetection(self):
+        results = self.mibCompiler.compile("TEST-MIB", noDeps=False)
+
+        self.assertTrue(self.testMibLoaded, "TEST-MIB was not loaded at all")
+        self.assertTrue(self.otherMibLoaded, "OTHER-MIB was not loaded at all")
+
+        self.assertEqual(results["Test-MIB"], "compiled", "Test-MIB was not compiled")
+        self.assertEqual(results["Other-MIB"], "compiled", "Other-MIB was not compiled")
 
 
 suite = unittest.TestLoader().loadTestsFromModule(sys.modules[__name__])

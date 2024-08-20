@@ -211,6 +211,7 @@ class MibCompiler:
         symbolTableMap = {}
         mibsToParse = [x for x in mibnames]
         canonicalMibNames = {}
+        seenMibNames = set()
 
         while mibsToParse:
             mibname = mibsToParse.pop(0)
@@ -226,6 +227,14 @@ class MibCompiler:
                     f"MIB {mibname} already failed"
                 )
                 continue
+
+            if mibname in seenMibNames:
+                debug.logger & debug.flagCompiler and debug.logger(
+                    f"MIB {mibname} already seen (cyclic dependency)"
+                )
+                continue
+
+            seenMibNames.add(mibname)
 
             for source in self._sources:
                 debug.logger & debug.flagCompiler and debug.logger(
