@@ -7,7 +7,6 @@
 # Build an internally used symbol table for each passed MIB.
 #
 import sys
-from keyword import iskeyword
 from pysmi.mibinfo import MibInfo
 from pysmi.codegen.base import AbstractCodeGen, dorepr
 from pysmi import config, error
@@ -102,13 +101,6 @@ class SymtableCodeGen(AbstractCodeGen):
             return self.symsTable[symbol]
 
         return (symbol,)
-
-    @staticmethod
-    def transOpers(symbol):
-        if iskeyword(symbol):
-            symbol = "pysmi_" + symbol
-
-        return symbol.replace("-", "_")
 
     def prepData(self, pdata, classmode=False):
         data = []

@@ -5,6 +5,8 @@
 # License: https://www.pysnmp.com/pysmi/license.html
 #
 
+from pysmi.codegen.base import AbstractCodeGen
+
 
 def capfirst(text):
     if not text:
@@ -19,3 +21,7 @@ def bitstring(bits):
     # The left-most character of the returned string is for bit number zero,
     # so reverse the bits, while also stripping off the "0b" prefix.
     return bin(mask)[:1:-1]
+
+
+def pythonsym(symbol):
+    return AbstractCodeGen.transOpers(symbol)

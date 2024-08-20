@@ -5,7 +5,12 @@
 # License: https://www.pysnmp.com/pysmi/license.html
 #
 import sys
+from keyword import iskeyword
 from pysmi import error
+
+# Prefix added to symbols that happen to be Python keywords. The leading
+# underscore ensures that there is no overlap with any other symbols.
+RESERVED_KEYWORDS_PREFIX = "_pysmi_"
 
 
 def dorepr(s):
@@ -300,3 +305,9 @@ class AbstractCodeGen:
                 raise error.PySmiSemanticError("empty hex string to int conversion")
         else:
             return int(s)
+
+    @staticmethod
+    def transOpers(symbol):
+        if iskeyword(symbol):
+            symbol = RESERVED_KEYWORDS_PREFIX + symbol
+        return symbol.replace("-", "_")

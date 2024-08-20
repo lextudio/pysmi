@@ -59,6 +59,223 @@ class ImportClauseTestCase(unittest.TestCase):
         self.assertTrue("SnmpAdminString" in self.ctx, "imported symbol not present")
 
 
+class ImportValueTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      OBJECT-TYPE
+        FROM SNMPv2-SMI
+      importedValue1, imported-value-2, global
+        FROM IMPORTED-MIB;
+
+    testValue1    OBJECT IDENTIFIER ::= { importedValue1 6 }
+    test-value-2  OBJECT IDENTIFIER ::= { imported-value-2 7 }
+    if            OBJECT IDENTIFIER ::= { global 8 }
+
+    END
+    """
+
+    IMPORTED_MIB = """
+    IMPORTED-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      OBJECT-TYPE
+        FROM SNMPv2-SMI;
+
+    importedValue1    OBJECT IDENTIFIER ::= { 1 3 }
+    imported-value-2  OBJECT IDENTIFIER ::= { 1 4 }
+    global            OBJECT IDENTIFIER ::= { 1 5 }
+
+    END
+    """
+
+    def setUp(self):
+        self.ctx = {"mibBuilder": MibBuilder()}
+        symbolTable = {}
+
+        for mibData in (self.IMPORTED_MIB, self.__class__.__doc__):
+            ast = parserFactory()().parse(mibData)[0]
+            mibInfo, symtable = SymtableCodeGen().genCode(ast, {})
+
+            symbolTable[mibInfo.name] = symtable
+
+            mibInfo, pycode = PySnmpCodeGen().genCode(ast, dict(symbolTable))
+            codeobj = compile(pycode, "test", "exec")
+            exec(codeobj, self.ctx, self.ctx)
+
+    def testValueDeclarationName1(self):
+        self.assertEqual(self.ctx["testValue1"].getName(), (1, 3, 6), "bad value")
+
+    def testValueDeclarationLabel1(self):
+        self.assertEqual(self.ctx["testValue1"].getLabel(), "testValue1", "bad label")
+
+    def testValueDeclarationName2(self):
+        self.assertEqual(self.ctx["test_value_2"].getName(), (1, 4, 7), "bad value")
+
+    def testValueDeclarationLabel2(self):
+        self.assertEqual(
+            self.ctx["test_value_2"].getLabel(), "test-value-2", "bad label"
+        )
+
+    def testValueDeclarationNameReservedKeyword(self):
+        self.assertEqual(self.ctx["_pysmi_if"].getName(), (1, 5, 8), "bad value")
+
+    def testValueDeclarationLabelReservedKeyword(self):
+        self.assertEqual(self.ctx["_pysmi_if"].getLabel(), "if", "bad label")
+
+
+# Note that the following test case relies on leniency with respect to deriving
+# textual conventions from other textual conventions, which is disallowed per
+# RFC 2579 Sec. 3.5, but widely used in the real world.
+class ImportTypeTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      OBJECT-TYPE
+        FROM SNMPv2-SMI
+      TEXTUAL-CONVENTION
+        FROM SNMPv2-TC
+      ImportedType1, Imported-Type-2, True
+        FROM IMPORTED-MIB;
+
+    testObject1 OBJECT-TYPE
+        SYNTAX      ImportedType1
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION "Test object"
+      ::= { 1 3 }
+
+    Test-Type-2 ::= TEXTUAL-CONVENTION
+        DISPLAY-HINT "1x:"
+        STATUS       current
+        DESCRIPTION  "Test TC with display hint"
+        SYNTAX       Imported-Type-2
+
+    test-object-2 OBJECT-TYPE
+        SYNTAX      Test-Type-2
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION "Test object"
+      ::= { 1 4 }
+
+    False ::= TEXTUAL-CONVENTION
+        DISPLAY-HINT "2x:"
+        STATUS       current
+        DESCRIPTION  "Test TC with display hint"
+        SYNTAX       True
+
+    global OBJECT-TYPE
+        SYNTAX      True
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION "Test object"
+      ::= { 1 5 }
+
+    if OBJECT-TYPE
+        SYNTAX      False
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION "Test object"
+      ::= { 1 6 }
+
+    END
+    """
+
+    IMPORTED_MIB = """
+    IMPORTED-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      OBJECT-TYPE
+        FROM SNMPv2-SMI
+      TEXTUAL-CONVENTION
+        FROM SNMPv2-TC;
+
+    ImportedType1 ::= TEXTUAL-CONVENTION
+        DISPLAY-HINT "255a"
+        STATUS       current
+        DESCRIPTION  "Test TC with display hint"
+        SYNTAX       OCTET STRING
+
+    Imported-Type-2 ::= TEXTUAL-CONVENTION
+        STATUS       current
+        DESCRIPTION  "Test TC"
+        SYNTAX       OCTET STRING
+
+    True ::= TEXTUAL-CONVENTION
+        STATUS       current
+        DESCRIPTION  "Test TC"
+        SYNTAX       OCTET STRING
+
+    END
+    """
+
+    def setUp(self):
+        self.ctx = {"mibBuilder": MibBuilder()}
+        symbolTable = {}
+
+        for mibData in (self.IMPORTED_MIB, self.__class__.__doc__):
+            ast = parserFactory()().parse(mibData)[0]
+            mibInfo, symtable = SymtableCodeGen().genCode(ast, {})
+
+            symbolTable[mibInfo.name] = symtable
+
+            mibInfo, pycode = PySnmpCodeGen().genCode(ast, dict(symbolTable))
+            codeobj = compile(pycode, "test", "exec")
+            exec(codeobj, self.ctx, self.ctx)
+
+    def testObjectTypeName1(self):
+        self.assertEqual(self.ctx["testObject1"].getName(), (1, 3), "bad value")
+
+    def testObjectTypeLabel1(self):
+        self.assertEqual(self.ctx["testObject1"].getLabel(), "testObject1", "bad label")
+
+    def testObjectTypeDisplayHint1(self):
+        self.assertEqual(
+            self.ctx["testObject1"].getSyntax().getDisplayHint(),
+            "255a",
+            "bad display hint",
+        )
+
+    def testObjectTypeName2(self):
+        self.assertEqual(self.ctx["test_object_2"].getName(), (1, 4), "bad value")
+
+    def testObjectTypeLabel2(self):
+        self.assertEqual(
+            self.ctx["test_object_2"].getLabel(), "test-object-2", "bad label"
+        )
+
+    def testObjectTypeDisplayHint2(self):
+        self.assertEqual(
+            self.ctx["test_object_2"].getSyntax().getDisplayHint(),
+            "1x:",
+            "bad display hint",
+        )
+
+    def testObjectTypeNameReservedKeyword1(self):
+        self.assertEqual(self.ctx["_pysmi_global"].getName(), (1, 5), "bad value")
+
+    def testObjectTypeLabelReservedKeyword1(self):
+        self.assertEqual(self.ctx["_pysmi_global"].getLabel(), "global", "bad label")
+
+    def testObjectTypeDisplayHintReservedKeyword1(self):
+        self.assertEqual(
+            self.ctx["_pysmi_global"].getSyntax().getDisplayHint(),
+            "",
+            "bad display hint",
+        )
+
+    def testObjectTypeNameReservedKeyword2(self):
+        self.assertEqual(self.ctx["_pysmi_if"].getName(), (1, 6), "bad value")
+
+    def testObjectTypeLabelReservedKeyword2(self):
+        self.assertEqual(self.ctx["_pysmi_if"].getLabel(), "if", "bad label")
+
+    def testObjectTypeDisplayHintReservedKeyword2(self):
+        self.assertEqual(
+            self.ctx["_pysmi_if"].getSyntax().getDisplayHint(),
+            "2x:",
+            "bad display hint",
+        )
+
+
 class ImportSelfTestCase(unittest.TestCase):
     """
     Test-MIB DEFINITIONS ::= BEGIN

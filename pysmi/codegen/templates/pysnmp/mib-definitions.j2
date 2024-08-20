@@ -39,17 +39,18 @@ Managed Objects Instances.
 # Import SMI symbols from the MIBs this MIB depends on
 
 {% for module, symbols in mib['imports'].items() %}
+    {# Unlike elsewhere, the symbol names are not 'Pythonized' here. #}
     {% for symbol in symbols %}
         {% if loop.first and loop.last %}
-({{ symbol|replace('-', '_') }},) = mibBuilder.importSymbols(
+({{ symbol|pythonsym }},) = mibBuilder.importSymbols(
     "{{ module }}",
         {% elif loop.first %}
-({{ symbol|replace('-', '_') }},
+({{ symbol|pythonsym }},
         {% elif loop.last %}
- {{ symbol|replace('-', '_') }}) = mibBuilder.importSymbols(
+ {{ symbol|pythonsym }}) = mibBuilder.importSymbols(
     "{{ module }}",
         {%  else %}
- {{ symbol|replace('-', '_') }},
+ {{ symbol|pythonsym }},
         {%  endif %}
     {%  endfor %}
     {% for symbol in symbols %}

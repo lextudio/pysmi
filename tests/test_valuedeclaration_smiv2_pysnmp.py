@@ -32,6 +32,8 @@ class ValueDeclarationTestCase(unittest.TestCase):
     testValue2    OBJECT IDENTIFIER ::= { testValue1 3 }
     testValue3    OBJECT IDENTIFIER ::= { 1 3 6 1 2 }
     test-value-4  OBJECT IDENTIFIER ::= { 1 4 }
+    global        OBJECT IDENTIFIER ::= { 1 5 }
+    if            OBJECT IDENTIFIER ::= { global 2 }
 
     -- testValue01  INTEGER ::= 123
     -- testValue02  INTEGER ::= -123
@@ -96,6 +98,18 @@ class ValueDeclarationTestCase(unittest.TestCase):
         self.assertEqual(
             self.ctx["test_value_4"].getLabel(), "test-value-4", "bad label"
         )
+
+    def testValueDeclarationNameReservedKeyword(self):
+        self.assertEqual(self.ctx["_pysmi_global"].getName(), (1, 5), "bad value")
+
+    def testValueDeclarationLabelReservedKeyword(self):
+        self.assertEqual(self.ctx["_pysmi_global"].getLabel(), "global", "bad label")
+
+    def testValueDeclarationNameReservedKeyword2(self):
+        self.assertEqual(self.ctx["_pysmi_if"].getName(), (1, 5, 2), "bad value")
+
+    def testValueDeclarationLabelReservedKeyword2(self):
+        self.assertEqual(self.ctx["_pysmi_if"].getLabel(), "if", "bad label")
 
 
 suite = unittest.TestLoader().loadTestsFromModule(sys.modules[__name__])

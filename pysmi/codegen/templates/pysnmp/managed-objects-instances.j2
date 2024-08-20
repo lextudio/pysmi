@@ -23,15 +23,15 @@ MibScalarInstance, = mibBuilder.importSymbols(
    if definition['class'] == 'objecttype' and
       definition['nodetype'] in ('scalar', 'column') %}
     {% if loop.first and loop.last %}
-({{ symbol|replace('-', '_') }},) = mibBuilder.importSymbols(
+({{ symbol|pythonsym }},) = mibBuilder.importSymbols(
     "{{ mib['meta']['module'] }}",
     {% elif loop.first %}
-({{ symbol|replace('-', '_') }},
+({{ symbol|pythonsym }},
     {% elif loop.last %}
- {{ symbol|replace('-', '_') }}) = mibBuilder.importSymbols(
+ {{ symbol|pythonsym }}) = mibBuilder.importSymbols(
     "{{ mib['meta']['module'] }}",
     {%  else %}
- {{ symbol|replace('-', '_') }},
+ {{ symbol|pythonsym }},
     {%  endif %}
 {% endfor %}
 {% for symbol, definition in mib.items()|sort
@@ -51,28 +51,28 @@ MibScalarInstance, = mibBuilder.importSymbols(
 {% for symbol, definition in mib.items() %}
     {% if definition['nodetype'] == 'scalar' %}
         {% block mib_scalar_object_instance_definition scoped %}
-{{ symbol|replace('-', '_')|capfirst }}_ObjectInstance = MibScalarInstance
+{{ symbol|capfirst }}_ObjectInstance = MibScalarInstance
         {% endblock %}
         {% block mib_scalar_object_instantiation scoped %}
 # TODO: uncomment Managed Object Instance instantiation optionally
 #       setting a default value (via `.syntax.clone()`)
-# _{{ symbol|replace('-', '_') }} = {{ symbol|replace('-', '_')|capfirst }}_ObjectInstance(
-#      {{ symbol|replace('-', '_') }}.name,
+# _{{ symbol }} = {{ symbol|capfirst }}_ObjectInstance(
+#      {{ symbol }}.name,
 #      (0,),
-#      {{ symbol|replace('-', '_') }}.syntax
+#      {{ symbol }}.syntax
 # )
         {% endblock %}
     {% elif definition['nodetype'] == 'column' %}
         {% block mib_table_column_object_instance_definition scoped %}
-{{ symbol|replace('-', '_')|capfirst }}_ObjectInstance = MibScalarInstance
+{{ symbol|capfirst }}_ObjectInstance = MibScalarInstance
         {% endblock %}
         {% block mib_column_instantiation scoped %}
 # TODO: Set proper OID for Managed Object Instance (see INDEX clause in MIB)
 # TODO: Initialize Managed Object Instance value (via `.syntax.clone()`)
-# _{{ symbol|replace('-', '_') }} = {{ symbol|replace('-', '_')|capfirst }}_ObjectInstance(
-#     {{ symbol|replace('-', '_') }}.name,
+# _{{ symbol }} = {{ symbol|capfirst }}_ObjectInstance(
+#     {{ symbol }}.name,
 #     (<add columnar indices here>,),
-#     {{ symbol|replace('-', '_') }}.syntax
+#     {{ symbol }}.syntax
 # )
         {% endblock %}
     {% endif %}
@@ -92,13 +92,13 @@ mibBuilder.exportSymbols(
        if definition['class'] == 'objecttype' and
            definition['nodetype'] in ('scalar', 'column') %}
         {% if loop.first and loop.last %}
-    # **{"{{ symbol }}": _{{ symbol|replace('-', '_') }}}
+    # **{"{{ definition['name'] }}": _{{ symbol }}}
         {% elif loop.first %}
-    # **{"{{ symbol }}": _{{ symbol|replace('-', '_') }},
+    # **{"{{ definition['name'] }}": _{{ symbol }},
         {% elif loop.last %}
-    # "{{ symbol }}": _{{ symbol|replace('-', '_') }}}
+    # "{{ definition['name'] }}": _{{ symbol }}}
         {% else %}
-    # "{{ symbol }}": _{{ symbol|replace('-', '_') }},
+    # "{{ definition['name'] }}": _{{ symbol }},
         {% endif %}
     {%  endfor %}
 )
