@@ -111,39 +111,40 @@ class TypeDeclarationTestCase(unittest.TestCase):
             f"expected class {klass}, got {self.ctx[symbol].__bases__[0].__name__} at {symbol}",
         )
 
-    def TestTextualConventionSymbol(self):
+    def testTextualConventionSymbol(self):
         self.assertTrue("TestTextualConvention" in self.ctx, "symbol not present")
 
-    def TestTextualConventionDisplayHint(self):
+    def testTextualConventionDisplayHint(self):
         self.assertEqual(
-            self.ctx["TestTextualConvention"].getDisplayHint(),
+            self.ctx["TestTextualConvention"]().getDisplayHint(),
             "1x:",
             "bad DISPLAY-HINT",
         )
 
-    def TestTextualConventionStatus(self):
+    def testTextualConventionStatus(self):
         self.assertEqual(
-            self.ctx["TestTextualConvention"].getStatus(), "current", "bad STATUS"
+            self.ctx["TestTextualConvention"]().getStatus(), "current", "bad STATUS"
         )
 
-    def TestTextualConventionDescription(self):
+    def testTextualConventionDescription(self):
         self.assertEqual(
-            self.ctx["TestTextualConvention"].getDescription(),
+            self.ctx["TestTextualConvention"]().getDescription(),
             "Test TC\n",
             "bad DESCRIPTION",
         )
 
-    def TestTextualConventionReference(self):
+    def testTextualConventionReference(self):
         self.assertEqual(
-            self.ctx["TestTextualConvention"].getReference(),
-            "Test reference",
+            self.ctx["TestTextualConvention"]().getReference(),
+            "Test reference\n",
             "bad REFERENCE",
         )
 
-    def TestTextualConventionClass(self):
-        self.assertEqual(
-            self.ctx["TestTextualConvention"].__class__.__name__,
-            "TextualConvention",
+    def testTextualConventionClass(self):
+        self.assertTrue(
+            issubclass(
+                self.ctx["TestTextualConvention"], self.ctx["TextualConvention"]
+            ),
             "bad SYNTAX class",
         )
 

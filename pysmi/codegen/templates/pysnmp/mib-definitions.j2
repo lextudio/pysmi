@@ -230,6 +230,12 @@ class {{ symbol }}(TextualConvention, {{ definition['type']['type'] }}):
 {{ definition['description']|wordwrap }}
 """
     {% endif %}
+    {% if 'reference' in definition %}
+    if mibBuilder.loadTexts:
+        reference = """\
+{{ definition['reference']|wordwrap }}
+"""
+    {% endif %}
 {% endfor %}
 
 {% endblock -%}
