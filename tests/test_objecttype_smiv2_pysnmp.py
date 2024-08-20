@@ -5,6 +5,7 @@
 # License: https://www.pysnmp.com/pysmi/license.html
 #
 import sys
+import textwrap
 
 try:
     import unittest2 as unittest
@@ -62,7 +63,7 @@ class ObjectTypeBasicTestCase(unittest.TestCase):
     def testObjectTypeDescription(self):
         self.assertEqual(
             self.ctx["testObjectType"].getDescription(),
-            "Test object\n",
+            "Test object",
             "bad DESCRIPTION",
         )
 
@@ -133,6 +134,64 @@ class ObjectTypeHyphenTestCase(unittest.TestCase):
     def testObjectTypeLabel(self):
         self.assertEqual(
             self.ctx["test_object_type"].getLabel(), "test-object-type", "bad label"
+        )
+
+
+class ObjectTypeTextTestCase(unittest.TestCase):
+    R"""
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      OBJECT-TYPE
+        FROM SNMPv2-SMI;
+
+    testObjectType OBJECT-TYPE
+        SYNTAX          Integer32
+        UNITS           "lines per
+    text block"
+        MAX-ACCESS      accessible-for-notify
+        STATUS          current
+        DESCRIPTION     "Test
+                         object\n"
+        REFERENCE       "ABC\"
+     ::= { 1 3 }
+
+    END
+    """
+
+    def setUp(self):
+        docstring = textwrap.dedent(self.__class__.__doc__)
+        ast = parserFactory()().parse(docstring)[0]
+        mibInfo, symtable = SymtableCodeGen().genCode(ast, {}, genTexts=True)
+        self.mibInfo, pycode = PySnmpCodeGen().genCode(
+            ast,
+            {mibInfo.name: symtable},
+            genTexts=True,
+            textFilter=lambda symbol, text: text,
+        )
+        codeobj = compile(pycode, "test", "exec")
+
+        mibBuilder = MibBuilder()
+        mibBuilder.loadTexts = True
+
+        self.ctx = {"mibBuilder": mibBuilder}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+    def testObjectTypeDescription(self):
+        self.assertEqual(
+            self.ctx["testObjectType"].getDescription(),
+            "Test\n                     object\\n",
+            "bad DESCRIPTION",
+        )
+
+    def testObjectTypeReference(self):
+        self.assertEqual(
+            self.ctx["testObjectType"].getReference(), "ABC\\", "bad REFERENCE"
+        )
+
+    def testObjectTypeUnits(self):
+        self.assertEqual(
+            self.ctx["testObjectType"].getUnits(), "lines per\ntext block", "bad UNITS"
         )
 
 
@@ -277,6 +336,46 @@ class ObjectTypeStringDefaultTestCase(unittest.TestCase):
     def testObjectTypeSyntax(self):
         self.assertEqual(
             self.ctx["testObjectType"].getSyntax(), str2octs("test value"), "bad DEFVAL"
+        )
+
+
+class ObjectTypeStringDefaultTextTestCase(unittest.TestCase):
+    R"""
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      OBJECT-TYPE
+        FROM SNMPv2-SMI;
+
+    testObjectType OBJECT-TYPE
+        SYNTAX          OCTET STRING
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "Test object"
+        DEFVAL          { "\ntest
+    value\" }
+     ::= { 1 3 }
+
+    END
+    """
+
+    def setUp(self):
+        docstring = textwrap.dedent(self.__class__.__doc__)
+        ast = parserFactory()().parse(docstring)[0]
+        mibInfo, symtable = SymtableCodeGen().genCode(ast, {}, genTexts=True)
+        self.mibInfo, pycode = PySnmpCodeGen().genCode(
+            ast, {mibInfo.name: symtable}, genTexts=True
+        )
+        codeobj = compile(pycode, "test", "exec")
+
+        self.ctx = {"mibBuilder": MibBuilder()}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+    def testObjectTypeSyntax(self):
+        self.assertEqual(
+            self.ctx["testObjectType"].getSyntax(),
+            str2octs("\\ntest\nvalue\\"),
+            "bad DEFVAL",
         )
 
 

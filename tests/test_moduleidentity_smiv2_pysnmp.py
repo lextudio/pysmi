@@ -5,6 +5,7 @@
 # License: https://www.pysnmp.com/pysmi/license.html
 #
 import sys
+import textwrap
 
 try:
     import unittest2 as unittest
@@ -66,7 +67,7 @@ class ModuleIdentityTestCase(unittest.TestCase):
     def testModuleIdentityOrganization(self):
         self.assertEqual(
             self.ctx["testModule"].getOrganization(),
-            "AgentX Working Group\n",
+            "AgentX Working Group",
             "bad ORGANIZATION",
         )
 
@@ -87,14 +88,14 @@ class ModuleIdentityTestCase(unittest.TestCase):
     def testModuleIdentityContactInfo(self):
         self.assertEqual(
             self.ctx["testModule"].getContactInfo(),
-            "WG-email: agentx@dorothy.bmc.com\n",
+            "WG-email: agentx@dorothy.bmc.com",
             "bad CONTACT-INFO",
         )
 
     def testModuleIdentityDescription(self):
         self.assertEqual(
             self.ctx["testModule"].getDescription(),
-            "This is the MIB module for the SNMP\n",
+            "This is the MIB module for the SNMP",
             "bad DESCRIPTION",
         )
 
@@ -140,6 +141,74 @@ class ModuleIdentityHyphenTestCase(unittest.TestCase):
 
     def testModuleIdentityLabel(self):
         self.assertEqual(self.ctx["test_module"].getLabel(), "test-module", "bad label")
+
+
+class ModuleIdentityTextTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+     MODULE-IDENTITY
+        FROM SNMPv2-SMI;
+
+    testModule MODULE-IDENTITY
+     LAST-UPDATED "200001100000Z" -- Midnight 10 January 2000
+     ORGANIZATION
+    "Multi-line
+    organization"
+     CONTACT-INFO "WG-email:\\n   agentx@dorothy.bmc.com\\"
+     DESCRIPTION  "
+    A\tdescription with\\n
+      various characters: 0~`!@#$%^&*()-_=+[]{}\\|;:'<>,.?/
+    and a very long line that must not be wrapped despite exceeding the threshold of default word wrap filters.
+
+    \\"
+     REVISION     "200001100000Z" -- Midnight 10 January 2000
+     DESCRIPTION  "Initial version published as RFC 2742."
+     ::= { 1 3 }
+
+    END
+    """
+
+    def setUp(self):
+        docstring = textwrap.dedent(self.__class__.__doc__)
+        ast = parserFactory()().parse(docstring)[0]
+        mibInfo, symtable = SymtableCodeGen().genCode(ast, {}, genTexts=True)
+        self.mibInfo, pycode = PySnmpCodeGen().genCode(
+            ast,
+            {mibInfo.name: symtable},
+            genTexts=True,
+            textFilter=lambda symbol, text: text,
+        )
+        codeobj = compile(pycode, "test", "exec")
+
+        mibBuilder = MibBuilder()
+        mibBuilder.loadTexts = True
+
+        self.ctx = {"mibBuilder": mibBuilder}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+    def testModuleIdentityOrganization(self):
+        self.assertEqual(
+            self.ctx["testModule"].getOrganization(),
+            "Multi-line\norganization",
+            "bad ORGANIZATION",
+        )
+
+    def testModuleIdentityContactInfo(self):
+        self.assertEqual(
+            self.ctx["testModule"].getContactInfo(),
+            "WG-email:\\n   agentx@dorothy.bmc.com\\",
+            "bad CONTACT-INFO",
+        )
+
+    def testModuleIdentityDescription(self):
+        self.assertEqual(
+            self.ctx["testModule"].getDescription(),
+            "\nA\tdescription with\\n\n  various characters: 0~`!@#$%^&*()-_=+[]{}\\|;:'<>,.?/\n"
+            + "and a very long line that must not be wrapped despite exceeding the threshold of default word wrap filters.\n\n\\",
+            "bad DESCRIPTION",
+        )
 
 
 suite = unittest.TestLoader().loadTestsFromModule(sys.modules[__name__])

@@ -71,7 +71,7 @@ class SmiV1TestCase(unittest.TestCase):
     def testSmiV1Description(self):
         self.assertEqual(
             self.ctx["testSmiV1"].getDescription(),
-            "A collection of test notifications.\n",
+            "A collection of test notifications.",
             "bad DESCRIPTION",
         )
 

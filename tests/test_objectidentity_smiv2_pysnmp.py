@@ -59,14 +59,12 @@ class ObjectIdentityTestCase(unittest.TestCase):
     def testObjectIdentityDescription(self):
         self.assertEqual(
             self.ctx["testObject"].getDescription(),
-            "Initial version\n",
+            "Initial version",
             "bad DESCRIPTION",
         )
 
     def testObjectIdentityReference(self):
-        self.assertEqual(
-            self.ctx["testObject"].getReference(), "ABC\n", "bad REFERENCE"
-        )
+        self.assertEqual(self.ctx["testObject"].getReference(), "ABC", "bad REFERENCE")
 
     def testObjectIdentityClass(self):
         self.assertEqual(

@@ -76,36 +76,30 @@ Managed Objects Instances.
 {{ symbol }}.setRevisions(
         {% for revision in definition.get('revisions', ()) %}
             {% if loop.first and loop.last %}
-        ("{{ revision['revision'] }}",)
+        ({{ revision['revision']|pythonstr }},)
             {% elif loop.first %}
-        ("{{ revision['revision'] }}",
+        ({{ revision['revision']|pythonstr }},
             {% elif loop.last %}
-         "{{ revision['revision'] }}")
+         {{ revision['revision']|pythonstr }})
             {%  else %}
-         "{{ revision['revision'] }}",
+         {{ revision['revision']|pythonstr }},
             {%  endif %}
         {%  endfor %}
 )
     {% endif %}
     {% if 'lastupdated' in definition %}
-{{ symbol }}.setLastUpdated("{{ definition['lastupdated'] }}")
+{{ symbol }}.setLastUpdated({{ definition['lastupdated']|pythonstr }})
     {% endif %}
     {% if 'organization' in definition %}
 if mibBuilder.loadTexts:
-    {{ symbol }}.setOrganization("""\
-{{ definition['organization']|wordwrap }}
-""")
+    {{ symbol }}.setOrganization({{ definition['organization']|pythonstr }})
     {% endif %}
     {% if 'contactinfo' in definition %}
-{{ symbol }}.setContactInfo("""\
-{{ definition['contactinfo']|wordwrap }}
-""")
+{{ symbol }}.setContactInfo({{ definition['contactinfo']|pythonstr }})
     {% endif %}
     {% if 'description' in definition %}
 if mibBuilder.loadTexts:
-    {{ symbol }}.setDescription("""\
-{{ definition['description']|wordwrap }}
-""")
+    {{ symbol }}.setDescription({{ definition['description']|pythonstr }})
     {% endif %}
 
 {% endfor %}
@@ -176,7 +170,7 @@ if mibBuilder.loadTexts:
         {% endif %}
     {% elif definition['default']['default']['format'] == 'string' %}
     {# TODO: pyasn1 does not like defaulted strings #}
-    defaultValue = OctetString("{{ definition['default']['default']['value'] }}")
+    defaultValue = OctetString({{ definition['default']['default']['value']|pythonstr }})
     {% elif definition['default']['default']['format'] == 'oid' %}
     defaultValue = {{ definition['default']['default']['value'] }}
     {% elif definition['default']['default']['format'] == 'enum'
@@ -219,22 +213,18 @@ class {{ symbol }}({{ definition['type']['type'] }}):
 class {{ symbol }}({{ definition['type']['type'] }}, TextualConvention):
     status = "{{ definition.get('status', 'current') }}"
     {% if 'displayhint' in definition %}
-    displayHint = "{{ definition['displayhint'] }}"
+    displayHint = {{ definition['displayhint']|pythonstr }}
     {% endif %}
     {% if 'constraints' in definition['type'] %}
 {{ constraints(definition['type']['type'], definition['type']['constraints']) }}
     {% endif %}
     {% if 'description' in definition %}
     if mibBuilder.loadTexts:
-        description = """\
-{{ definition['description']|wordwrap }}
-"""
+        description = {{ definition['description']|pythonstr }}
     {% endif %}
     {% if 'reference' in definition %}
     if mibBuilder.loadTexts:
-        reference = """\
-{{ definition['reference']|wordwrap }}
-"""
+        reference = {{ definition['reference']|pythonstr }}
     {% endif %}
 {% endfor %}
 
@@ -346,19 +336,15 @@ if mibBuilder.loadTexts:
     {% endif %}
     {% if 'units' in definition %}
 if mibBuilder.loadTexts:
-    {{ symbol }}.setUnits("{{ definition['units'] }}")
+    {{ symbol }}.setUnits({{ definition['units']|pythonstr }})
     {% endif %}
     {% if 'reference' in definition %}
 if mibBuilder.loadTexts:
-    {{ symbol }}.setReference("""\
-{{ definition['reference']|wordwrap }}
-""")
+    {{ symbol }}.setReference({{ definition['reference']|pythonstr }})
     {% endif %}
     {% if 'description' in definition %}
 if mibBuilder.loadTexts:
-    {{ symbol }}.setDescription("""\
-{{ definition['description']|wordwrap }}
-""")
+    {{ symbol }}.setDescription({{ definition['description']|pythonstr }})
     {% endif %}
 {% endfor %}
 {% for symbol, definition in mib.items()
@@ -401,9 +387,7 @@ if mibBuilder.loadTexts:
     {{ symbol }}.setStatus("{{ definition['status'] }}")
     {% if 'description' in definition %}
 if mibBuilder.loadTexts:
-    {{ symbol }}.setDescription("""\
-{{ definition['description']|wordwrap }}
-""")
+    {{ symbol }}.setDescription({{ definition['description']|pythonstr }})
     {% endif %}
 
 {% endfor %}
@@ -439,9 +423,7 @@ if mibBuilder.loadTexts:
     )
     {% if 'description' in definition %}
 if mibBuilder.loadTexts:
-    {{ symbol }}.setDescription("""\
-{{ definition['description']|wordwrap }}
-""")
+    {{ symbol }}.setDescription({{ definition['description']|pythonstr }})
     {% endif %}
 
 {% endfor %}
@@ -477,9 +459,7 @@ if mibBuilder.loadTexts:
     )
     {% if 'description' in definition %}
 if mibBuilder.loadTexts:
-    {{ symbol }}.setDescription("""\
-{{ definition['description']|wordwrap }}
-""")
+    {{ symbol }}.setDescription({{ definition['description']|pythonstr }})
     {% endif %}
 
 {% endfor %}
@@ -496,15 +476,11 @@ if mibBuilder.loadTexts:
 )
     {% if 'productrelease' in definition %}
 if mibBuilder.loadTexts:
-    {{ symbol }}.setProductRelease(
-        "{{ definition['productrelease'] }}"
-    )
+    {{ symbol }}.setProductRelease({{ definition['productrelease']|pythonstr }})
     {% endif %}
     {% if 'reference' in definition %}
 if mibBuilder.loadTexts:
-    {{ symbol }}.setReference(
-        "{{ definition['reference'] }}"
-    )
+    {{ symbol }}.setReference({{ definition['reference']|pythonstr }})
     {% endif %}
 if mibBuilder.loadTexts:
     {{ symbol }}.setStatus(
@@ -512,9 +488,7 @@ if mibBuilder.loadTexts:
     )
     {% if 'description' in definition %}
 if mibBuilder.loadTexts:
-    {{ symbol }}.setDescription("""\
-{{ definition['description']|wordwrap }}
-""")
+    {{ symbol }}.setDescription({{ definition['description']|pythonstr }})
     {% endif %}
 
 {% endfor %}
@@ -550,9 +524,7 @@ if mibBuilder.loadTexts:
     )
     {% if 'description' in definition %}
 if mibBuilder.loadTexts:
-    {{ symbol }}.setDescription("""\
-{{ definition['description']|wordwrap }}
-""")
+    {{ symbol }}.setDescription({{ definition['description']|pythonstr }})
     {% endif %}
 
 {% endfor %}

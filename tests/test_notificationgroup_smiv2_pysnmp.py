@@ -65,7 +65,7 @@ class NotificationGroupTestCase(unittest.TestCase):
     def testNotificationGroupDescription(self):
         self.assertEqual(
             self.ctx["testNotificationGroup"].getDescription(),
-            "A collection of test notifications.\n",
+            "A collection of test notifications.",
             "bad DESCRIPTION",
         )
 

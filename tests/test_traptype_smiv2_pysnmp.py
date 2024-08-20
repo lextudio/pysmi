@@ -70,7 +70,7 @@ class TrapTypeTestCase(unittest.TestCase):
 
     def testTrapTypeDescription(self):
         self.assertEqual(
-            self.ctx["testTrap"].getDescription(), "Test trap\n", "bad DESCRIPTION"
+            self.ctx["testTrap"].getDescription(), "Test trap", "bad DESCRIPTION"
         )
 
     def testTrapTypeClass(self):

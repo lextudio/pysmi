@@ -5,6 +5,7 @@
 # License: https://www.pysnmp.com/pysmi/license.html
 #
 import sys
+import textwrap
 
 try:
     import unittest2 as unittest
@@ -78,7 +79,7 @@ class AgentCapabilitiesTestCase(unittest.TestCase):
     def testAgentCapabilitiesDescription(self):
         self.assertEqual(
             self.ctx["testCapability"].getDescription(),
-            "test capabilities\n",
+            "test capabilities",
             "bad DESCRIPTION",
         )
 
@@ -126,6 +127,62 @@ class AgentCapabilitiesHyphenTestCase(unittest.TestCase):
     def testAgentCapabilitiesLabel(self):
         self.assertEqual(
             self.ctx["test_capability"].getLabel(), "test-capability", "bad label"
+        )
+
+
+class AgentCapabilitiesTextTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+        MODULE-IDENTITY
+            FROM SNMPv2-SMI
+        AGENT-CAPABILITIES
+            FROM SNMPv2-CONF;
+
+    testCapability AGENT-CAPABILITIES
+        PRODUCT-RELEASE "Test product
+    Version 1.0 \\ 2024-08-20"
+        STATUS          current
+        DESCRIPTION
+    "test \\ncapabilities
+    \\"
+
+     ::= { 1 3 }
+
+    END
+    """
+
+    def setUp(self):
+        docstring = textwrap.dedent(self.__class__.__doc__)
+        ast = parserFactory()().parse(docstring)[0]
+        mibInfo, symtable = SymtableCodeGen().genCode(ast, {}, genTexts=True)
+        self.mibInfo, pycode = PySnmpCodeGen().genCode(
+            ast,
+            {mibInfo.name: symtable},
+            genTexts=True,
+            textFilter=lambda symbol, text: text,
+        )
+        codeobj = compile(pycode, "test", "exec")
+
+        mibBuilder = MibBuilder()
+        mibBuilder.loadTexts = True
+
+        self.ctx = {"mibBuilder": mibBuilder}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+    def testAgentCapabilitiesProductRelease(self):
+        self.assertEqual(
+            self.ctx["testCapability"].getProductRelease(),
+            "Test product\nVersion 1.0 \\ 2024-08-20",
+            "bad DESCRIPTION",
+        )
+
+    def testAgentCapabilitiesDescription(self):
+        self.assertEqual(
+            self.ctx["testCapability"].getDescription(),
+            "test \\ncapabilities\n\\",
+            "bad DESCRIPTION",
         )
 
 

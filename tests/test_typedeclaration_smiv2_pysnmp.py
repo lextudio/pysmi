@@ -5,6 +5,7 @@
 # License: https://www.pysnmp.com/pysmi/license.html
 #
 import sys
+import textwrap
 
 try:
     import unittest2 as unittest
@@ -140,14 +141,14 @@ class TypeDeclarationTestCase(unittest.TestCase):
     def testTextualConventionDescription(self):
         self.assertEqual(
             self.ctx["TestTextualConvention"]().getDescription(),
-            "Test TC\n",
+            "Test TC",
             "bad DESCRIPTION",
         )
 
     def testTextualConventionReference(self):
         self.assertEqual(
             self.ctx["TestTextualConvention"]().getReference(),
-            "Test reference\n",
+            "Test reference",
             "bad REFERENCE",
         )
 
@@ -265,6 +266,72 @@ class TypeDeclarationHyphenTestCase(unittest.TestCase):
             self.ctx["Test_Textual_Convention"]().getDisplayHint(),
             "d-2",
             "bad DISPLAY-HINT",
+        )
+
+
+class TypeDeclarationTextTestCase(unittest.TestCase):
+    R"""
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      Unsigned32
+        FROM SNMPv2-SMI
+      TEXTUAL-CONVENTION
+        FROM SNMPv2-TC;
+
+    TestTextualConvention ::= TEXTUAL-CONVENTION
+        DISPLAY-HINT "semantically
+    invalid"
+        STATUS       current
+        DESCRIPTION  "Test\n TC\"
+        REFERENCE
+    "\Test
+      reference\\"
+        SYNTAX       Unsigned32
+
+    END
+    """
+
+    def setUp(self):
+        docstring = textwrap.dedent(self.__class__.__doc__)
+        ast = parserFactory()().parse(docstring)[0]
+        mibInfo, symtable = SymtableCodeGen().genCode(ast, {}, genTexts=True)
+        self.mibInfo, pycode = PySnmpCodeGen().genCode(
+            ast,
+            {mibInfo.name: symtable},
+            genTexts=True,
+            textFilter=lambda symbol, text: text,
+        )
+        codeobj = compile(pycode, "test", "exec")
+
+        mibBuilder = MibBuilder()
+        mibBuilder.loadTexts = True
+
+        self.ctx = {"mibBuilder": mibBuilder}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+    def testTextualConventionSymbol(self):
+        self.assertTrue("TestTextualConvention" in self.ctx, "symbol not present")
+
+    def testTextualConventionDisplayHint(self):
+        self.assertEqual(
+            self.ctx["TestTextualConvention"]().getDisplayHint(),
+            "semantically\ninvalid",
+            "bad DISPLAY-HINT",
+        )
+
+    def testTextualConventionDescription(self):
+        self.assertEqual(
+            self.ctx["TestTextualConvention"]().getDescription(),
+            "Test\\n TC\\",
+            "bad DESCRIPTION",
+        )
+
+    def testTextualConventionReference(self):
+        self.assertEqual(
+            self.ctx["TestTextualConvention"]().getReference(),
+            "\\Test\n  reference\\\\",
+            "bad REFERENCE",
         )
 
 

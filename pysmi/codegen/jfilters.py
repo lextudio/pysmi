@@ -25,3 +25,10 @@ def bitstring(bits):
 
 def pythonsym(symbol):
     return AbstractCodeGen.transOpers(symbol)
+
+
+def pythonstr(text):
+    if "\n" in text or "\r" in text:
+        return '"""\\\n' + text.replace("\\", "\\\\") + '"""'
+    else:
+        return '"' + text.replace("\\", "\\\\") + '"'

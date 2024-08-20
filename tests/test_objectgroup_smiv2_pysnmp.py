@@ -63,7 +63,7 @@ class ObjectGroupTestCase(unittest.TestCase):
     def testObjectGroupDescription(self):
         self.assertEqual(
             self.ctx["testObjectGroup"].getDescription(),
-            "A collection of test objects.\n",
+            "A collection of test objects.",
             "bad DESCRIPTION",
         )
 

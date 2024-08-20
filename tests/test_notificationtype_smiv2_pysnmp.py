@@ -62,7 +62,7 @@ class NotificationTypeTestCase(unittest.TestCase):
     def testNotificationTypeDescription(self):
         self.assertEqual(
             self.ctx["testNotificationType"].getDescription(),
-            "A collection of test notification types.\n",
+            "A collection of test notification types.",
             "bad DESCRIPTION",
         )
 

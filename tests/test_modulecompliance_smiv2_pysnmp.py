@@ -65,7 +65,7 @@ class ModuleComplianceTestCase(unittest.TestCase):
     def testModuleComplianceDescription(self):
         self.assertEqual(
             self.ctx["testCompliance"].getDescription(),
-            "This is the MIB compliance statement\n",
+            "This is the MIB compliance statement",
             "bad DESCRIPTION",
         )
 

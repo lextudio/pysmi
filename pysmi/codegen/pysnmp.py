@@ -148,6 +148,7 @@ class PySnmpCodeGen(IntermediateCodeGen):
         env.filters["capfirst"] = jfilters.capfirst
         env.filters["bitstring"] = jfilters.bitstring
         env.filters["pythonsym"] = jfilters.pythonsym
+        env.filters["pythonstr"] = jfilters.pythonstr
 
         try:
             tmpl = env.get_template(dstTemplate or self.TEMPLATE_NAME)
