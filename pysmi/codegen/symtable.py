@@ -86,6 +86,7 @@ class SymtableCodeGen(AbstractCodeGen):
     def __init__(self):
         self._rows = set()
         self._cols = {}  # k, v = name, datatype
+        self._sequenceTypes = set()
         self._exports = set()
         self._postponedSyms = {}  # k, v = symbol, (parents, properties)
         self._parentOids = set()
@@ -366,6 +367,8 @@ class SymtableCodeGen(AbstractCodeGen):
                 }
 
                 self.regSym(pysmiName, symProps, [declaration[0][0]])
+            else:
+                self._sequenceTypes.add(pysmiName)
 
     # noinspection PyUnusedLocal
     def genValueDeclaration(self, data, classmode=False):
@@ -615,6 +618,29 @@ class SymtableCodeGen(AbstractCodeGen):
         "VarTypes": genObjects,
     }
 
+    def correctPostponedSyms(self):
+        """
+        We are about to fail on unresolvable symbols. See if we can correct any
+        cases to make them valid after all.
+        """
+        for sym, val in self._postponedSyms.items():
+            parents, symProps = val
+
+            if symProps["type"] == "ObjectType":
+                syntax = symProps["syntax"]
+
+                # Leniency for non-conforming MIBs: if the object type is not
+                # known as a table row, but it has a SEQUENCE-type syntax, then
+                # turn it into a table row after all. This leniency exception
+                # allows the "SEQUENCE OF" type name of the conceptual table to
+                # contain typos in common cases.
+                if syntax[0][0] in self._sequenceTypes:
+                    self._rows.add(syntax[0][0])
+                    symProps["syntax"] = (("MibTableRow", ""), "")
+                    parents[0] = "MibTableRow"
+
+        self.regPostponedSyms()
+
     def genCode(self, ast, symbolTable, **kwargs):
         self.genRules["text"] = kwargs.get("genTexts", False)
         self._rows.clear()
@@ -637,9 +663,11 @@ class SymtableCodeGen(AbstractCodeGen):
                 )
 
         if self._postponedSyms:
-            raise error.PySmiSemanticError(
-                f"Unknown parents for symbols: {', '.join(self._postponedSyms)}"
-            )
+            self.correctPostponedSyms()
+            if self._postponedSyms:
+                raise error.PySmiSemanticError(
+                    f"Unknown parents for symbols: {', '.join(self._postponedSyms)}"
+                )
 
         for sym in self._parentOids:
             if sym not in self._out and sym not in self._importMap:

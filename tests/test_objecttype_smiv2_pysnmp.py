@@ -1019,6 +1019,84 @@ class ObjectTypeAurmentingMibTableTestCase(unittest.TestCase):
         )
 
 
+# This case verifies that pysmi provides leniency for a type name mismatch in
+# "SEQUENCE OF" syntaxes for conceptual-table object types, as long as the
+# corresponding table entry object type is correct.
+class ObjectTypeMibTableMismatchedSequenceOfTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      OBJECT-TYPE
+        FROM SNMPv2-SMI;
+
+      testTable OBJECT-TYPE
+        SYNTAX          SEQUENCE OF TypoEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "Test table"
+      ::= { 1 3 }
+
+      testEntry OBJECT-TYPE
+        SYNTAX          Test-Entry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "Test row"
+        INDEX           { testIndex }
+      ::= { testTable 1 }
+
+      Test-Entry ::= SEQUENCE {
+            testIndex   INTEGER
+      }
+
+      testIndex OBJECT-TYPE
+        SYNTAX          INTEGER
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION     "Test column"
+      ::= { testEntry 1 }
+
+    END
+    """
+
+    def setUp(self):
+        ast = parserFactory()().parse(self.__class__.__doc__)[0]
+        mibInfo, symtable = SymtableCodeGen().genCode(ast, {}, genTexts=True)
+        self.mibInfo, pycode = PySnmpCodeGen().genCode(
+            ast, {mibInfo.name: symtable}, genTexts=True
+        )
+        codeobj = compile(pycode, "test", "exec")
+
+        self.ctx = {"mibBuilder": MibBuilder()}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+    def testObjectTypeTableClass(self):
+        self.assertEqual(
+            self.ctx["testTable"].__class__.__name__, "MibTable", "bad table class"
+        )
+
+    def testObjectTypeTableRowClass(self):
+        self.assertEqual(
+            self.ctx["testEntry"].__class__.__name__,
+            "MibTableRow",
+            "bad table row class",
+        )
+
+    def testObjectTypeTableColumnClass(self):
+        self.assertEqual(
+            self.ctx["testIndex"].__class__.__name__,
+            "MibTableColumn",
+            "bad table column class",
+        )
+
+    def testObjectTypeTableRowIndex(self):
+        self.assertEqual(
+            self.ctx["testEntry"].getIndexNames(),
+            ((0, "TEST-MIB", "testIndex"),),
+            "bad table index",
+        )
+
+
 suite = unittest.TestLoader().loadTestsFromModule(sys.modules[__name__])
 
 if __name__ == "__main__":
