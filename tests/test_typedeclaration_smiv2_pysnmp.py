@@ -15,6 +15,7 @@ except ImportError:
 from pysmi.parser.smi import parserFactory
 from pysmi.codegen.pysnmp import PySnmpCodeGen
 from pysmi.codegen.symtable import SymtableCodeGen
+from pyasn1.type.constraint import ValueSizeConstraint
 from pysnmp.smi.builder import MibBuilder
 from pysnmp.smi.view import MibViewController
 
@@ -263,6 +264,222 @@ class TypeDeclarationHyphenTestCase(unittest.TestCase):
         self.assertEqual(
             self.ctx["Test_Textual_Convention"]().getDisplayHint(),
             "d-2",
+            "bad DISPLAY-HINT",
+        )
+
+
+# Note that the following test case verifies leniency with respect to deriving
+# textual conventions from other textual conventions, which is disallowed per
+# RFC 2579 Sec. 3.5, but widely used in the real world.
+class TypeDeclarationInheritanceTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      Unsigned32
+        FROM SNMPv2-SMI
+      TEXTUAL-CONVENTION
+        FROM SNMPv2-TC;
+
+    TestTypeUnsigned32 ::= Unsigned32
+
+    --
+    -- without constraints
+    --
+
+    -- textual convention derived from base type
+    TestTC-B ::= TEXTUAL-CONVENTION
+        DISPLAY-HINT "d-1"
+        STATUS       current
+        DESCRIPTION  "Test TC 1"
+        SYNTAX       Unsigned32
+
+    -- textual convention for simple type, derived from base type
+    TestTC-SB ::= TEXTUAL-CONVENTION
+        DISPLAY-HINT "d-2"
+        STATUS       current
+        DESCRIPTION  "Test TC 2"
+        SYNTAX       TestTypeUnsigned32
+
+    -- textual convention for textual convention, derived from base type
+    TestTC-TB ::= TEXTUAL-CONVENTION
+        DISPLAY-HINT "d-3"
+        STATUS       current
+        DESCRIPTION  "Test TC 3"
+        SYNTAX       TestTC-B
+
+    -- textual convention for textual convention, derived from simple type,
+    -- in turn derived from base type
+    TestTC-TSB ::= TEXTUAL-CONVENTION
+        DISPLAY-HINT "d-4"
+        STATUS       current
+        DESCRIPTION  "Test TC 4"
+        SYNTAX       TestTC-SB
+
+    -- textual convention for textual convention, derived from textual
+    -- convention, in turn derived from base type
+    TestTC-TTB ::= TEXTUAL-CONVENTION
+        DISPLAY-HINT "d-5"
+        STATUS       current
+        DESCRIPTION  "Test TC 5"
+        SYNTAX       TestTC-TB
+
+    --
+    -- with constraints
+    --
+
+    TestTypeRangedOctetString ::= OCTET STRING (SIZE (0..255))
+
+    -- textual convention derived from base type
+    TestTC-C ::= TEXTUAL-CONVENTION
+        STATUS       current
+        DESCRIPTION  "Test TC 6"
+        SYNTAX       OCTET STRING (SIZE (0..63))
+
+    -- textual convention for simple type, derived from constrained type
+    TestTC-SC ::= TEXTUAL-CONVENTION
+        STATUS       current
+        DESCRIPTION  "Test TC 7"
+        SYNTAX       TestTypeRangedOctetString
+
+    -- textual convention for textual convention, derived from constrained type
+    TestTC-TC ::= TEXTUAL-CONVENTION
+        DISPLAY-HINT "1x:"
+        STATUS       current
+        DESCRIPTION  "Test TC 8"
+        SYNTAX       TestTC-C (SIZE (16..31))
+
+    -- textual convention for textual convention, derived from simple type,
+    -- in turn derived from constrained type
+    TestTC-TSC ::= TEXTUAL-CONVENTION
+        DISPLAY-HINT "2x:"
+        STATUS       current
+        DESCRIPTION  "Test TC 9"
+        SYNTAX       TestTC-SC (SIZE (32..47))
+
+    -- textual convention for textual convention, derived from textual
+    -- convention, in turn derived from base type
+    TestTC-TTC ::= TEXTUAL-CONVENTION
+        STATUS       current
+        DESCRIPTION  "Test TC 10"
+        SYNTAX       TestTC-TC (SIZE (20..23))
+
+    END
+    """
+
+    def setUp(self):
+        ast = parserFactory()().parse(self.__class__.__doc__)[0]
+        mibInfo, symtable = SymtableCodeGen().genCode(ast, {})
+        self.mibInfo, pycode = PySnmpCodeGen().genCode(ast, {mibInfo.name: symtable})
+        codeobj = compile(pycode, "test", "exec")
+
+        mibBuilder = MibBuilder()
+
+        self.ctx = {"mibBuilder": mibBuilder}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+    def testTextualConventionDisplayHintB(self):
+        self.assertEqual(
+            self.ctx["TestTC_B"]().getDisplayHint(),
+            "d-1",
+            "bad DISPLAY-HINT",
+        )
+
+    def testTextualConventionDisplayHintSB(self):
+        self.assertEqual(
+            self.ctx["TestTC_SB"]().getDisplayHint(),
+            "d-2",
+            "bad DISPLAY-HINT",
+        )
+
+    def testTextualConventionDisplayHintTB(self):
+        self.assertEqual(
+            self.ctx["TestTC_TB"]().getDisplayHint(),
+            "d-3",
+            "bad DISPLAY-HINT",
+        )
+
+    def testTextualConventionDisplayHintTSB(self):
+        self.assertEqual(
+            self.ctx["TestTC_TSB"]().getDisplayHint(),
+            "d-4",
+            "bad DISPLAY-HINT",
+        )
+
+    def testTextualConventionDisplayHintTTB(self):
+        self.assertEqual(
+            self.ctx["TestTC_TTB"]().getDisplayHint(),
+            "d-5",
+            "bad DISPLAY-HINT",
+        )
+
+    def testTextualConventionValueRangeConstraintC(self):
+        self.assertTrue(
+            ValueSizeConstraint(0, 63)
+            in self.ctx["TestTC_C"]().getSubtypeSpec().getValueMap(),
+            "missing value size constraint",
+        )
+
+    def testTextualConventionDisplayHintC(self):
+        self.assertEqual(
+            self.ctx["TestTC_C"]().getDisplayHint(),
+            "",
+            "bad DISPLAY-HINT",
+        )
+
+    def testTextualConventionValueRangeConstraintSC(self):
+        self.assertTrue(
+            ValueSizeConstraint(0, 255)
+            in self.ctx["TestTC_SC"]().getSubtypeSpec().getValueMap(),
+            "missing value size constraint",
+        )
+
+    def testTextualConventionDisplayHintSC(self):
+        self.assertEqual(
+            self.ctx["TestTC_SC"]().getDisplayHint(),
+            "",
+            "bad DISPLAY-HINT",
+        )
+
+    def testTextualConventionValueRangeConstraintTC(self):
+        self.assertTrue(
+            ValueSizeConstraint(16, 31)
+            in self.ctx["TestTC_TC"]().getSubtypeSpec().getValueMap(),
+            "missing value size constraint",
+        )
+
+    def testTextualConventionDisplayHintTC(self):
+        self.assertEqual(
+            self.ctx["TestTC_TC"]().getDisplayHint(),
+            "1x:",
+            "bad DISPLAY-HINT",
+        )
+
+    def testTextualConventionValueRangeConstraintTSC(self):
+        self.assertTrue(
+            ValueSizeConstraint(32, 47)
+            in self.ctx["TestTC_TSC"]().getSubtypeSpec().getValueMap(),
+            "missing value size constraint",
+        )
+
+    def testTextualConventionDisplayHintTSC(self):
+        self.assertEqual(
+            self.ctx["TestTC_TSC"]().getDisplayHint(),
+            "2x:",
+            "bad DISPLAY-HINT",
+        )
+
+    def testTextualConventionValueRangeConstraintTTC(self):
+        self.assertTrue(
+            ValueSizeConstraint(20, 23)
+            in self.ctx["TestTC_TTC"]().getSubtypeSpec().getValueMap(),
+            "missing value size constraint",
+        )
+
+    def testTextualConventionDisplayHintTTC(self):
+        self.assertEqual(
+            self.ctx["TestTC_TTC"]().getDisplayHint(),
+            "1x:",
             "bad DISPLAY-HINT",
         )
 

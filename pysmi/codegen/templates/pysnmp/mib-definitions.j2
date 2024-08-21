@@ -215,7 +215,7 @@ class {{ symbol }}({{ definition['type']['type'] }}):
 {% for symbol, definition in mib.items() if definition['class'] == 'textualconvention' %}
 
 
-class {{ symbol }}(TextualConvention, {{ definition['type']['type'] }}):
+class {{ symbol }}({{ definition['type']['type'] }}, TextualConvention):
     status = "{{ definition.get('status', 'current') }}"
     {% if 'displayhint' in definition %}
     displayHint = "{{ definition['displayhint'] }}"
