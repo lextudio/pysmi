@@ -68,11 +68,6 @@ class IntermediateCodeGen(AbstractCodeGen):
         "snmpEnableAuthTraps": "snmpEnableAuthenTraps",  # RFC1158-MIB -> SNMPv2-MIB
     }
 
-    smiv1IdxTypes = ["INTEGER", "OCTET STRING", "IPADDRESS", "NETWORKADDRESS"]
-
-    indent = " " * 4
-    fakeidx = 1000  # starting index for fake symbols
-
     def __init__(self):
         self._rows = set()
         self._cols = {}  # k, v = name, datatype
@@ -473,7 +468,7 @@ class IntermediateCodeGen(AbstractCodeGen):
         pysmiName = self.transOpers(name)
 
         oidStr, parentOid = oid
-        indexStr, fakeStrlist, fakeSyms = index or ("", "", [])
+        indexStr, fakeSyms, fakeSymDicts = index or ("", [], [])
 
         defval = self.genDefVal(defval, objname=pysmiName)
 
@@ -517,11 +512,10 @@ class IntermediateCodeGen(AbstractCodeGen):
             outDict["description"] = description
 
         self.regSym(pysmiName, outDict, parentOid)
-        # TODO
-        #        if fakeSyms:  # fake symbols for INDEX to support SMIv1
-        #            for i in range(len(fakeSyms)):
-        #                fakeOutStr = fakeStrlist[i] % oidStr
-        #                self.regSym(fakeSyms[i], fakeOutStr, name)
+
+        for fakeSym, fakeSymDict in zip(fakeSyms, fakeSymDicts):
+            fakeSymDict["oid"] = f"{oidStr}.{fakeSymDict['oid']}"
+            self.regSym(fakeSym, fakeSymDict, pysmiName)
 
         return outDict
 
@@ -770,24 +764,40 @@ class IntermediateCodeGen(AbstractCodeGen):
 
     # noinspection PyUnusedLocal
     def genTableIndex(self, data):
-        def genFakeSyms(fakeidx, idxType):
-            objType = self.SMI_TYPES.get(idxType, idxType)
-            objType = self.transOpers(objType)
+        def genFakeSymDict(fakeSym, fakeOidSuffix, idxType):
+            syntaxDict = OrderedDict()
+            syntaxDict["type"] = self.SMI_TYPES.get(idxType, idxType)
+            syntaxDict["class"] = "type"
 
-            return {"module": self.moduleName[0], object: objType}
+            outDict = OrderedDict()
+            outDict["name"] = fakeSym
+            outDict["oid"] = str(fakeOidSuffix)  # suffix only; fixed up later
+            outDict["class"] = "objecttype"
+            outDict["nodetype"] = "column"
+            outDict["syntax"] = syntaxDict
+            outDict["maxaccess"] = "not-accessible"
+            outDict["status"] = "mandatory"  # SMIv1
+            return outDict
 
         indexes = data[0]
-        idxStrlist, fakeSyms, fakeStrlist = [], [], []
+        idxStrlist, fakeSyms, fakeSymDicts = [], [], []
+
+        # For fake indices, we generate fake column object types. Each of those
+        # is given its own OID. Minimize the chance of collisions by starting
+        # with the highest possible OID child number and going backward.
+        fakeOidSuffix = 2**32 - 1
 
         for idx in indexes:
             isImplied = idx[0]
             idxName = idx[1]
             if idxName in self.smiv1IdxTypes:  # SMIv1 support
                 idxType = idxName
-                fakeSymStr, idxName = genFakeSyms(self.fakeidx, idxType)
-                fakeStrlist.append(fakeSymStr)
+                idxName = self.fakeIdxPrefix + str(self.fakeIdxNumber)
+                fakeSymDict = genFakeSymDict(idxName, fakeOidSuffix, idxType)
                 fakeSyms.append(idxName)
-                self.fakeidx += 1
+                fakeSymDicts.append(fakeSymDict)
+                self.fakeIdxNumber += 1
+                fakeOidSuffix -= 1
 
             index = OrderedDict()
             index["module"] = self._importMap.get(idxName, self.moduleName[0])
@@ -795,7 +805,7 @@ class IntermediateCodeGen(AbstractCodeGen):
             index["implied"] = isImplied
             idxStrlist.append(index)
 
-        return idxStrlist, fakeStrlist, fakeSyms
+        return idxStrlist, fakeSyms, fakeSymDicts
 
     def genIntegerSubType(self, data):
         ranges = []

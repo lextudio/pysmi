@@ -277,6 +277,13 @@ class AbstractCodeGen:
         "RFC-1215": {"TRAP-TYPE": [("SNMPv2-SMI", "TRAP-TYPE")]},
     }
 
+    smiv1IdxTypes = ["INTEGER", "OCTET STRING", "IpAddress", "NetworkAddress"]
+
+    # Name prefix and starting number of fake index object types, as generated
+    # the fly to support SMIv1-only index types (e.g., "INDEX { INTEGER }").
+    fakeIdxPrefix = "pysmiFakeCol"
+    fakeIdxNumber = 1
+
     def genCode(self, ast, symbolTable, **kwargs):
         raise NotImplementedError()
 

@@ -78,11 +78,6 @@ class SymtableCodeGen(AbstractCodeGen):
         "snmpEnableAuthTraps": "snmpEnableAuthenTraps",  # RFC1158-MIB -> SNMPv2-MIB
     }
 
-    smiv1IdxTypes = ["INTEGER", "OCTET STRING", "IPADDRESS", "NETWORKADDRESS"]
-    ifTextStr = "if mibBuilder.loadTexts: "
-    indent = " " * 4
-    fakeidx = 1000  # starting index for fake symbols
-
     def __init__(self):
         self._rows = set()
         self._cols = {}  # k, v = name, datatype
@@ -458,7 +453,6 @@ class SymtableCodeGen(AbstractCodeGen):
     def genIndex(self, data, classmode=False):
         indexes = data[0]
 
-        fakeIdxName = "pysmiFakeCol"
         fakeIndexes, fakeSymsSyntax = [], []
 
         for idx in indexes:
@@ -469,11 +463,11 @@ class SymtableCodeGen(AbstractCodeGen):
                 objType = self.typeClasses.get(idxType, idxType)
                 objType = self.transOpers(objType)
 
-                fakeIndexes.append(self.fakeidx)
+                fakeIndexes.append(self.fakeIdxNumber)
                 fakeSymsSyntax.append((("MibTableColumn", ""), objType))
-                self.fakeidx += 1
+                self.fakeIdxNumber += 1
 
-        return fakeIdxName, fakeIndexes, fakeSymsSyntax
+        return self.fakeIdxPrefix, fakeIndexes, fakeSymsSyntax
 
     # noinspection PyUnusedLocal,PyUnusedLocal,PyMethodMayBeStatic
     def genIntegerSubType(self, data, classmode=False):

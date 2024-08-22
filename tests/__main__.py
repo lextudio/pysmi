@@ -21,6 +21,7 @@ suite = unittest.TestLoader().loadTestsFromNames(
         "test_notificationtype_smiv2_pysnmp",
         "test_objectgroup_smiv2_pysnmp",
         "test_objectidentity_smiv2_pysnmp",
+        "test_objecttype_smiv1_pysnmp",
         "test_objecttype_smiv2_pysnmp",
         "test_smiv1_smiv2_pysnmp",
         "test_traptype_smiv2_pysnmp",
