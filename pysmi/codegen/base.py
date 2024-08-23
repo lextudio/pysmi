@@ -227,7 +227,7 @@ class AbstractCodeGen:
         "RFC1065-SMI": commonSyms["RFC1155-SMI/RFC1065-SMI"],
         "RFC1155-SMI": commonSyms["RFC1155-SMI/RFC1065-SMI"],
         "RFC1158-MIB": updateDict(
-            dict(commonSyms["RFC1155-SMI/RFC1065-SMI"]),
+            dict(commonSyms["RFC1158-MIB/RFC1213-MIB"]),
             (
                 ("nullSpecific", [("SNMPv2-SMI", "zeroDotZero")]),
                 ("ipRoutingTable", [("RFC1213-MIB", "ipRouteTable")]),
