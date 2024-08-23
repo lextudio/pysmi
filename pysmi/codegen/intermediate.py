@@ -478,11 +478,13 @@ class IntermediateCodeGen(AbstractCodeGen):
 
         if syntax[0]:
             nodetype = syntax[0] == "Bits" and "scalar" or syntax[0]  # Bits hack
-            nodetype = (
+            # If this object type is used as a column, but it also has a
+            # "SEQUENCE OF" syntax, then it is really a table and not a column.
+            isColumn = (
                 pysmiName in self.symbolTable[self.moduleName[0]]["_symtable_cols"]
-                and "column"
-                or nodetype
+                and syntax[1]
             )
+            nodetype = isColumn and "column" or nodetype
             outDict["nodetype"] = nodetype
 
         outDict["class"] = "objecttype"

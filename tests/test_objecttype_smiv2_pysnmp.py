@@ -1097,6 +1097,69 @@ class ObjectTypeMibTableMismatchedSequenceOfTestCase(unittest.TestCase):
         )
 
 
+class ObjectTypeMibTableAndColumnTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      OBJECT-TYPE
+        FROM SNMPv2-SMI;
+
+      Overview ::= SEQUENCE {
+            testTable   TestEntry
+      }
+
+      testTable OBJECT-TYPE
+        SYNTAX          SEQUENCE OF TestEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "Test table"
+      ::= { 1 3 }
+
+      testEntry OBJECT-TYPE
+        SYNTAX          TestEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "Test row"
+        INDEX           { testIndex }
+      ::= { testTable 1 }
+
+      TestEntry ::= SEQUENCE {
+            testIndex   INTEGER
+      }
+
+      testIndex OBJECT-TYPE
+        SYNTAX          INTEGER
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION     "Test column"
+      ::= { testEntry 1 }
+
+    END
+    """
+
+    def setUp(self):
+        ast = parserFactory()().parse(self.__class__.__doc__)[0]
+        mibInfo, symtable = SymtableCodeGen().genCode(ast, {})
+        self.mibInfo, pycode = PySnmpCodeGen().genCode(ast, {mibInfo.name: symtable})
+        codeobj = compile(pycode, "test", "exec")
+
+        self.ctx = {"mibBuilder": MibBuilder()}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+    def testObjectTypeTableClass(self):
+        self.assertEqual(
+            self.ctx["testTable"].__class__.__name__, "MibTable", "bad table class"
+        )
+
+    def testObjectTypeTableRowClass(self):
+        self.assertEqual(
+            self.ctx["testEntry"].__class__.__name__,
+            "MibTableRow",
+            "bad table row class",
+        )
+
+
 suite = unittest.TestLoader().loadTestsFromModule(sys.modules[__name__])
 
 if __name__ == "__main__":
