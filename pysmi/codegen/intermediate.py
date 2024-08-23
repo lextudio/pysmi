@@ -1040,7 +1040,7 @@ class IntermediateCodeGen(AbstractCodeGen):
         self._complianceOids = []
         self.moduleName[0], moduleOid, imports, declarations = ast
 
-        outDict, importedModules = self.genImports(imports and imports or {})
+        outDict, importedModules = self.genImports(imports)
 
         for declr in declarations or []:
             if declr:

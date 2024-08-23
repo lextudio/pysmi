@@ -646,7 +646,7 @@ class SymtableCodeGen(AbstractCodeGen):
         self._out = {}  # should be new object, do not use `clear` method
         self.moduleName[0], moduleOid, imports, declarations = ast
 
-        out, importedModules = self.genImports(imports or {})
+        out, importedModules = self.genImports(imports)
 
         for declr in declarations or []:
             if declr:

@@ -123,6 +123,33 @@ class ImportConversionTestCase(unittest.TestCase):
         self.assertEqual(self.ctx["testTrap"].getName(), (1, 6, 0, 2), "bad name")
 
 
+class ImportAbsentTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+
+    TestType ::= INTEGER
+
+    END
+    """
+
+    def setUp(self):
+        ast = parserFactory()().parse(self.__class__.__doc__)[0]
+        mibInfo, symtable = SymtableCodeGen().genCode(ast, {})
+        self.mibInfo, pycode = PySnmpCodeGen().genCode(ast, {mibInfo.name: symtable})
+        codeobj = compile(pycode, "test", "exec")
+
+        self.ctx = {"mibBuilder": MibBuilder()}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+    def testTypeClass(self):
+        self.assertEqual(
+            self.ctx["TestType"].__bases__[0].__name__,
+            "Integer32",
+            "bad type",
+        )
+
+
 suite = unittest.TestLoader().loadTestsFromModule(sys.modules[__name__])
 
 if __name__ == "__main__":

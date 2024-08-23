@@ -105,7 +105,7 @@ class SmiV2Parser(AbstractParser):
         p[0] = (
             p[1],  # name
             p[2],  # oid
-            p[7],  # linkage (imports)
+            p[7] or {},  # linkage (imports)
             p[8],
         )  # declaration
 
