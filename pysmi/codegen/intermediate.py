@@ -137,7 +137,7 @@ class IntermediateCodeGen(AbstractCodeGen):
         outDict["class"] = "imports"
         for module in sorted(imports):
             symbols = []
-            for symbol in set(imports[module]):
+            for symbol in sorted(set(imports[module])):
                 symbols.append(symbol)
 
             if symbols:
