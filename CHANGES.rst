@@ -1,12 +1,22 @@
-Revision 1.4.4, released on July 16, 2024
+Revision 1.5.0, released on Sep 02, 2024
 -----------------------------------------
+
+- Better formatting of texts in MIB documents.
+- Reworked on reserved Python keywords handling.
+- Fixed TEXTUAL-CONVENTION handling.
+- Fixed DEFVAL handling.
+- Added cyclic dependency detection.
+- Other fixes and improvements for real-world MIBs.
+
+Revision 1.4.4, released on Jul 16, 2024
+----------------------------------------
 
 - Removed package postfix. A helper release to enable migration.
 
 Revision 1.4.3, released on Apr 03, 2024
 ----------------------------------------
 
-* Fixed a bug from code merge.
+- Fixed a bug from code merge.
 
 Revision 1.4.2, released on Mar 25, 2024
 ----------------------------------------
