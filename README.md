@@ -1,7 +1,7 @@
 # SNMP MIB Compiler
 
 [![Become a Sponsor](https://img.shields.io/badge/Become%20a%20Sponsor-lextudio-orange.svg?style=for-readme)](https://github.com/sponsors/lextudio)
-[![PyPI](https://img.shields.io/pypi/v/pysmi.svg?maxAge=2592000)](https://pypi.org/project/pysmi)
+[![PyPI](https://img.shields.io/pypi/v/pysmi.svg)](https://pypi.org/project/pysmi)
 [![PyPI Downloads](https://img.shields.io/pypi/dd/pysmi)](https://pypi.python.org/pypi/pysmi/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/pysmi.svg)](https://pypi.org/project/pysmi/)
 [![GitHub license](https://img.shields.io/badge/license-BSD-blue.svg)](https://raw.githubusercontent.com/lextudio/pysmi/master/LICENSE.rst)
