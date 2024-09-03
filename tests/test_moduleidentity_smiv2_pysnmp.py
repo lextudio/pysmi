@@ -157,7 +157,7 @@ class ModuleIdentityTextTestCase(unittest.TestCase):
     organization"
      CONTACT-INFO "WG-email:\\n   agentx@dorothy.bmc.com\\"
      DESCRIPTION  "
-    A\tdescription with\\n
+    A<TAB>description with\\n
       various characters: 0~`!@#$%^&*()-_=+[]{}\\|;:'<>,.?/
     and a very long line that must not be wrapped despite exceeding the threshold of default word wrap filters.
 
@@ -170,7 +170,9 @@ class ModuleIdentityTextTestCase(unittest.TestCase):
     """
 
     def setUp(self):
-        docstring = textwrap.dedent(self.__class__.__doc__)
+        # As of Python 3.13, tabs are expanded in docstrings, so we have to use
+        # a placeholder and replace it with real tab here.
+        docstring = textwrap.dedent(self.__class__.__doc__.replace("<TAB>", "\t"))
         ast = parserFactory()().parse(docstring)[0]
         mibInfo, symtable = SymtableCodeGen().genCode(ast, {}, genTexts=True)
         self.mibInfo, pycode = PySnmpCodeGen().genCode(
