@@ -58,7 +58,7 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = "PySMI 1.4 Documentation"
+project = "PySMI 1.5 Documentation"
 copyright = "2015-2020, Ilya Etingof; © Copyright 2022-2024, LeXtudio Inc."
 author = "LeXtudio Inc. <support@lextudio.com>"
 
@@ -67,7 +67,7 @@ author = "LeXtudio Inc. <support@lextudio.com>"
 # built documents.
 #
 # The short X.Y version.
-version = "1.4"
+version = "1.5"
 # The full version, including alpha/beta/rc tags.
 release = "1.5.0"
 
@@ -155,7 +155,7 @@ html_css_files = [
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-html_title = "PySMI 1.4 Documentation"
+html_title = "PySMI 1.5 Documentation"
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 # html_short_title = None
