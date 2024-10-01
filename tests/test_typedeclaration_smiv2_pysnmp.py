@@ -17,6 +17,7 @@ from pysmi.parser.smi import parserFactory
 from pysmi.codegen.pysnmp import PySnmpCodeGen
 from pysmi.codegen.symtable import SymtableCodeGen
 from pyasn1.type.constraint import ValueSizeConstraint
+from pyasn1.type.namedval import NamedValues
 from pysnmp.smi.builder import MibBuilder
 from pysnmp.smi.view import MibViewController
 
@@ -548,6 +549,59 @@ class TypeDeclarationInheritanceTestCase(unittest.TestCase):
             self.ctx["TestTC_TTC"]().getDisplayHint(),
             "1x:",
             "bad DISPLAY-HINT",
+        )
+
+
+class TypeDeclarationBitsTextualConventionSyntaxTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      OBJECT-TYPE
+        FROM SNMPv2-SMI
+      TEXTUAL-CONVENTION
+        FROM SNMPv2-TC;
+
+    TestTextualConvention ::= TEXTUAL-CONVENTION
+        STATUS       current
+        DESCRIPTION  "Test TC"
+        SYNTAX       BITS { value(0), otherValue(1) }
+
+    testObject OBJECT-TYPE
+        SYNTAX       TestTextualConvention
+        MAX-ACCESS   read-only
+        STATUS       current
+        DESCRIPTION  "Test object"
+      ::= { 1 4 }
+
+    END
+    """
+
+    def setUp(self):
+        ast = parserFactory()().parse(self.__class__.__doc__)[0]
+        mibInfo, symtable = SymtableCodeGen().gen_code(ast, {})
+        self.mibInfo, pycode = PySnmpCodeGen().gen_code(ast, {mibInfo.name: symtable})
+        codeobj = compile(pycode, "test", "exec")
+
+        mibBuilder = MibBuilder()
+
+        self.ctx = {"mibBuilder": mibBuilder}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+        self.mibViewController = MibViewController(mibBuilder)
+
+    def testTextualConventionNamedValues(self):
+        self.assertEqual(
+            self.ctx["TestTextualConvention"]().namedValues,
+            NamedValues(("value", 0), ("otherValue", 1)),
+            "bad NAMED VALUES",
+        )
+
+    def testObjectTypeNamedValues(self):
+        self.assertEqual(
+            self.ctx["testObject"].getSyntax().namedValues,
+            NamedValues(("value", 0), ("otherValue", 1)),
+            "bad NAMED VALUES",
         )
 
 
