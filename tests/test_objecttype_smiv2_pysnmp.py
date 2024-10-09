@@ -13,7 +13,6 @@ try:
 except ImportError:
     import unittest
 
-from pyasn1.compat.octets import str2octs
 from pysmi.parser.smi import parserFactory
 from pysmi.codegen.pysnmp import PySnmpCodeGen
 from pysmi.codegen.symtable import SymtableCodeGen
@@ -75,7 +74,7 @@ class ObjectTypeBasicTestCase(unittest.TestCase):
     # TODO:revisit
     #    def testObjectTypeReference(self):
     #        self.assertEqual(
-    #            self.ctx['testObjectType'].getReference(), str2octs('ABC'),
+    #            self.ctx['testObjectType'].getReference(), 'ABC'.encode('iso-8859-1'),
     #            'bad REFERENCE'
     #        )
 
@@ -335,7 +334,7 @@ class ObjectTypeStringDefaultTestCase(unittest.TestCase):
     # TODO: pyasn1 does not like OctetString.defaultValue
     def testObjectTypeSyntax(self):
         self.assertEqual(
-            self.ctx["testObjectType"].getSyntax(), str2octs("test value"), "bad DEFVAL"
+            self.ctx["testObjectType"].getSyntax(), "test value".encode('iso-8859-1'), "bad DEFVAL"
         )
 
 
@@ -374,7 +373,7 @@ class ObjectTypeStringDefaultTextTestCase(unittest.TestCase):
     def testObjectTypeSyntax(self):
         self.assertEqual(
             self.ctx["testObjectType"].getSyntax(),
-            str2octs("\\ntest\nvalue\\"),
+            "\\ntest\nvalue\\".encode('iso-8859-1'),
             "bad DEFVAL",
         )
 
@@ -488,7 +487,7 @@ class ObjectTypeWithStringSizeConstraintTestCase(unittest.TestCase):
     def testObjectTypeSyntax(self):
         self.assertEqual(
             self.ctx["testObjectType"].getSyntax().clone(""),
-            str2octs(""),
+            "".encode('iso-8859-1'),
             "bad size constrained SYNTAX",
         )
 
@@ -526,7 +525,7 @@ class ObjectTypeBitsTestCase(unittest.TestCase):
     def testObjectTypeSyntax(self):
         self.assertEqual(
             self.ctx["testObjectType"].getSyntax().clone(("set",)),
-            str2octs("@"),
+            "@".encode('iso-8859-1'),
             "bad BITS SYNTAX",
         )
 
