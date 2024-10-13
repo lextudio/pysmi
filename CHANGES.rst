@@ -1,5 +1,14 @@
+Revision 1.5.1, released on Oct 13, 2024
+----------------------------------------
+
+- Removed Python 3.8 support.
+- Added Python 3.13 support.
+- Renamed many items to meet PEP 8 requirements. Compatibility layer is added,
+  but will be removed in the next release.
+- Fixed a bug that Windows version and user name were not correctly detected.
+
 Revision 1.5.0, released on Sep 02, 2024
------------------------------------------
+----------------------------------------
 
 - Better formatting of texts in MIB documents.
 - Reworked on reserved Python keywords handling.
