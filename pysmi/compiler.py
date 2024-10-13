@@ -4,21 +4,22 @@
 # Copyright (c) 2015-2020, Ilya Etingof <etingof@gmail.com>
 # License: https://www.pysnmp.com/pysmi/license.html
 #
+import getpass
+import platform
 import sys
 import os
 import time
 
-try:
-    from pwd import getpwuid
-except ImportError:
-    # noinspection PyPep8
-    getpwuid = lambda x: ["<unknown>"]
-from pysmi import __name__ as packageName
-from pysmi import __version__ as packageVersion
-from pysmi.mibinfo import MibInfo
-from pysmi.codegen.symtable import SymtableCodeGen
-from pysmi import error
+from pysmi import __name__ as package_name
+from pysmi import __version__ as package_version
 from pysmi import debug
+from pysmi import error
+from pysmi.codegen.base import AbstractCodeGen
+from pysmi.codegen.symtable import SymtableCodeGen
+from pysmi.mibinfo import MibInfo
+from pysmi.reader.base import AbstractReader
+from pysmi.searcher.base import AbstractSearcher
+from pysmi.writer.base import AbstractWriter
 
 
 class MibStatus(str):
@@ -161,17 +162,15 @@ class MibCompiler:
         return self
 
     def _get_system_info(self):
-        try:
-            platform_info = os.uname()
+        # Gather platform information
+        platform_info = (
+            platform.system(),  # Operating system (e.g., 'Linux', 'Windows', 'Darwin')
+            platform.node(),  # Hostname
+            platform.release(),  # Version of the OS
+        )
 
-        except AttributeError:
-            platform_info = ("?",) * 6
-
-        try:
-            user_info = getpwuid(os.getuid())
-
-        except Exception:
-            user_info = ("?",) * 7
+        # Gather user information
+        user_info = (getpass.getuser(),)  # Current logged-in user
 
         return platform_info, user_info
 
@@ -384,7 +383,7 @@ class MibCompiler:
 
             comments = [
                 f"ASN.1 source {fileInfo.path}",
-                f"Produced by {packageName}-{packageVersion} at {time.asctime()}",
+                f"Produced by {package_name}-{package_version} at {time.asctime()}",
                 f"On host {platform_info[1]} platform {platform_info[0]} version {platform_info[2]} by user {user_info[0]}",
                 f"Using Python version {sys.version.splitlines()[0]}",
             ]
@@ -610,7 +609,7 @@ class MibCompiler:
         platform_info, user_info = self._get_system_info()
 
         comments = [
-            f"Produced by {packageName}-{packageVersion} at {time.asctime()}",
+            f"Produced by {package_name}-{package_version} at {time.asctime()}",
             f"On host {platform_info[1]} platform {platform_info[0]} version {platform_info[2]} by user {user_info[0]}",
             f"Using Python version {sys.version.splitlines()[0]}",
         ]
