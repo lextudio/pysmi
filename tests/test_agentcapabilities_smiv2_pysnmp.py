@@ -57,8 +57,8 @@ class AgentCapabilitiesTestCase(unittest.TestCase):
 
     def setUp(self):
         ast = parserFactory()().parse(self.__class__.__doc__)[0]
-        mibInfo, symtable = SymtableCodeGen().genCode(ast, {}, genTexts=True)
-        self.mibInfo, pycode = PySnmpCodeGen().genCode(
+        mibInfo, symtable = SymtableCodeGen().gen_code(ast, {}, genTexts=True)
+        self.mibInfo, pycode = PySnmpCodeGen().gen_code(
             ast, {mibInfo.name: symtable}, genTexts=True
         )
         codeobj = compile(pycode, "test", "exec")
@@ -113,8 +113,8 @@ class AgentCapabilitiesHyphenTestCase(unittest.TestCase):
 
     def setUp(self):
         ast = parserFactory()().parse(self.__class__.__doc__)[0]
-        mibInfo, symtable = SymtableCodeGen().genCode(ast, {})
-        self.mibInfo, pycode = PySnmpCodeGen().genCode(ast, {mibInfo.name: symtable})
+        mibInfo, symtable = SymtableCodeGen().gen_code(ast, {})
+        self.mibInfo, pycode = PySnmpCodeGen().gen_code(ast, {mibInfo.name: symtable})
         codeobj = compile(pycode, "test", "exec")
 
         self.ctx = {"mibBuilder": MibBuilder()}
@@ -155,8 +155,8 @@ class AgentCapabilitiesTextTestCase(unittest.TestCase):
     def setUp(self):
         docstring = textwrap.dedent(self.__class__.__doc__)
         ast = parserFactory()().parse(docstring)[0]
-        mibInfo, symtable = SymtableCodeGen().genCode(ast, {}, genTexts=True)
-        self.mibInfo, pycode = PySnmpCodeGen().genCode(
+        mibInfo, symtable = SymtableCodeGen().gen_code(ast, {}, genTexts=True)
+        self.mibInfo, pycode = PySnmpCodeGen().gen_code(
             ast,
             {mibInfo.name: symtable},
             genTexts=True,

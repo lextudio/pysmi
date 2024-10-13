@@ -13,7 +13,7 @@ except ImportError:
     import unittest
 
 from pysmi.parser.smi import parserFactory
-from pysmi.parser.dialect import smiV2
+from pysmi.parser.dialect import smi_v2
 from pysmi.codegen.pysnmp import PySnmpCodeGen
 from pysmi.codegen.symtable import SymtableCodeGen
 from pysnmp.smi.builder import MibBuilder
@@ -40,9 +40,9 @@ class ObjectGroupTestCase(unittest.TestCase):
     """
 
     def setUp(self):
-        ast = parserFactory(**smiV2)().parse(self.__class__.__doc__)[0]
-        mibInfo, symtable = SymtableCodeGen().genCode(ast, {}, genTexts=True)
-        self.mibInfo, pycode = PySnmpCodeGen().genCode(
+        ast = parserFactory(**smi_v2)().parse(self.__class__.__doc__)[0]
+        mibInfo, symtable = SymtableCodeGen().gen_code(ast, {}, genTexts=True)
+        self.mibInfo, pycode = PySnmpCodeGen().gen_code(
             ast, {mibInfo.name: symtable}, genTexts=True
         )
         codeobj = compile(pycode, "test", "exec")
@@ -103,9 +103,9 @@ class ObjectGroupHyphenTestCase(unittest.TestCase):
     """
 
     def setUp(self):
-        ast = parserFactory(**smiV2)().parse(self.__class__.__doc__)[0]
-        mibInfo, symtable = SymtableCodeGen().genCode(ast, {})
-        self.mibInfo, pycode = PySnmpCodeGen().genCode(ast, {mibInfo.name: symtable})
+        ast = parserFactory(**smi_v2)().parse(self.__class__.__doc__)[0]
+        mibInfo, symtable = SymtableCodeGen().gen_code(ast, {})
+        self.mibInfo, pycode = PySnmpCodeGen().gen_code(ast, {mibInfo.name: symtable})
         codeobj = compile(pycode, "test", "exec")
 
         self.ctx = {"mibBuilder": MibBuilder()}

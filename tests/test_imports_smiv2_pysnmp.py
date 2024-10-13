@@ -38,8 +38,8 @@ class ImportClauseTestCase(unittest.TestCase):
 
     def setUp(self):
         ast = parserFactory()().parse(self.__class__.__doc__)[0]
-        mibInfo, symtable = SymtableCodeGen().genCode(ast, {}, genTexts=True)
-        self.mibInfo, pycode = PySnmpCodeGen().genCode(
+        mibInfo, symtable = SymtableCodeGen().gen_code(ast, {}, genTexts=True)
+        self.mibInfo, pycode = PySnmpCodeGen().gen_code(
             ast, {mibInfo.name: symtable}, genTexts=True
         )
         codeobj = compile(pycode, "test", "exec")
@@ -94,11 +94,11 @@ class ImportValueTestCase(unittest.TestCase):
 
         for mibData in (self.IMPORTED_MIB, self.__class__.__doc__):
             ast = parserFactory()().parse(mibData)[0]
-            mibInfo, symtable = SymtableCodeGen().genCode(ast, {})
+            mibInfo, symtable = SymtableCodeGen().gen_code(ast, {})
 
             symbolTable[mibInfo.name] = symtable
 
-            mibInfo, pycode = PySnmpCodeGen().genCode(ast, dict(symbolTable))
+            mibInfo, pycode = PySnmpCodeGen().gen_code(ast, dict(symbolTable))
             codeobj = compile(pycode, "test", "exec")
             exec(codeobj, self.ctx, self.ctx)
 
@@ -213,11 +213,11 @@ class ImportTypeTestCase(unittest.TestCase):
 
         for mibData in (self.IMPORTED_MIB, self.__class__.__doc__):
             ast = parserFactory()().parse(mibData)[0]
-            mibInfo, symtable = SymtableCodeGen().genCode(ast, {})
+            mibInfo, symtable = SymtableCodeGen().gen_code(ast, {})
 
             symbolTable[mibInfo.name] = symtable
 
-            mibInfo, pycode = PySnmpCodeGen().genCode(ast, dict(symbolTable))
+            mibInfo, pycode = PySnmpCodeGen().gen_code(ast, dict(symbolTable))
             codeobj = compile(pycode, "test", "exec")
             exec(codeobj, self.ctx, self.ctx)
 
@@ -302,8 +302,8 @@ class ImportSelfTestCase(unittest.TestCase):
             self.testMibLoaded = True
             return self.__class__.__doc__
 
-        self.mibCompiler.addSources(CallbackReader(getMibData))
-        self.mibCompiler.addSearchers(StubSearcher(*PySnmpCodeGen.baseMibs))
+        self.mibCompiler.add_sources(CallbackReader(getMibData))
+        self.mibCompiler.add_searchers(StubSearcher(*PySnmpCodeGen.baseMibs))
 
     def testCompilerCycleDetection(self):
         results = self.mibCompiler.compile("TEST-MIB", noDeps=True)
@@ -357,8 +357,8 @@ class ImportCycleTestCase(unittest.TestCase):
                 self.testMibLoaded = True
                 return self.__class__.__doc__
 
-        self.mibCompiler.addSources(CallbackReader(getMibData))
-        self.mibCompiler.addSearchers(StubSearcher(*PySnmpCodeGen.baseMibs))
+        self.mibCompiler.add_sources(CallbackReader(getMibData))
+        self.mibCompiler.add_searchers(StubSearcher(*PySnmpCodeGen.baseMibs))
 
     def testCompilerCycleDetection(self):
         results = self.mibCompiler.compile("TEST-MIB", noDeps=False)

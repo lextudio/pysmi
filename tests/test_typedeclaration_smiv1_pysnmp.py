@@ -13,7 +13,7 @@ except ImportError:
     import unittest
 
 from pysmi.parser.smi import parserFactory
-from pysmi.parser.dialect import smiV1Relaxed
+from pysmi.parser.dialect import smi_v1_relaxed
 from pysmi.codegen.pysnmp import PySnmpCodeGen
 from pysmi.codegen.symtable import SymtableCodeGen
 from pysnmp.smi.builder import MibBuilder
@@ -50,9 +50,9 @@ class TypeDeclarationTestCase(unittest.TestCase):
     """
 
     def setUp(self):
-        ast = parserFactory(**smiV1Relaxed)().parse(self.__class__.__doc__)[0]
-        mibInfo, symtable = SymtableCodeGen().genCode(ast, {}, genTexts=True)
-        self.mibInfo, pycode = PySnmpCodeGen().genCode(
+        ast = parserFactory(**smi_v1_relaxed)().parse(self.__class__.__doc__)[0]
+        mibInfo, symtable = SymtableCodeGen().gen_code(ast, {}, genTexts=True)
+        self.mibInfo, pycode = PySnmpCodeGen().gen_code(
             ast, {mibInfo.name: symtable}, genTexts=True
         )
         codeobj = compile(pycode, "test", "exec")
