@@ -6,11 +6,12 @@
 #
 import os
 import sys
+
 import ply.yacc as yacc
+from pysmi import debug
+from pysmi import error
 from pysmi.lexer.smi import lexerFactory
 from pysmi.parser.base import AbstractParser
-from pysmi import error
-from pysmi import debug
 
 YACC_VERSION = [int(x) for x in yacc.__version__.split(".")]
 
@@ -44,12 +45,12 @@ class SmiV2Parser(AbstractParser):
                 outputdir=tempdir,
             )
         else:
-            if debug.logger & debug.flagParser:
+            if debug.logger & debug.FLAG_PARSER:
                 logger = debug.logger.getCurrentLogger()
             else:
                 logger = yacc.NullLogger()
 
-            if debug.logger & debug.flagGrammar:
+            if debug.logger & debug.FLAG_GRAMMAR:
                 debuglogger = debug.logger.getCurrentLogger()
             else:
                 debuglogger = None
@@ -69,7 +70,7 @@ class SmiV2Parser(AbstractParser):
         self.lexer.reset()
 
     def parse(self, data, **kwargs):
-        debug.logger & debug.flagParser and debug.logger(
+        debug.logger & debug.FLAG_PARSER and debug.logger(
             f'source MIB size is {len(data)} characters, first 50 characters are "{data[:50]}..."'
         )
 

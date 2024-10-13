@@ -22,6 +22,6 @@ from pysmi.borrower.base import AbstractBorrower
 
 
 class PyFileBorrower(AbstractBorrower):
-    """Create PySNMP MIB file borrowing object"""
+    """Create PySNMP MIB file borrowing object."""
 
     exts = SOURCE_SUFFIXES

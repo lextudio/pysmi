@@ -7,18 +7,18 @@
 #
 # SNMP SMI/MIB copying tool
 #
-import os
-import sys
 import getopt
+import os
 import shutil
+import sys
 from datetime import datetime
-from pysmi.reader import FileReader, getReadersFromUrls
-from pysmi.writer import CallbackWriter
-from pysmi.parser import SmiV1CompatParser
+
+from pysmi import debug, error
 from pysmi.codegen import JsonCodeGen
 from pysmi.compiler import MibCompiler
-from pysmi import debug
-from pysmi import error
+from pysmi.parser import SmiV1CompatParser
+from pysmi.reader import FileReader, get_readers_from_urls
+from pysmi.writer import CallbackWriter
 
 
 def start():
@@ -41,7 +41,7 @@ def start():
         [--version]
         [--verbose]
         [--quiet]
-        [--debug=<{"|".join(sorted(debug.flagMap))}>]
+        [--debug=<{"|".join(sorted(debug.FLAG_MAP))}>]
         [--mib-source=<URI>]
         [--cache-directory=<DIRECTORY>]
         [--ignore-errors]
@@ -116,7 +116,7 @@ def start():
             verboseFlag = True
 
         if opt[0] == "--debug":
-            debug.setLogger(debug.Debug(*opt[1].split(",")))
+            debug.set_logger(debug.Debug(*opt[1].split(",")))
 
         if opt[0] == "--mib-source":
             mibSources.append(opt[1])
@@ -126,6 +126,9 @@ def start():
 
         if opt[0] == "--ignore-errors":
             ignoreErrorsFlag = True
+
+        if opt[0] == "--dry-run":
+            dryrunFlag = True
 
     if not mibSources:
         mibSources = [
@@ -161,12 +164,12 @@ def start():
 
     fileWriter = CallbackWriter(lambda *x: None)
 
-    def getMibRevision(mibDir, mibFile):
+    def get_mib_revision(mibDir, mibFile):
         mibCompiler = MibCompiler(mibParser, codeGenerator, fileWriter)
 
-        mibCompiler.addSources(
+        mibCompiler.add_sources(
             FileReader(mibDir, recursive=False, ignoreErrors=ignoreErrorsFlag),
-            *getReadersFromUrls(*mibSources),
+            *get_readers_from_urls(*mibSources),
         )
 
         try:
@@ -202,7 +205,7 @@ def start():
             f'Can\'t read or parse MIB "{os.path.join(mibDir, mibFile)}"'
         )
 
-    def shortenPath(path, maxLength=45):
+    def shorten_path(path, maxLength=45):
         if len(path) > maxLength:
             return "..." + path[-maxLength:]
         else:
@@ -238,7 +241,7 @@ def start():
             # TODO(etingof): also check module OID to make sure there is no name collision
 
             try:
-                mibName, srcMibRevision = getMibRevision(srcDirectory, mibFile)
+                mibName, srcMibRevision = get_mib_revision(srcDirectory, mibFile)
 
             except error.PySmiError as ex:
                 if verboseFlag:
@@ -248,7 +251,7 @@ def start():
 
                 if not quietFlag:
                     sys.stderr.write(
-                        f"FAILED {shortenPath(os.path.join(srcDirectory, mibFile))}{os.linesep}"
+                        f"FAILED {shorten_path(os.path.join(srcDirectory, mibFile))}{os.linesep}"
                     )
 
                 mibsFailed += 1
@@ -260,7 +263,7 @@ def start():
 
             else:
                 try:
-                    _, dstMibRevision = getMibRevision(dstDirectory, mibName)
+                    _, dstMibRevision = get_mib_revision(dstDirectory, mibName)
 
                 except error.PySmiError as ex:
                     if verboseFlag:
@@ -279,7 +282,7 @@ def start():
                     )
                 if not quietFlag:
                     sys.stderr.write(
-                        f"NOT COPIED {shortenPath(os.path.join(srcDirectory, mibFile))} ({mibName}){os.linesep}"
+                        f"NOT COPIED {shorten_path(os.path.join(srcDirectory, mibFile))} ({mibName}){os.linesep}"
                     )
 
                 continue
@@ -306,7 +309,7 @@ def start():
 
                 if not quietFlag:
                     sys.stderr.write(
-                        f"FAILED {shortenPath(os.path.join(srcDirectory, mibFile))} ({mibName}){os.linesep}"
+                        f"FAILED {shorten_path(os.path.join(srcDirectory, mibFile))} ({mibName}){os.linesep}"
                     )
 
                 mibsFailed += 1
@@ -314,7 +317,7 @@ def start():
             else:
                 if not quietFlag:
                     sys.stderr.write(
-                        f"COPIED {shortenPath(os.path.join(srcDirectory, mibFile))} ({mibName}){os.linesep}"
+                        f"COPIED {shorten_path(os.path.join(srcDirectory, mibFile))} ({mibName}){os.linesep}"
                     )
 
                 mibsCopied += 1

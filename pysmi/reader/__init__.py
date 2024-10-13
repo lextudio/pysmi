@@ -6,6 +6,6 @@
 #
 from pysmi.reader.callback import CallbackReader
 from pysmi.reader.httpclient import HttpReader
-from pysmi.reader.zipreader import ZipReader
 from pysmi.reader.localfile import FileReader
-from pysmi.reader.url import getReadersFromUrls
+from pysmi.reader.url import get_readers_from_urls
+from pysmi.reader.zipreader import ZipReader

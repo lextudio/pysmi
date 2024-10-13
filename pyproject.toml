@@ -39,11 +39,16 @@ black = "=22.3.0"
 pre-commit = "2.21.0"
 isort = "^5.10.1"
 sphinx-sitemap-lextudio = "^2.5.2"
-sphinx = "^5.0.0"
+sphinx = "^7.0.0"
 furo = "^2023.1.1"
 sphinx-copybutton = "^0.5.2"
 doc8 = "^1.1.1"
 sphinx-notfound-page = "^1.0.0"
+flake8 = "^5.0.4"
+flake8-import-order = "^0.18.2"
+flake8-docstrings = "^1.7.0"
+flake8-rst-docstrings = "^0.3.0"
+pep8-naming = "^0.14.1"
 
 [tool.poetry_bumpversion.file."pysmi/__init__.py"]
 

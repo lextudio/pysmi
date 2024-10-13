@@ -4,20 +4,21 @@
 # Copyright (c) 2015-2020, Ilya Etingof <etingof@gmail.com>
 # License: https://www.pysnmp.com/pysmi/license.html
 #
+import datetime
 import os
 import sys
 import time
-import datetime
 import zipfile
-from pysmi.reader.base import AbstractReader
-from pysmi.mibinfo import MibInfo
-from pysmi.compat import decode
+
 from pysmi import debug
 from pysmi import error
+from pysmi.compat import decode
+from pysmi.mibinfo import MibInfo
+from pysmi.reader.base import AbstractReader
 
 
 class FileLike:
-    """Stripped down, binary file mock to work with ZipFile"""
+    """Stripped down, binary file mock to work with ZipFile."""
 
     def __init__(self, buf, name):
         self.name = name
@@ -91,10 +92,10 @@ class ZipReader(AbstractReader):
         self._pendingError = None
 
         try:
-            self._members = self._readZipDirectory(fileObj=open(path, "rb"))
+            self._members = self._read_zip_directory(fileObj=open(path, "rb"))
 
         except Exception:
-            debug.logger & debug.flagReader and debug.logger(
+            debug.logger & debug.FLAG_READER and debug.logger(
                 f"ZIP file {self._name} open failure: {sys.exc_info()[1]}"
             )
 
@@ -103,7 +104,7 @@ class ZipReader(AbstractReader):
                     f"file {self._name} access error: {sys.exc_info()[1]}"
                 )
 
-    def _readZipDirectory(self, fileObj):
+    def _read_zip_directory(self, fileObj):
         archive = zipfile.ZipFile(fileObj)
 
         if isinstance(fileObj, FileLike):
@@ -119,7 +120,7 @@ class ZipReader(AbstractReader):
             if member.filename.endswith(".zip") or member.filename.endswith(".ZIP"):
                 innerZipBlob = archive.read(member.filename)
 
-                innerMembers = self._readZipDirectory(
+                innerMembers = self._read_zip_directory(
                     FileLike(innerZipBlob, member.filename)
                 )
 
@@ -139,7 +140,7 @@ class ZipReader(AbstractReader):
 
         return members
 
-    def _readZipFile(self, refs):
+    def _read_zip_file(self, refs):
         for fileObj, filename, mtime in refs:
             if not fileObj:
                 fileObj = FileLike(dataObj, name=self._name)
@@ -150,7 +151,7 @@ class ZipReader(AbstractReader):
                 dataObj = archive.read(filename)
 
             except Exception:
-                debug.logger & debug.flagReader and debug.logger(
+                debug.logger & debug.FLAG_READER and debug.logger(
                     f"ZIP read component {fileObj.name} read error: {sys.exc_info()[1]}"
                 )
                 return "", 0
@@ -158,10 +159,11 @@ class ZipReader(AbstractReader):
         return dataObj, mtime
 
     def __str__(self):
+        """Return string representation of the instance."""
         return f'{self.__class__.__name__}{{"{self._name}"}}'
 
-    def getData(self, mibname, **options):
-        debug.logger & debug.flagReader and debug.logger(
+    def get_data(self, mibname, **options):
+        debug.logger & debug.FLAG_READER and debug.logger(
             f"looking for MIB {mibname} at {self._name}"
         )
 
@@ -173,8 +175,8 @@ class ZipReader(AbstractReader):
                 f"source MIB {mibname} not found", reader=self
             )
 
-        for mibalias, mibfile in self.getMibVariants(mibname, **options):
-            debug.logger & debug.flagReader and debug.logger(f"trying MIB {mibfile}")
+        for mibalias, mibfile in self.get_mib_variants(mibname, **options):
+            debug.logger & debug.FLAG_READER and debug.logger(f"trying MIB {mibfile}")
 
             try:
                 refs = self._members[mibfile]
@@ -182,12 +184,12 @@ class ZipReader(AbstractReader):
             except KeyError:
                 continue
 
-            mibData, mtime = self._readZipFile(refs)
+            mibData, mtime = self._read_zip_file(refs)
 
             if not mibData:
                 continue
 
-            debug.logger & debug.flagReader and debug.logger(
+            debug.logger & debug.FLAG_READER and debug.logger(
                 f"source MIB {mibfile}, mtime {time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.gmtime(mtime))}, read from {self._name}/{mibfile}"
             )
 

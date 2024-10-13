@@ -5,32 +5,33 @@
 # License: https://www.pysnmp.com/pysmi/license.html
 #
 import logging
-from pysmi import error
+
 from pysmi import __version__
+from pysmi import error
 
-flagNone = 0x0000
-flagSearcher = 0x0001
-flagReader = 0x0002
-flagLexer = 0x0004
-flagParser = 0x0008
-flagGrammar = 0x0010
-flagCodegen = 0x0020
-flagWriter = 0x0040
-flagCompiler = 0x0080
-flagBorrower = 0x0100
-flagAll = 0xFFFF
+FLAG_NONE = 0x0000
+FLAG_SEARCHER = 0x0001
+FLAG_READER = 0x0002
+FLAG_LEXER = 0x0004
+FLAG_PARSER = 0x0008
+FLAG_GRAMMAR = 0x0010
+FLAG_CODEGEN = 0x0020
+FLAG_WRITER = 0x0040
+FLAG_COMPILER = 0x0080
+FLAG_BORROWER = 0x0100
+FLAG_ALL = 0xFFFF
 
-flagMap = {
-    "searcher": flagSearcher,
-    "reader": flagReader,
-    "lexer": flagLexer,
-    "parser": flagParser,
-    "grammar": flagGrammar,
-    "codegen": flagCodegen,
-    "writer": flagWriter,
-    "compiler": flagCompiler,
-    "borrower": flagBorrower,
-    "all": flagAll,
+FLAG_MAP = {
+    "searcher": FLAG_SEARCHER,
+    "reader": FLAG_READER,
+    "lexer": FLAG_LEXER,
+    "parser": FLAG_PARSER,
+    "grammar": FLAG_GRAMMAR,
+    "codegen": FLAG_CODEGEN,
+    "writer": FLAG_WRITER,
+    "compiler": FLAG_COMPILER,
+    "borrower": FLAG_BORROWER,
+    "all": FLAG_ALL,
 }
 
 
@@ -58,28 +59,24 @@ class Printer:
         self.__logger.debug(msg)
 
     def __str__(self):
+        """Return a string representation of the instance."""
         return "<python built-in logging>"
 
-    def getCurrentLogger(self):
+    def get_current_logger(self):
         return self.__logger
 
 
-if hasattr(logging, "NullHandler"):
-    NullHandler = logging.NullHandler
-else:
-    # Python 2.6 and older
-    class NullHandler(logging.Handler):
-        def emit(self, record):
-            pass
+NullHandler = logging.NullHandler
 
 
 class Debug:
     defaultPrinter = None
+    _printer: Printer
 
     def __init__(self, *flags, **options):
-        self._flags = flagNone
+        self._flags = FLAG_NONE
         if options.get("printer") is not None:
-            self._printer = options.get("printer")
+            self._printer = options.get("printer")  # type: ignore
 
         elif self.defaultPrinter is not None:
             self._printer = self.defaultPrinter
@@ -104,9 +101,9 @@ class Debug:
 
             try:
                 if inverse:
-                    self._flags &= ~flagMap[flag]
+                    self._flags &= ~FLAG_MAP[flag]
                 else:
-                    self._flags |= flagMap[flag]
+                    self._flags |= FLAG_MAP[flag]
 
             except KeyError:
                 raise error.PySmiError(f"bad debug flag {flag}")
@@ -114,22 +111,26 @@ class Debug:
             self(f"debug category '{flag}' {'disabled' if inverse else 'enabled'}")
 
     def __str__(self):
+        """Return a string representation of the instance."""
         return f"logger {self._printer}, flags {self._flags:x}"
 
     def __call__(self, msg):
+        """Log a message."""
         self._printer(msg)
 
     def __and__(self, flag):
+        """Return a bitwise and of the instance and a flag."""
         return self._flags & flag
 
     def __rand__(self, flag):
+        """Return a bitwise and of a flag and the instance."""
         return flag & self._flags
 
-    def getCurrentPrinter(self):
+    def get_current_printer(self):
         return self._printer
 
-    def getCurrentLogger(self):
-        return self._printer and self._printer.getCurrentLogger() or None
+    def get_current_logger(self):
+        return self._printer and self._printer.get_current_logger() or None
 
 
 # This will yield false from bitwise and with a flag, and save
@@ -137,6 +138,6 @@ class Debug:
 logger = 0
 
 
-def setLogger(l):
+def set_logger(value):
     global logger
-    logger = l
+    logger = value

@@ -4,23 +4,16 @@
 # Copyright (c) 2015-2020, Ilya Etingof <etingof@gmail.com>
 # License: https://www.pysnmp.com/pysmi/license.html
 #
-import socket
 import sys
 import time
 
-from requests import session
-
-
-from pysmi.reader.base import AbstractReader
-from pysmi.mibinfo import MibInfo
-from pysmi.compat import decode
 from pysmi import __version__ as pysmi_version
+from pysmi import debug
 from pysmi import error
-from pysmi import debug
-
-from pysmi import debug
-
-# debug.setLogger(debug.Debug('all'))
+from pysmi.compat import decode
+from pysmi.mibinfo import MibInfo
+from pysmi.reader.base import AbstractReader
+from requests import session
 
 
 class HttpReader(AbstractReader):
@@ -42,9 +35,7 @@ class HttpReader(AbstractReader):
         Args:
             host (str): domain name or IP address of web server
             port (int): TCP port web server is listening
-            locationTemplate (str): location part of the URL optionally containing @mib@
-                magic placeholder to be replaced with MIB name. If @mib@ magic is not present,
-                MIB name is appended to `locationTemplate`
+            locationTemplate (str): location part of the URL optionally containing @mib@ magic placeholder to be replaced with MIB name. If @mib@ magic is not present, MIB name is appended to `locationTemplate`
 
         Keyword Args:
             timeout (int): response timeout
@@ -57,22 +48,23 @@ class HttpReader(AbstractReader):
         self._user_agent = f"pysmi-{pysmi_version}; python-{sys.version_info[0]}.{sys.version_info[1]}.{sys.version_info[2]}; {sys.platform}"
 
     def __str__(self):
+        """Return string representation of the instance."""
         return self._url
 
-    def getData(self, mibname, **options):
+    def get_data(self, mibname, **options):
         headers = {"Accept": "text/plain", "User-Agent": self._user_agent}
 
         mibname = decode(mibname)
 
-        debug.logger & debug.flagReader and debug.logger(f"looking for MIB {mibname}")
+        debug.logger & debug.FLAG_READER and debug.logger(f"looking for MIB {mibname}")
 
-        for mibalias, mibfile in self.getMibVariants(mibname, **options):
+        for mibalias, mibfile in self.get_mib_variants(mibname, **options):
             if self.MIB_MAGIC in self._url:
                 url = self._url.replace(self.MIB_MAGIC, mibfile)
             else:
                 url = self._url + mibfile
 
-            debug.logger & debug.flagReader and debug.logger(
+            debug.logger & debug.FLAG_READER and debug.logger(
                 f"trying to fetch MIB from {url}"
             )
 
@@ -80,12 +72,12 @@ class HttpReader(AbstractReader):
                 response = self.session.get(url, headers=headers)
 
             except Exception:
-                debug.logger & debug.flagReader and debug.logger(
+                debug.logger & debug.FLAG_READER and debug.logger(
                     f"failed to fetch MIB from {url}: {sys.exc_info()[1]}"
                 )
                 continue
 
-            debug.logger & debug.flagReader and debug.logger(
+            debug.logger & debug.FLAG_READER and debug.logger(
                 f"HTTP response {response.status_code}"
             )
 
@@ -99,12 +91,12 @@ class HttpReader(AbstractReader):
                     )
 
                 except Exception:
-                    debug.logger & debug.flagReader and debug.logger(
+                    debug.logger & debug.FLAG_READER and debug.logger(
                         f"malformed HTTP headers: {sys.exc_info()[1]}"
                     )
                     mtime = time.time()
 
-                debug.logger & debug.flagReader and debug.logger(
+                debug.logger & debug.FLAG_READER and debug.logger(
                     f"fetching source MIB {url}, mtime {response.headers['Last-Modified']}"
                 )
 

@@ -4,12 +4,12 @@
 # Copyright (c) 2015-2020, Ilya Etingof <etingof@gmail.com>
 # License: https://www.pysnmp.com/pysmi/license.html
 #
-import sys
 import re
+
 import ply.lex as lex
-from pysmi.lexer.base import AbstractLexer
 from pysmi import config, error
 from pysmi import debug
+from pysmi.lexer.base import AbstractLexer
 
 UNSIGNED32_MAX = 4294967295
 UNSIGNED64_MAX = 18446744073709551615
@@ -187,12 +187,12 @@ class SmiV2Lexer(AbstractLexer):
                 module=self, reflags=re.DOTALL, outputdir=self._tempdir, debug=False
             )
         else:
-            if debug.logger & debug.flagLexer:
+            if debug.logger & debug.FLAG_LEXER:
                 logger = debug.logger.getCurrentLogger()
             else:
                 logger = lex.NullLogger()
 
-            if debug.logger & debug.flagGrammar:
+            if debug.logger & debug.FLAG_GRAMMAR:
                 debuglogger = debug.logger.getCurrentLogger()
             else:
                 debuglogger = None

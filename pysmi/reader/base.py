@@ -14,12 +14,12 @@ class AbstractReader:
     exts = ["", os.path.extsep + "txt", os.path.extsep + "mib", os.path.extsep + "my"]
     exts.extend([x.upper() for x in exts if x])
 
-    def setOptions(self, **kwargs):
+    def set_options(self, **kwargs):
         for k in kwargs:
             setattr(self, k, kwargs[k])
         return self
 
-    def getMibVariants(self, mibname, **options):
+    def get_mib_variants(self, mibname, **options):
         filenames = []
 
         if self.originalMatching:
@@ -42,5 +42,5 @@ class AbstractReader:
 
         return ((x, x + y) for x in filenames for y in options.get("exts", self.exts))
 
-    def getData(self, filename, **options):
+    def get_data(self, filename, **options):
         raise NotImplementedError()

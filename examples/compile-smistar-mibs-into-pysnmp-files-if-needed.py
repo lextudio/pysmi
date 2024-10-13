@@ -35,17 +35,17 @@ dstDirectory = ".pysnmp-mibs"
 mibCompiler = MibCompiler(SmiStarParser(), PySnmpCodeGen(), PyFileWriter(dstDirectory))
 
 # search for source MIBs here
-mibCompiler.addSources(*[FileReader(x) for x in srcDirectories])
+mibCompiler.add_sources(*[FileReader(x) for x in srcDirectories])
 
 # check compiled MIBs in our own productions
-mibCompiler.addSearchers(PyFileSearcher(dstDirectory))
+mibCompiler.add_searchers(PyFileSearcher(dstDirectory))
 # ...and at default PySNMP MIBs packages
-mibCompiler.addSearchers(
+mibCompiler.add_searchers(
     *[PyPackageSearcher(x) for x in PySnmpCodeGen.defaultMibPackages]
 )
 
 # never recompile MIBs with MACROs
-mibCompiler.addSearchers(StubSearcher(*PySnmpCodeGen.baseMibs))
+mibCompiler.add_searchers(StubSearcher(*PySnmpCodeGen.baseMibs))
 
 # run [possibly recursive] MIB compilation
 results = mibCompiler.compile(*inputMibs)  # , rebuild=True, genTexts=True)

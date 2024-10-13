@@ -7,11 +7,12 @@
 import os
 import sys
 import time
-from pysmi.reader.base import AbstractReader
-from pysmi.mibinfo import MibInfo
-from pysmi.compat import decode
+
 from pysmi import debug
 from pysmi import error
+from pysmi.compat import decode
+from pysmi.mibinfo import MibInfo
+from pysmi.reader.base import AbstractReader
 
 
 class FileReader(AbstractReader):
@@ -41,9 +42,10 @@ class FileReader(AbstractReader):
         self._mibIndex = None
 
     def __str__(self):
+        """Return string representation of the instance."""
         return f'{self.__class__.__name__}{{"{self._path}"}}'
 
-    def getSubdirs(self, path, recursive=True, ignoreErrors=True):
+    def get_subdirs(self, path, recursive=True, ignoreErrors=True):
         if not recursive:
             return [path]
 
@@ -64,19 +66,19 @@ class FileReader(AbstractReader):
         for d in subdirs:
             d = os.path.join(decode(path), decode(d))
             if os.path.isdir(d):
-                dirs.extend(self.getSubdirs(d, recursive))
+                dirs.extend(self.get_subdirs(d, recursive))
 
         return dirs
 
     @staticmethod
-    def loadIndex(indexFile):
+    def load_index(indexFile):
         mibIndex = {}
         if os.path.exists(indexFile):
             try:
                 f = open(indexFile)
                 mibIndex = dict([x.split()[:2] for x in f.readlines()])
                 f.close()
-                debug.logger & debug.flagReader and debug.logger(
+                debug.logger & debug.FLAG_READER and debug.logger(
                     f"loaded MIB index map from {indexFile} file, {len(mibIndex)} entries"
                 )
 
@@ -85,38 +87,38 @@ class FileReader(AbstractReader):
 
         return mibIndex
 
-    def getMibVariants(self, mibname, **options):
+    def get_mib_variants(self, mibname, **options):
         if self.useIndexFile:
             if not self._indexLoaded:
-                self._mibIndex = self.loadIndex(
+                self._mibIndex = self.load_index(
                     os.path.join(self._path, self.indexFile)
                 )
                 self._indexLoaded = True
 
             if mibname in self._mibIndex:
-                debug.logger & debug.flagReader and debug.logger(
+                debug.logger & debug.FLAG_READER and debug.logger(
                     f"found {mibname} in MIB index: {self._mibIndex[mibname]}"
                 )
                 return [(mibname, self._mibIndex[mibname])]
 
-        return super().getMibVariants(mibname, **options)
+        return super().get_mib_variants(mibname, **options)
 
-    def getData(self, mibname, **options):
-        debug.logger & debug.flagReader and debug.logger(
+    def get_data(self, mibname, **options):
+        debug.logger & debug.FLAG_READER and debug.logger(
             f"looking for MIB {mibname}{' recursively' if self._recursive else ''}"
         )
 
-        for path in self.getSubdirs(self._path, self._recursive, self._ignoreErrors):
-            for mibalias, mibfile in self.getMibVariants(mibname, **options):
+        for path in self.get_subdirs(self._path, self._recursive, self._ignoreErrors):
+            for mibalias, mibfile in self.get_mib_variants(mibname, **options):
                 f = os.path.join(decode(path), decode(mibfile))
 
-                debug.logger & debug.flagReader and debug.logger(f"trying MIB {f}")
+                debug.logger & debug.FLAG_READER and debug.logger(f"trying MIB {f}")
 
                 if os.path.exists(f) and os.path.isfile(f):
                     try:
                         mtime = os.stat(f)[8]
 
-                        debug.logger & debug.flagReader and debug.logger(
+                        debug.logger & debug.FLAG_READER and debug.logger(
                             f"source MIB {f} mtime is {time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.gmtime(mtime))}, fetching data..."
                         )
 
@@ -135,7 +137,7 @@ class FileReader(AbstractReader):
                         ), decode(mibData)
 
                     except OSError:
-                        debug.logger & debug.flagReader and debug.logger(
+                        debug.logger & debug.FLAG_READER and debug.logger(
                             f"source file {f} open failure: {sys.exc_info()[1]}"
                         )
 

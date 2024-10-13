@@ -7,13 +7,13 @@
 
 
 class AbstractWriter:
-    def setOptions(self, **kwargs):
+    def set_options(self, **kwargs):
         for k in kwargs:
             setattr(self, k, kwargs[k])
         return self
 
-    def putData(self, mibname, data, comments=(), dryRun=False):
+    def put_data(self, mibname, data, comments=(), dryRun=False):
         raise NotImplementedError()
 
-    def getData(self, filename):
+    def get_data(self, filename):
         raise NotImplementedError()

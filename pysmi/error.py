@@ -22,9 +22,11 @@ class PySmiError(Exception):
             setattr(self, k, kwargs[k])
 
     def __repr__(self):
+        """Return a string representation of the instance."""
         return f"{self.__class__.__name__}({', '.join([f'{k}={getattr(self, k)!r}' for k in dir(self) if k[0] != '_' and k != 'args'] )})"
 
     def __str__(self):
+        """Return a string representation of the instance."""
         return self.msg
 
 
@@ -32,6 +34,7 @@ class PySmiLexerError(PySmiError):
     lineno = "?"
 
     def __str__(self):
+        """Return a string representation of the instance."""
         return f"{self.msg}, line {self.lineno}"
 
 

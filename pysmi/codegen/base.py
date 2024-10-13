@@ -4,8 +4,8 @@
 # Copyright (c) 2015-2020, Ilya Etingof <etingof@gmail.com>
 # License: https://www.pysnmp.com/pysmi/license.html
 #
-import sys
 from keyword import iskeyword
+
 from pysmi import error
 
 # Prefix added to symbols that happen to be Python keywords. The leading
@@ -17,7 +17,7 @@ def dorepr(s):
     return repr(s)
 
 
-def updateDict(d1, d2):
+def update_dict(d1, d2):
     d1.update(d2)
     return d1
 
@@ -226,7 +226,7 @@ class AbstractCodeGen:
     convertImportv2 = {
         "RFC1065-SMI": commonSyms["RFC1155-SMI/RFC1065-SMI"],
         "RFC1155-SMI": commonSyms["RFC1155-SMI/RFC1065-SMI"],
-        "RFC1158-MIB": updateDict(
+        "RFC1158-MIB": update_dict(
             dict(commonSyms["RFC1158-MIB/RFC1213-MIB"]),
             (
                 ("nullSpecific", [("SNMPv2-SMI", "zeroDotZero")]),
@@ -270,7 +270,7 @@ class AbstractCodeGen:
         ),
         "RFC-1212": {"OBJECT-TYPE": [("SNMPv2-SMI", "OBJECT-TYPE")]},
         # XXX 'IndexSyntax': ???
-        "RFC1213-MIB": updateDict(
+        "RFC1213-MIB": update_dict(
             dict(commonSyms["RFC1158-MIB/RFC1213-MIB"]),
             (("PhysAddress", [("SNMPv2-TC", "PhysAddress")]),),
         ),
@@ -284,28 +284,28 @@ class AbstractCodeGen:
     fakeIdxPrefix = "pysmiFakeCol"
     fakeIdxNumber = 1
 
-    def genCode(self, ast, symbolTable, **kwargs):
+    def gen_code(self, ast, symbolTable, **kwargs):
         raise NotImplementedError()
 
-    def genIndex(self, mibsMap, **kwargs):
+    def gen_index(self, mibsMap, **kwargs):
         raise NotImplementedError()
 
     @staticmethod
-    def isBinary(s):
+    def is_binary(s):
         return isinstance(s, str) and s[0] == "'" and s[-2:] in ("'b", "'B")
 
     @staticmethod
-    def isHex(s):
+    def is_hex(s):
         return isinstance(s, str) and s[0] == "'" and s[-2:] in ("'h", "'H")
 
     def str2int(self, s):
-        if self.isBinary(s):
+        if self.is_binary(s):
             if s[1:-2]:
                 return int(s[1:-2], 2)
             else:
                 raise error.PySmiSemanticError("empty binary string to int conversion")
 
-        elif self.isHex(s):
+        elif self.is_hex(s):
             if s[1:-2]:
                 return int(s[1:-2], 16)
             else:
@@ -314,7 +314,7 @@ class AbstractCodeGen:
             return int(s)
 
     @staticmethod
-    def transOpers(symbol):
+    def trans_opers(symbol):
         if iskeyword(symbol):
             symbol = RESERVED_KEYWORDS_PREFIX + symbol
         return symbol.replace("-", "_")

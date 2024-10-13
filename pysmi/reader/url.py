@@ -4,17 +4,16 @@
 # Copyright (c) 2015-2020, Ilya Etingof <etingof@gmail.com>
 # License: https://www.pysnmp.com/pysmi/license.html
 #
-import sys
-
 from urllib import parse as urlparse
 from urllib.request import url2pathname
+
+from pysmi import error
+from pysmi.reader.httpclient import HttpReader
 from pysmi.reader.localfile import FileReader
 from pysmi.reader.zipreader import ZipReader
-from pysmi.reader.httpclient import HttpReader
-from pysmi import error
 
 
-def getReadersFromUrls(*sourceUrls, **options):
+def get_readers_from_urls(*sourceUrls, **options):
     readers = []
     for sourceUrl in sourceUrls:
         mibSource = urlparse.urlparse(sourceUrl)
@@ -31,12 +30,12 @@ def getReadersFromUrls(*sourceUrls, **options):
                 scheme = "file"
 
             if scheme == "file":
-                readers.append(FileReader(filePath).setOptions(**options))
+                readers.append(FileReader(filePath).set_options(**options))
             else:
-                readers.append(ZipReader(filePath).setOptions(**options))
+                readers.append(ZipReader(filePath).set_options(**options))
 
         elif mibSource.scheme in ("http", "https"):
-            readers.append(HttpReader(sourceUrl).setOptions(**options))
+            readers.append(HttpReader(sourceUrl).set_options(**options))
 
         else:
             raise error.PySmiError(f"Unsupported URL scheme {sourceUrl}")

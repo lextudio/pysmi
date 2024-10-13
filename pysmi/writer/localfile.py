@@ -7,10 +7,11 @@
 import os
 import sys
 import tempfile
-from pysmi.writer.base import AbstractWriter
-from pysmi.compat import encode, decode
+
 from pysmi import debug
 from pysmi import error
+from pysmi.compat import decode, encode
+from pysmi.writer.base import AbstractWriter
 
 
 class FileWriter(AbstractWriter):
@@ -31,9 +32,10 @@ class FileWriter(AbstractWriter):
         self._path = decode(os.path.normpath(path))
 
     def __str__(self):
+        """Return a string representation of the instance."""
         return f'{self.__class__.__name__}{{"{self._path}"}}'
 
-    def getData(self, mibname, dryRun=False):
+    def get_data(self, mibname, dryRun=False):
         filename = os.path.join(self._path, decode(mibname)) + self.suffix
 
         f = None
@@ -49,9 +51,9 @@ class FileWriter(AbstractWriter):
                 f.close()
             return ""
 
-    def putData(self, mibname, data, comments=(), dryRun=False):
+    def put_data(self, mibname, data, comments=(), dryRun=False):
         if dryRun:
-            debug.logger & debug.flagWriter and debug.logger("dry run mode")
+            debug.logger & debug.FLAG_WRITER and debug.logger("dry run mode")
             return
 
         if not os.path.exists(self._path):
@@ -90,6 +92,6 @@ class FileWriter(AbstractWriter):
                 f"failure writing file {filename}: {exc[1]}", file=filename, writer=self
             )
 
-        debug.logger & debug.flagWriter and debug.logger(
+        debug.logger & debug.FLAG_WRITER and debug.logger(
             f"{mibname} stored in {filename}"
         )

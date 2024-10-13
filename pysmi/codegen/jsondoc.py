@@ -4,23 +4,20 @@
 # Copyright (c) 2015-2020, Ilya Etingof <etingof@gmail.com>
 # License: https://www.pysnmp.com/pysmi/license.html
 #
-import sys
 import os
+import sys
+from collections import OrderedDict
+
+
+import jinja2
+from pysmi import debug, error
+from pysmi.codegen import jfilters
+from pysmi.codegen.intermediate import IntermediateCodeGen
 
 try:
     import json
 except ImportError:
     import simplejson as json
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
-from pysmi.codegen.intermediate import IntermediateCodeGen
-from pysmi.codegen import jfilters
-from pysmi import error
-from pysmi import debug
-
-import jinja2
 
 
 class JsonCodeGen(IntermediateCodeGen):
@@ -35,8 +32,10 @@ class JsonCodeGen(IntermediateCodeGen):
 
     TEMPLATE_NAME = "jsondoc/base.j2"
 
-    def genCode(self, ast, symbolTable, **kwargs):
-        mibInfo, context = IntermediateCodeGen.genCode(self, ast, symbolTable, **kwargs)
+    def gen_code(self, ast, symbolTable, **kwargs):
+        mibInfo, context = IntermediateCodeGen.gen_code(
+            self, ast, symbolTable, **kwargs
+        )
 
         # TODO: reduce code duplication with the other codegens
 
@@ -62,14 +61,14 @@ class JsonCodeGen(IntermediateCodeGen):
             err = sys.exc_info()[1]
             raise error.PySmiCodegenError(f"Jinja template rendering error: {err}")
 
-        debug.logger & debug.flagCodegen and debug.logger(
+        debug.logger & debug.FLAG_CODEGEN and debug.logger(
             f"canonical MIB name {mibInfo.name} ({mibInfo.identity}), imported MIB(s) {','.join(mibInfo.imported) or '<none>'}, rendered from {dstTemplate}, JSON document size {len(text)} bytes"
         )
 
         return mibInfo, text
 
     # TODO: move this to a template
-    def genIndex(self, processed, **kwargs):
+    def gen_index(self, processed, **kwargs):
         outDict = {
             "meta": {},
             "identity": {},
@@ -154,7 +153,7 @@ class JsonCodeGen(IntermediateCodeGen):
         if "comments" in kwargs:
             outDict["meta"]["comments"] = kwargs["comments"]
 
-        debug.logger & debug.flagCodegen and debug.logger(
+        debug.logger & debug.FLAG_CODEGEN and debug.logger(
             f"OID->MIB index built, {len(processed)} entries"
         )
 

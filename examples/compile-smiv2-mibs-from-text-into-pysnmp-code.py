@@ -32,10 +32,10 @@ mibCompiler = MibCompiler(
 )
 
 # our own callback function serves as a MIB source here
-mibCompiler.addSources(CallbackReader(lambda m, c: open(srcDir + m + ".txt").read()))
+mibCompiler.add_sources(CallbackReader(lambda m, c: open(srcDir + m + ".txt").read()))
 
 # never recompile MIBs with MACROs
-mibCompiler.addSearchers(StubSearcher(*PySnmpCodeGen.baseMibs))
+mibCompiler.add_searchers(StubSearcher(*PySnmpCodeGen.baseMibs))
 
 # run non-recursive MIB compilation
 results = mibCompiler.compile(*inputMibs, **dict(noDeps=True))

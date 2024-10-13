@@ -5,19 +5,17 @@
 # License: https://www.pysnmp.com/pysmi/license.html
 #
 import sys
+
+from pysmi import debug, error
 from pysmi.writer.base import AbstractWriter
-from pysmi import debug
-from pysmi import error
 
 
 class CallbackWriter(AbstractWriter):
-    """Invokes user-specified callable and passes transformed
-    MIB module to it.
+    """Invokes user-specified callable and passes transformed MIB module to it.
 
     Note: user callable object signature must be as follows
 
     .. function:: cbFun(mibname, contents, cbCtx)
-
     """
 
     def __init__(self, cbFun, cbCtx=None):
@@ -32,11 +30,12 @@ class CallbackWriter(AbstractWriter):
         self._cbCtx = cbCtx
 
     def __str__(self):
+        """Return a string representation of the instance."""
         return f'{self.__class__.__name__}{{"{self._cbFun}"}}'
 
-    def putData(self, mibname, data, comments=(), dryRun=False):
+    def put_data(self, mibname, data, comments=(), dryRun=False):
         if dryRun:
-            debug.logger & debug.flagWriter and debug.logger("dry run mode")
+            debug.logger & debug.FLAG_WRITER and debug.logger("dry run mode")
             return
 
         try:
@@ -48,9 +47,9 @@ class CallbackWriter(AbstractWriter):
                 writer=self,
             )
 
-        debug.logger & debug.flagWriter and debug.logger(
+        debug.logger & debug.FLAG_WRITER and debug.logger(
             f"user callback for {mibname} succeeded"
         )
 
-    def getData(self, filename):
+    def get_data(self, filename):
         return ""

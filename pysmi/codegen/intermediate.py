@@ -4,18 +4,14 @@
 # Copyright (c) 2015-2019, Ilya Etingof <etingof@gmail.com>
 # License: https://www.pysnmp.com/pysmi/license.html
 #
-import sys
 import re
-from time import strptime, strftime
+import sys
+from collections import OrderedDict
+from time import strftime, strptime
 
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
-from pysmi.mibinfo import MibInfo
+from pysmi import config, debug, error
 from pysmi.codegen.base import AbstractCodeGen
-from pysmi import config, error
-from pysmi import debug
+from pysmi.mibinfo import MibInfo
 
 if sys.version_info[0] > 2:
     unicode = str
@@ -83,7 +79,7 @@ class IntermediateCodeGen(AbstractCodeGen):
         self.genRules = {"text": True}
         self.symbolTable = {}
 
-    def prepData(self, pdata):
+    def prep_data(self, pdata):
         data = []
         for el in pdata:
             if not isinstance(el, tuple):
@@ -91,10 +87,10 @@ class IntermediateCodeGen(AbstractCodeGen):
             elif len(el) == 1:
                 data.append(el[0])
             else:
-                data.append(self.handlersTable[el[0]](self, self.prepData(el[1:])))
+                data.append(self.handlersTable[el[0]](self, self.prep_data(el[1:])))
         return data
 
-    def genImports(self, imports):
+    def gen_imports(self, imports):
         # convertion to SNMPv2
         toDel = []
         for module in list(imports):
@@ -130,8 +126,8 @@ class IntermediateCodeGen(AbstractCodeGen):
                 symbols.append(symbol)
 
             if symbols:
-                self._seenSyms.update([self.transOpers(s) for s in symbols])
-                self._importMap.update([(self.transOpers(s), module) for s in symbols])
+                self._seenSyms.update([self.trans_opers(s) for s in symbols])
+                self._importMap.update([(self.trans_opers(s), module) for s in symbols])
                 if module not in outDict:
                     outDict[module] = []
 
@@ -139,11 +135,11 @@ class IntermediateCodeGen(AbstractCodeGen):
 
         return OrderedDict(imports=outDict), tuple(sorted(imports))
 
-    def addToExports(self, symbol, moduleIdentity=0):
+    def add_to_exports(self, symbol, moduleIdentity=0):
         self._seenSyms.add(symbol)
 
     # noinspection PyUnusedLocal
-    def regSym(
+    def reg_sym(
         self,
         symbol,
         outDict,
@@ -154,7 +150,7 @@ class IntermediateCodeGen(AbstractCodeGen):
         if symbol in self._seenSyms and symbol not in self._importMap:
             raise error.PySmiSemanticError(f"Duplicate symbol found: {symbol}")
 
-        self.addToExports(symbol, moduleIdentity)
+        self.add_to_exports(symbol, moduleIdentity)
         self._out[symbol] = outDict
 
         if "oid" in outDict:
@@ -175,7 +171,7 @@ class IntermediateCodeGen(AbstractCodeGen):
             if moduleCompliance:
                 self._complianceOids.append(outDict["oid"])
 
-    def genNumericOid(self, oid):
+    def gen_numeric_oid(self, oid):
         numericOid = ()
 
         for part in oid:
@@ -195,7 +191,7 @@ class IntermediateCodeGen(AbstractCodeGen):
                     raise error.PySmiSemanticError(
                         f'no symbol "{parent}" in module "{module}"'
                     )
-                numericOid += self.genNumericOid(
+                numericOid += self.gen_numeric_oid(
                     self.symbolTable[module][parent]["oid"]
                 )
 
@@ -204,7 +200,7 @@ class IntermediateCodeGen(AbstractCodeGen):
 
         return numericOid
 
-    def getBaseType(self, symName, module):
+    def get_base_type(self, symName, module):
         if module not in self.symbolTable:
             raise error.PySmiSemanticError(f'no module "{module}" in symbolTable')
 
@@ -223,7 +219,7 @@ class IntermediateCodeGen(AbstractCodeGen):
             return symType, symSubtype
 
         else:
-            baseSymType, baseSymSubtype = self.getBaseType(*symType)
+            baseSymType, baseSymSubtype = self.get_base_type(*symType)
             if isinstance(baseSymSubtype, list):
                 if isinstance(symSubtype, list):
                     symSubtype += baseSymSubtype
@@ -235,10 +231,10 @@ class IntermediateCodeGen(AbstractCodeGen):
     # Clause generation functions
 
     # noinspection PyUnusedLocal
-    def genAgentCapabilities(self, data):
+    def gen_agent_capabilities(self, data):
         name, productRelease, status, description, reference, oid = data
 
-        pysmiName = self.transOpers(name)
+        pysmiName = self.trans_opers(name)
 
         oidStr, parentOid = oid
 
@@ -259,15 +255,15 @@ class IntermediateCodeGen(AbstractCodeGen):
         if self.genRules["text"] and reference:
             outDict["reference"] = reference
 
-        self.regSym(pysmiName, outDict, parentOid)
+        self.reg_sym(pysmiName, outDict, parentOid)
 
         return outDict
 
     # noinspection PyUnusedLocal
-    def genModuleIdentity(self, data):
+    def gen_module_identity(self, data):
         name, lastUpdated, organization, contactInfo, description, revisions, oid = data
 
-        pysmiName = self.transOpers(name)
+        pysmiName = self.trans_opers(name)
 
         oidStr, parentOid = oid
 
@@ -291,15 +287,15 @@ class IntermediateCodeGen(AbstractCodeGen):
             if description:
                 outDict["description"] = description
 
-        self.regSym(pysmiName, outDict, parentOid, moduleIdentity=True)
+        self.reg_sym(pysmiName, outDict, parentOid, moduleIdentity=True)
 
         return outDict
 
     # noinspection PyUnusedLocal
-    def genModuleCompliance(self, data):
+    def gen_module_compliance(self, data):
         name, status, description, reference, compliances, oid = data
 
-        pysmiName = self.transOpers(name)
+        pysmiName = self.trans_opers(name)
 
         oidStr, parentOid = oid
 
@@ -320,15 +316,15 @@ class IntermediateCodeGen(AbstractCodeGen):
         if self.genRules["text"] and reference:
             outDict["reference"] = reference
 
-        self.regSym(pysmiName, outDict, parentOid, moduleCompliance=True)
+        self.reg_sym(pysmiName, outDict, parentOid, moduleCompliance=True)
 
         return outDict
 
     # noinspection PyUnusedLocal
-    def genNotificationGroup(self, data):
+    def gen_notification_group(self, data):
         name, objects, status, description, reference, oid = data
 
-        pysmiName = self.transOpers(name)
+        pysmiName = self.trans_opers(name)
 
         oidStr, parentOid = oid
         outDict = OrderedDict()
@@ -340,7 +336,7 @@ class IntermediateCodeGen(AbstractCodeGen):
             outDict["objects"] = [
                 {
                     "module": self._importMap.get(obj, self.moduleName[0]),
-                    "object": self.transOpers(obj),
+                    "object": self.trans_opers(obj),
                 }
                 for obj in objects
             ]
@@ -354,15 +350,15 @@ class IntermediateCodeGen(AbstractCodeGen):
         if self.genRules["text"] and reference:
             outDict["reference"] = reference
 
-        self.regSym(pysmiName, outDict, parentOid)
+        self.reg_sym(pysmiName, outDict, parentOid)
 
         return outDict
 
     # noinspection PyUnusedLocal
-    def genNotificationType(self, data):
+    def gen_notification_type(self, data):
         name, objects, status, description, reference, oid = data
 
-        pysmiName = self.transOpers(name)
+        pysmiName = self.trans_opers(name)
 
         oidStr, parentOid = oid
         outDict = OrderedDict()
@@ -374,7 +370,7 @@ class IntermediateCodeGen(AbstractCodeGen):
             outDict["objects"] = [
                 {
                     "module": self._importMap.get(obj, self.moduleName[0]),
-                    "object": self.transOpers(obj),
+                    "object": self.trans_opers(obj),
                 }
                 for obj in objects
             ]
@@ -388,15 +384,15 @@ class IntermediateCodeGen(AbstractCodeGen):
         if self.genRules["text"] and reference:
             outDict["reference"] = reference
 
-        self.regSym(pysmiName, outDict, parentOid)
+        self.reg_sym(pysmiName, outDict, parentOid)
 
         return outDict
 
     # noinspection PyUnusedLocal
-    def genObjectGroup(self, data):
+    def gen_object_group(self, data):
         name, objects, status, description, reference, oid = data
 
-        pysmiName = self.transOpers(name)
+        pysmiName = self.trans_opers(name)
 
         oidStr, parentOid = oid
         outDict = OrderedDict({"name": name, "oid": oidStr, "class": "objectgroup"})
@@ -405,7 +401,7 @@ class IntermediateCodeGen(AbstractCodeGen):
             outDict["objects"] = [
                 {
                     "module": self._importMap.get(obj, self.moduleName[0]),
-                    "object": self.transOpers(obj),
+                    "object": self.trans_opers(obj),
                 }
                 for obj in objects
             ]
@@ -419,15 +415,15 @@ class IntermediateCodeGen(AbstractCodeGen):
         if self.genRules["text"] and reference:
             outDict["reference"] = reference
 
-        self.regSym(pysmiName, outDict, parentOid)
+        self.reg_sym(pysmiName, outDict, parentOid)
 
         return outDict
 
     # noinspection PyUnusedLocal
-    def genObjectIdentity(self, data):
+    def gen_object_identity(self, data):
         name, status, description, reference, oid = data
 
-        pysmiName = self.transOpers(name)
+        pysmiName = self.trans_opers(name)
 
         oidStr, parentOid = oid
 
@@ -445,12 +441,12 @@ class IntermediateCodeGen(AbstractCodeGen):
         if self.genRules["text"] and reference:
             outDict["reference"] = reference
 
-        self.regSym(pysmiName, outDict, parentOid)
+        self.reg_sym(pysmiName, outDict, parentOid)
 
         return outDict
 
     # noinspection PyUnusedLocal
-    def genObjectType(self, data):
+    def gen_object_type(self, data):
         (
             name,
             syntax,
@@ -465,12 +461,12 @@ class IntermediateCodeGen(AbstractCodeGen):
             oid,
         ) = data
 
-        pysmiName = self.transOpers(name)
+        pysmiName = self.trans_opers(name)
 
         oidStr, parentOid = oid
         indexStr, fakeSyms, fakeSymDicts = index or ("", [], [])
 
-        defval = self.genDefVal(defval, objname=pysmiName)
+        defval = self.gen_def_val(defval, objname=pysmiName)
 
         outDict = OrderedDict()
         outDict["name"] = name
@@ -502,7 +498,7 @@ class IntermediateCodeGen(AbstractCodeGen):
         if self.genRules["text"] and reference:
             outDict["reference"] = reference
         if augmention:
-            augmention = self.transOpers(augmention)
+            augmention = self.trans_opers(augmention)
             outDict["augmention"] = OrderedDict()
             outDict["augmention"]["name"] = name
             outDict["augmention"]["module"] = self.moduleName[0]
@@ -513,19 +509,19 @@ class IntermediateCodeGen(AbstractCodeGen):
         if self.genRules["text"] and description:
             outDict["description"] = description
 
-        self.regSym(pysmiName, outDict, parentOid)
+        self.reg_sym(pysmiName, outDict, parentOid)
 
         for fakeSym, fakeSymDict in zip(fakeSyms, fakeSymDicts):
             fakeSymDict["oid"] = f"{oidStr}.{fakeSymDict['oid']}"
-            self.regSym(fakeSym, fakeSymDict, pysmiName)
+            self.reg_sym(fakeSym, fakeSymDict, pysmiName)
 
         return outDict
 
     # noinspection PyUnusedLocal
-    def genTrapType(self, data):
+    def gen_trap_type(self, data):
         name, enterprise, variables, description, reference, value = data
 
-        pysmiName = self.transOpers(name)
+        pysmiName = self.trans_opers(name)
 
         enterpriseStr, parentOid = enterprise
 
@@ -538,7 +534,7 @@ class IntermediateCodeGen(AbstractCodeGen):
             outDict["objects"] = [
                 {
                     "module": self._importMap.get(obj, self.moduleName[0]),
-                    "object": self.transOpers(obj),
+                    "object": self.trans_opers(obj),
                 }
                 for obj in variables
             ]
@@ -549,12 +545,12 @@ class IntermediateCodeGen(AbstractCodeGen):
         if self.genRules["text"] and reference:
             outDict["reference"] = reference
 
-        self.regSym(pysmiName, outDict, parentOid)
+        self.reg_sym(pysmiName, outDict, parentOid)
 
         return outDict
 
     # noinspection PyUnusedLocal
-    def genTypeDeclaration(self, data):
+    def gen_type_declaration(self, data):
         name, declaration = data
 
         outDict = OrderedDict()
@@ -564,17 +560,17 @@ class IntermediateCodeGen(AbstractCodeGen):
         if declaration:
             parentType, attrs = declaration
             if parentType:  # skipping SEQUENCE case
-                pysmiName = self.transOpers(name)
+                pysmiName = self.trans_opers(name)
                 outDict.update(attrs)
-                self.regSym(pysmiName, outDict)
+                self.reg_sym(pysmiName, outDict)
 
         return outDict
 
     # noinspection PyUnusedLocal
-    def genValueDeclaration(self, data):
+    def gen_value_declaration(self, data):
         name, oid = data
 
-        pysmiName = self.transOpers(name)
+        pysmiName = self.trans_opers(name)
 
         oidStr, parentOid = oid
         outDict = OrderedDict()
@@ -582,18 +578,18 @@ class IntermediateCodeGen(AbstractCodeGen):
         outDict["oid"] = oidStr
         outDict["class"] = "objectidentity"
 
-        self.regSym(pysmiName, outDict, parentOid)
+        self.reg_sym(pysmiName, outDict, parentOid)
 
         return outDict
 
     # Subparts generation functions
 
     # noinspection PyMethodMayBeStatic,PyUnusedLocal
-    def genBitNames(self, data):
+    def gen_bit_names(self, data):
         names = data[0]
         return names
 
-    def genBits(self, data):
+    def gen_bits(self, data):
         bits = data[0]
 
         outDict = OrderedDict()
@@ -607,20 +603,20 @@ class IntermediateCodeGen(AbstractCodeGen):
         return "scalar", outDict
 
     # noinspection PyUnusedLocal
-    def genCompliances(self, data):
+    def gen_compliances(self, data):
         compliances = []
 
         for complianceModule in data[0]:
             name = complianceModule[0] or self.moduleName[0]
             compliances += [
-                {"object": self.transOpers(compl), "module": name}
+                {"object": self.trans_opers(compl), "module": name}
                 for compl in complianceModule[1]
             ]
 
         return compliances
 
     # noinspection PyUnusedLocal
-    def genConceptualTable(self, data):
+    def gen_conceptual_table(self, data):
         row = data[0]
 
         if row[1] and row[1][-2:] == "()":
@@ -630,16 +626,16 @@ class IntermediateCodeGen(AbstractCodeGen):
         return "table", ""
 
     # noinspection PyMethodMayBeStatic,PyUnusedLocal
-    def genContactInfo(self, data):
+    def gen_contact_info(self, data):
         text = data[0]
         return self.textFilter("contact-info", text)
 
     # noinspection PyUnusedLocal
-    def genDisplayHint(self, data):
+    def gen_display_hint(self, data):
         return data[0]
 
     # noinspection PyUnusedLocal
-    def genDefVal(self, data, objname=None):
+    def gen_def_val(self, data, objname=None):
         if not data:
             return {}
 
@@ -647,14 +643,14 @@ class IntermediateCodeGen(AbstractCodeGen):
             return data
 
         defval = data[0]
-        defvalType = self.getBaseType(objname, self.moduleName[0])
+        defvalType = self.get_base_type(objname, self.moduleName[0])
 
         outDict = OrderedDict(basetype=defvalType[0][0])
 
         if isinstance(defval, (int, long)):  # number
             outDict.update(value=defval, format="decimal")
 
-        elif self.isHex(defval):  # hex
+        elif self.is_hex(defval):  # hex
             # common bug in MIBs
             if defvalType[0][0] in ("Integer32", "Integer"):
                 outDict.update(
@@ -665,7 +661,7 @@ class IntermediateCodeGen(AbstractCodeGen):
             else:
                 outDict.update(value=defval[1:-2], format="hex")
 
-        elif self.isBinary(defval):  # binary
+        elif self.is_binary(defval):  # binary
             binval = defval[1:-2]
 
             # common bug in MIBs
@@ -696,7 +692,7 @@ class IntermediateCodeGen(AbstractCodeGen):
 
                 try:
                     val = str(
-                        self.genNumericOid(self.symbolTable[module][defval]["oid"])
+                        self.gen_numeric_oid(self.symbolTable[module][defval]["oid"])
                     )
 
                     outDict.update(value=val, format="oid")
@@ -736,7 +732,7 @@ class IntermediateCodeGen(AbstractCodeGen):
                             f'no such bit as "{bit}" for symbol "{objname}"'
                         )
 
-                outDict.update(value=self.genBits([defvalBits])[1], format="bits")
+                outDict.update(value=self.gen_bits([defvalBits])[1], format="bits")
 
             else:
                 raise error.PySmiSemanticError(
@@ -746,27 +742,27 @@ class IntermediateCodeGen(AbstractCodeGen):
         return {"default": outDict}
 
     # noinspection PyMethodMayBeStatic
-    def genDescription(self, data):
+    def gen_description(self, data):
         return self.textFilter("description", data[0])
 
     # noinspection PyMethodMayBeStatic
-    def genReference(self, data):
+    def gen_reference(self, data):
         return self.textFilter("reference", data[0])
 
     # noinspection PyMethodMayBeStatic
-    def genStatus(self, data):
+    def gen_status(self, data):
         return data[0]
 
-    def genProductRelease(self, data):
+    def gen_product_release(self, data):
         return data[0]
 
-    def genEnumSpec(self, data):
+    def gen_enum_spec(self, data):
         items = data[0]
         return {"enumeration": dict(items)}
 
     # noinspection PyUnusedLocal
-    def genTableIndex(self, data):
-        def genFakeSymDict(fakeSym, fakeOidSuffix, idxType):
+    def gen_table_index(self, data):
+        def gen_fake_sym_dict(fakeSym, fakeOidSuffix, idxType):
             syntaxDict = OrderedDict()
             syntaxDict["type"] = self.SMI_TYPES.get(idxType, idxType)
             syntaxDict["class"] = "type"
@@ -795,7 +791,7 @@ class IntermediateCodeGen(AbstractCodeGen):
             if idxName in self.smiv1IdxTypes:  # SMIv1 support
                 idxType = idxName
                 idxName = self.fakeIdxPrefix + str(self.fakeIdxNumber)
-                fakeSymDict = genFakeSymDict(idxName, fakeOidSuffix, idxType)
+                fakeSymDict = gen_fake_sym_dict(idxName, fakeOidSuffix, idxType)
                 fakeSyms.append(idxName)
                 fakeSymDicts.append(fakeSymDict)
                 self.fakeIdxNumber += 1
@@ -809,7 +805,7 @@ class IntermediateCodeGen(AbstractCodeGen):
 
         return idxStrlist, fakeSyms, fakeSymDicts
 
-    def genIntegerSubType(self, data):
+    def gen_integer_subtype(self, data):
         ranges = []
         for rng in data[0]:
             vmin, vmax = len(rng) == 1 and (rng[0], rng[0]) or rng
@@ -822,10 +818,10 @@ class IntermediateCodeGen(AbstractCodeGen):
         return {"range": ranges}
 
     # noinspection PyMethodMayBeStatic,PyUnusedLocal
-    def genMaxAccess(self, data):
+    def gen_max_access(self, data):
         return data[0]
 
-    def genOctetStringSubType(self, data):
+    def gen_octetstring_subtype(self, data):
         sizes = []
         for rng in data[0]:
             vmin, vmax = len(rng) == 1 and (rng[0], rng[0]) or rng
@@ -839,12 +835,12 @@ class IntermediateCodeGen(AbstractCodeGen):
         return {"size": sizes}
 
     # noinspection PyUnusedLocal
-    def genOid(self, data):
+    def gen_oid(self, data):
         out = ()
         parent = ""
         for el in data[0]:
             if isinstance(el, (str, unicode)):
-                parent = self.transOpers(el)
+                parent = self.trans_opers(el)
                 out += ((parent, self._importMap.get(parent, self.moduleName[0])),)
 
             elif isinstance(el, (int, long)):
@@ -856,18 +852,18 @@ class IntermediateCodeGen(AbstractCodeGen):
             else:
                 raise error.PySmiSemanticError(f"unknown datatype for OID: {el}")
 
-        return ".".join([str(x) for x in self.genNumericOid(out)]), parent
+        return ".".join([str(x) for x in self.gen_numeric_oid(out)]), parent
 
     # noinspection PyUnusedLocal
-    def genObjects(self, data):
+    def gen_objects(self, data):
         if data[0]:
             return [
-                self.transOpers(obj) for obj in data[0]
+                self.trans_opers(obj) for obj in data[0]
             ]  # XXX self.transOpers or not??
         return []
 
     # noinspection PyMethodMayBeStatic,PyUnusedLocal
-    def genTime(self, data):
+    def gen_time(self, data):
         times = []
         for timeStr in data:
             if len(timeStr) == 11:
@@ -892,43 +888,43 @@ class IntermediateCodeGen(AbstractCodeGen):
         return times
 
     # noinspection PyMethodMayBeStatic,PyUnusedLocal
-    def genLastUpdated(self, data):
+    def gen_last_updated(self, data):
         return data[0]
 
     # noinspection PyMethodMayBeStatic,PyUnusedLocal
-    def genOrganization(self, data):
+    def gen_organization(self, data):
         return self.textFilter("organization", data[0])
 
     # noinspection PyUnusedLocal
-    def genRevisions(self, data):
+    def gen_revisions(self, data):
         revisions = []
         for x in data[0]:
             revision = OrderedDict()
-            revision["revision"] = self.genTime([x[0]])[0]
+            revision["revision"] = self.gen_time([x[0]])[0]
             revision["description"] = self.textFilter("description", x[1][1])
             revisions.append(revision)
         return revisions
 
-    def genRow(self, data):
+    def gen_row(self, data):
         row = data[0]
-        row = self.transOpers(row)
+        row = self.trans_opers(row)
 
         return (
             row in self.symbolTable[self.moduleName[0]]["_symtable_rows"]
             and ("row", "")
-            or self.genSimpleSyntax(data)
+            or self.gen_simple_syntax(data)
         )
 
     # noinspection PyUnusedLocal
-    def genSequence(self, data):
+    def gen_sequence(self, data):
         cols = data[0]
         self._cols.update(cols)
         return "", ""
 
-    def genSimpleSyntax(self, data):
+    def gen_simple_syntax(self, data):
         objType = data[0]
         objType = self.SMI_TYPES.get(objType, objType)
-        objType = self.transOpers(objType)
+        objType = self.trans_opers(objType)
 
         subtype = len(data) == 2 and data[1] or {}
 
@@ -942,7 +938,7 @@ class IntermediateCodeGen(AbstractCodeGen):
         return "scalar", outDict
 
     # noinspection PyUnusedLocal
-    def genTypeDeclarationRHS(self, data):
+    def gen_type_declaration_rhs(self, data):
         if len(data) == 1:
             parentType, attrs = data[0]
 
@@ -972,51 +968,51 @@ class IntermediateCodeGen(AbstractCodeGen):
         return parentType, outDict
 
     # noinspection PyMethodMayBeStatic,PyUnusedLocal
-    def genUnits(self, data):
+    def gen_units(self, data):
         text = data[0]
         return self.textFilter("units", text)
 
     handlersTable = {
-        "agentCapabilitiesClause": genAgentCapabilities,
-        "moduleIdentityClause": genModuleIdentity,
-        "moduleComplianceClause": genModuleCompliance,
-        "notificationGroupClause": genNotificationGroup,
-        "notificationTypeClause": genNotificationType,
-        "objectGroupClause": genObjectGroup,
-        "objectIdentityClause": genObjectIdentity,
-        "objectTypeClause": genObjectType,
-        "trapTypeClause": genTrapType,
-        "typeDeclaration": genTypeDeclaration,
-        "valueDeclaration": genValueDeclaration,
-        "PRODUCT-RELEASE": genProductRelease,
-        "ApplicationSyntax": genSimpleSyntax,
-        "BitNames": genBitNames,
-        "BITS": genBits,
-        "ComplianceModules": genCompliances,
-        "conceptualTable": genConceptualTable,
-        "CONTACT-INFO": genContactInfo,
-        "DISPLAY-HINT": genDisplayHint,
-        "DEFVAL": genDefVal,
-        "DESCRIPTION": genDescription,
-        "REFERENCE": genReference,
-        "Status": genStatus,
-        "enumSpec": genEnumSpec,
-        "INDEX": genTableIndex,
-        "integerSubType": genIntegerSubType,
-        "MaxAccessPart": genMaxAccess,
-        "Notifications": genObjects,
-        "octetStringSubType": genOctetStringSubType,
-        "objectIdentifier": genOid,
-        "Objects": genObjects,
-        "LAST-UPDATED": genLastUpdated,
-        "ORGANIZATION": genOrganization,
-        "Revisions": genRevisions,
-        "row": genRow,
-        "SEQUENCE": genSequence,
-        "SimpleSyntax": genSimpleSyntax,
-        "typeDeclarationRHS": genTypeDeclarationRHS,
-        "UNITS": genUnits,
-        "VarTypes": genObjects,
+        "agentCapabilitiesClause": gen_agent_capabilities,
+        "moduleIdentityClause": gen_module_identity,
+        "moduleComplianceClause": gen_module_compliance,
+        "notificationGroupClause": gen_notification_group,
+        "notificationTypeClause": gen_notification_type,
+        "objectGroupClause": gen_object_group,
+        "objectIdentityClause": gen_object_identity,
+        "objectTypeClause": gen_object_type,
+        "trapTypeClause": gen_trap_type,
+        "typeDeclaration": gen_type_declaration,
+        "valueDeclaration": gen_value_declaration,
+        "PRODUCT-RELEASE": gen_product_release,
+        "ApplicationSyntax": gen_simple_syntax,
+        "BitNames": gen_bit_names,
+        "BITS": gen_bits,
+        "ComplianceModules": gen_compliances,
+        "conceptualTable": gen_conceptual_table,
+        "CONTACT-INFO": gen_contact_info,
+        "DISPLAY-HINT": gen_display_hint,
+        "DEFVAL": gen_def_val,
+        "DESCRIPTION": gen_description,
+        "REFERENCE": gen_reference,
+        "Status": gen_status,
+        "enumSpec": gen_enum_spec,
+        "INDEX": gen_table_index,
+        "integerSubType": gen_integer_subtype,
+        "MaxAccessPart": gen_max_access,
+        "Notifications": gen_objects,
+        "octetStringSubType": gen_octetstring_subtype,
+        "objectIdentifier": gen_oid,
+        "Objects": gen_objects,
+        "LAST-UPDATED": gen_last_updated,
+        "ORGANIZATION": gen_organization,
+        "Revisions": gen_revisions,
+        "row": gen_row,
+        "SEQUENCE": gen_sequence,
+        "SimpleSyntax": gen_simple_syntax,
+        "typeDeclarationRHS": gen_type_declaration_rhs,
+        "UNITS": gen_units,
+        "VarTypes": gen_objects,
         # 'a': lambda x: genXXX(x, 'CONSTRAINT')
     }
 
@@ -1025,7 +1021,7 @@ class IntermediateCodeGen(AbstractCodeGen):
     # The other thing is index data - may be we should
     # have it prepared at the intermediate stage...?
 
-    def genCode(self, ast, symbolTable, **kwargs):
+    def gen_code(self, ast, symbolTable, **kwargs):
         self.genRules["text"] = kwargs.get("genTexts", False)
         self.textFilter = kwargs.get("textFilter") or (
             lambda symbol, text: re.sub(r"\s+", " ", text)
@@ -1042,11 +1038,11 @@ class IntermediateCodeGen(AbstractCodeGen):
         self._complianceOids = []
         self.moduleName[0], moduleOid, imports, declarations = ast
 
-        outDict, importedModules = self.genImports(imports)
+        outDict, importedModules = self.gen_imports(imports)
 
         for declr in declarations or []:
             if declr:
-                self.handlersTable[declr[0]](self, self.prepData(declr[1:]))
+                self.handlersTable[declr[0]](self, self.prep_data(declr[1:]))
 
         for sym in self.symbolTable[self.moduleName[0]]["_symtable_order"]:
             if sym not in self._out:
@@ -1060,7 +1056,7 @@ class IntermediateCodeGen(AbstractCodeGen):
         if "comments" in kwargs:
             outDict["meta"]["comments"] = kwargs["comments"]
 
-        debug.logger & debug.flagCodegen and debug.logger(
+        debug.logger & debug.FLAG_CODEGEN and debug.logger(
             f"canonical MIB name {self.moduleName[0]} ({moduleOid}), imported MIB(s) {','.join(importedModules) or '<none>'}"
         )
 

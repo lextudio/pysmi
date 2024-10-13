@@ -24,7 +24,7 @@ def bitstring(bits):
 
 
 def pythonsym(symbol):
-    return AbstractCodeGen.transOpers(symbol)
+    return AbstractCodeGen.trans_opers(symbol)
 
 
 def pythonstr(text):

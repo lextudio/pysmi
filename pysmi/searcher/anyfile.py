@@ -7,10 +7,11 @@
 import os
 import sys
 import time
-from pysmi.searcher.base import AbstractSearcher
-from pysmi.compat import decode
+
 from pysmi import debug
 from pysmi import error
+from pysmi.compat import decode
+from pysmi.searcher.base import AbstractSearcher
 
 
 class AnyFileSearcher(AbstractSearcher):
@@ -27,11 +28,12 @@ class AnyFileSearcher(AbstractSearcher):
         self._path = os.path.normpath(decode(path))
 
     def __str__(self):
+        """Return a string representation of the instance."""
         return f'{self.__class__.__name__}{{"{self._path}"}}'
 
-    def fileExists(self, mibname, mtime, rebuild=False):
+    def file_exists(self, mibname, mtime, rebuild=False):
         if rebuild:
-            debug.logger & debug.flagSearcher and debug.logger(
+            debug.logger & debug.FLAG_SEARCHER and debug.logger(
                 f"pretend {mibname} is very old"
             )
             return
@@ -42,7 +44,7 @@ class AnyFileSearcher(AbstractSearcher):
         for sfx in self.exts:
             f = basename + sfx
             if not os.path.exists(f) or not os.path.isfile(f):
-                debug.logger & debug.flagSearcher and debug.logger(
+                debug.logger & debug.FLAG_SEARCHER and debug.logger(
                     f"{f} not present or not a file"
                 )
                 continue
@@ -56,7 +58,7 @@ class AnyFileSearcher(AbstractSearcher):
                     searcher=self,
                 )
 
-            debug.logger & debug.flagSearcher and debug.logger(
+            debug.logger & debug.FLAG_SEARCHER and debug.logger(
                 f"found {f}, mtime {time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.gmtime(fileTime))}"
             )
 

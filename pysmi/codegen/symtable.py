@@ -6,11 +6,9 @@
 #
 # Build an internally used symbol table for each passed MIB.
 #
-import sys
-from pysmi.mibinfo import MibInfo
+from pysmi import config, debug, error
 from pysmi.codegen.base import AbstractCodeGen, dorepr
-from pysmi import config, error
-from pysmi import debug
+from pysmi.mibinfo import MibInfo
 
 
 class SymtableCodeGen(AbstractCodeGen):
@@ -92,13 +90,13 @@ class SymtableCodeGen(AbstractCodeGen):
         self._moduleRevision = None
         self.genRules = {"text": True}
 
-    def symTrans(self, symbol):
+    def sym_trans(self, symbol):
         if symbol in self.symsTable:
             return self.symsTable[symbol]
 
         return (symbol,)
 
-    def prepData(self, pdata, classmode=False):
+    def prep_data(self, pdata, classmode=False):
         data = []
         for el in pdata:
             if not isinstance(el, tuple):
@@ -111,14 +109,14 @@ class SymtableCodeGen(AbstractCodeGen):
                 data.append(
                     self.handlersTable[el[0]](
                         self,
-                        self.prepData(el[1:], classmode=classmode),
+                        self.prep_data(el[1:], classmode=classmode),
                         classmode=classmode,
                     )
                 )
 
         return data
 
-    def genImports(self, imports):
+    def gen_imports(self, imports):
         # convertion to SNMPv2
         toDel = []
         for module in list(imports):
@@ -149,14 +147,14 @@ class SymtableCodeGen(AbstractCodeGen):
         for module in sorted(imports):
             symbols = ()
             for symbol in set(imports[module]):
-                symbols += self.symTrans(symbol)
+                symbols += self.sym_trans(symbol)
 
             if symbols:
-                self._importMap.update([(self.transOpers(s), module) for s in symbols])
+                self._importMap.update([(self.trans_opers(s), module) for s in symbols])
 
         return {}, tuple(sorted(imports))
 
-    def allParentsExists(self, parents):
+    def all_parents_exists(self, parents):
         parentsExists = True
         for parent in parents:
             if not (
@@ -171,7 +169,7 @@ class SymtableCodeGen(AbstractCodeGen):
 
         return parentsExists
 
-    def regSym(self, symbol, symProps, parents=()):
+    def reg_sym(self, symbol, symProps, parents=()):
         if (
             symbol in self._out
             or symbol in self._postponedSyms
@@ -179,20 +177,20 @@ class SymtableCodeGen(AbstractCodeGen):
         ):
             raise error.PySmiSemanticError(f"Duplicate symbol found: {symbol}")
 
-        if self.allParentsExists(parents):
+        if self.all_parents_exists(parents):
             self._out[symbol] = symProps
             self._symsOrder.append(symbol)
-            self.regPostponedSyms()
+            self.reg_postponed_syms()
 
         else:
             self._postponedSyms[symbol] = (parents, symProps)
 
-    def regPostponedSyms(self):
+    def reg_postponed_syms(self):
         regedSyms = []
         for sym, val in self._postponedSyms.items():
             parents, symProps = val
 
-            if self.allParentsExists(parents):
+            if self.all_parents_exists(parents):
                 self._out[sym] = symProps
                 self._symsOrder.append(sym)
                 regedSyms.append(sym)
@@ -203,17 +201,17 @@ class SymtableCodeGen(AbstractCodeGen):
         # Clause handlers
 
     # noinspection PyUnusedLocal
-    def genAgentCapabilities(self, data, classmode=False):
+    def gen_agent_capabilities(self, data, classmode=False):
         origName, release, status, description, reference, oid = data
 
-        pysmiName = self.transOpers(origName)
+        pysmiName = self.trans_opers(origName)
 
         symProps = {"type": "AgentCapabilities", "oid": oid, "origName": origName}
 
-        self.regSym(pysmiName, symProps)
+        self.reg_sym(pysmiName, symProps)
 
     # noinspection PyUnusedLocal
-    def genModuleIdentity(self, data, classmode=False):
+    def gen_module_identity(self, data, classmode=False):
         (
             origName,
             lastUpdated,
@@ -224,67 +222,67 @@ class SymtableCodeGen(AbstractCodeGen):
             oid,
         ) = data
 
-        pysmiName = self.transOpers(origName)
+        pysmiName = self.trans_opers(origName)
 
         symProps = {"type": "ModuleIdentity", "oid": oid, "origName": origName}
 
         if revisions:
             self._moduleRevision = revisions[0]
 
-        self.regSym(pysmiName, symProps)
+        self.reg_sym(pysmiName, symProps)
 
     # noinspection PyUnusedLocal
-    def genModuleCompliance(self, data, classmode=False):
+    def gen_module_compliance(self, data, classmode=False):
         origName, status, description, reference, compliances, oid = data
 
-        pysmiName = self.transOpers(origName)
+        pysmiName = self.trans_opers(origName)
 
         symProps = {"type": "ModuleCompliance", "oid": oid, "origName": origName}
 
-        self.regSym(pysmiName, symProps)
+        self.reg_sym(pysmiName, symProps)
 
     # noinspection PyUnusedLocal
-    def genNotificationGroup(self, data, classmode=False):
+    def gen_notification_group(self, data, classmode=False):
         origName, objects, status, description, reference, oid = data
 
-        pysmiName = self.transOpers(origName)
+        pysmiName = self.trans_opers(origName)
 
         symProps = {"type": "NotificationGroup", "oid": oid, "origName": origName}
 
-        self.regSym(pysmiName, symProps)
+        self.reg_sym(pysmiName, symProps)
 
     # noinspection PyUnusedLocal
-    def genNotificationType(self, data, classmode=False):
+    def gen_notification_type(self, data, classmode=False):
         origName, objects, status, description, reference, oid = data
 
-        pysmiName = self.transOpers(origName)
+        pysmiName = self.trans_opers(origName)
 
         symProps = {"type": "NotificationType", "oid": oid, "origName": origName}
 
-        self.regSym(pysmiName, symProps)
+        self.reg_sym(pysmiName, symProps)
 
     # noinspection PyUnusedLocal
-    def genObjectGroup(self, data, classmode=False):
+    def gen_object_group(self, data, classmode=False):
         origName, objects, status, description, reference, oid = data
 
-        pysmiName = self.transOpers(origName)
+        pysmiName = self.trans_opers(origName)
 
         symProps = {"type": "ObjectGroup", "oid": oid, "origName": origName}
 
-        self.regSym(pysmiName, symProps)
+        self.reg_sym(pysmiName, symProps)
 
     # noinspection PyUnusedLocal
-    def genObjectIdentity(self, data, classmode=False):
+    def gen_object_identity(self, data, classmode=False):
         origName, status, description, reference, oid = data
 
-        pysmiName = self.transOpers(origName)
+        pysmiName = self.trans_opers(origName)
 
         symProps = {"type": "ObjectIdentity", "oid": oid, "origName": origName}
 
-        self.regSym(pysmiName, symProps)
+        self.reg_sym(pysmiName, symProps)
 
     # noinspection PyUnusedLocal
-    def genObjectType(self, data, classmode=False):
+    def gen_object_type(self, data, classmode=False):
         (
             origName,
             syntax,
@@ -299,7 +297,7 @@ class SymtableCodeGen(AbstractCodeGen):
             oid,
         ) = data
 
-        pysmiName = self.transOpers(origName)
+        pysmiName = self.trans_opers(origName)
 
         symProps = {
             "type": "ObjectType",
@@ -311,7 +309,7 @@ class SymtableCodeGen(AbstractCodeGen):
         parents = [syntax[0][0]]
 
         if augmention:
-            parents.append(self.transOpers(augmention))
+            parents.append(self.trans_opers(augmention))
 
         if defval:  # XXX
             symProps["defval"] = defval
@@ -328,15 +326,15 @@ class SymtableCodeGen(AbstractCodeGen):
                     "origName": fakeName,
                 }
 
-                self.regSym(fakeName, fakeSymProps)
+                self.reg_sym(fakeName, fakeSymProps)
 
-        self.regSym(pysmiName, symProps, parents)
+        self.reg_sym(pysmiName, symProps, parents)
 
     # noinspection PyUnusedLocal
-    def genTrapType(self, data, classmode=False):
+    def gen_trap_type(self, data, classmode=False):
         origName, enterprise, variables, description, reference, value = data
 
-        pysmiName = self.transOpers(origName)
+        pysmiName = self.trans_opers(origName)
 
         symProps = {
             "type": "NotificationType",
@@ -344,13 +342,13 @@ class SymtableCodeGen(AbstractCodeGen):
             "origName": origName,
         }
 
-        self.regSym(pysmiName, symProps)
+        self.reg_sym(pysmiName, symProps)
 
     # noinspection PyUnusedLocal
-    def genTypeDeclaration(self, data, classmode=False):
+    def gen_type_declaration(self, data, classmode=False):
         origName, declaration = data
 
-        pysmiName = self.transOpers(origName)
+        pysmiName = self.trans_opers(origName)
 
         if declaration:
             parentType, attrs = declaration
@@ -361,61 +359,61 @@ class SymtableCodeGen(AbstractCodeGen):
                     "origName": origName,
                 }
 
-                self.regSym(pysmiName, symProps, [declaration[0][0]])
+                self.reg_sym(pysmiName, symProps, [declaration[0][0]])
             else:
                 self._sequenceTypes.add(pysmiName)
 
     # noinspection PyUnusedLocal
-    def genValueDeclaration(self, data, classmode=False):
+    def gen_value_declaration(self, data, classmode=False):
         origName, oid = data
 
-        pysmiName = self.transOpers(origName)
+        pysmiName = self.trans_opers(origName)
 
         symProps = {"type": "MibIdentifier", "oid": oid, "origName": origName}
 
-        self.regSym(pysmiName, symProps)
+        self.reg_sym(pysmiName, symProps)
 
     # Subparts generation functions
     # noinspection PyUnusedLocal,PyMethodMayBeStatic
-    def genBitNames(self, data, classmode=False):
+    def gen_bit_names(self, data, classmode=False):
         names = data[0]
         return names
 
     # noinspection PyUnusedLocal,PyMethodMayBeStatic
-    def genBits(self, data, classmode=False):
+    def gen_bits(self, data, classmode=False):
         bits = data[0]
         return ("Bits", ""), bits
 
     # noinspection PyUnusedLocal,PyUnusedLocal,PyMethodMayBeStatic
-    def genCompliances(self, data, classmode=False):
+    def gen_compliances(self, data, classmode=False):
         return ""
 
     # noinspection PyUnusedLocal
-    def genConceptualTable(self, data, classmode=False):
+    def gen_conceptual_table(self, data, classmode=False):
         row = data[0]
         if row[0] and row[0][0]:
-            self._rows.add(self.transOpers(row[0][0]))
+            self._rows.add(self.trans_opers(row[0][0]))
         return ("MibTable", ""), ""
 
     # noinspection PyUnusedLocal,PyUnusedLocal,PyMethodMayBeStatic
-    def genContactInfo(self, data, classmode=False):
+    def gen_contact_info(self, data, classmode=False):
         return ""
 
     # noinspection PyUnusedLocal,PyUnusedLocal,PyMethodMayBeStatic
-    def genDisplayHint(self, data, classmode=False):
+    def gen_display_hint(self, data, classmode=False):
         return ""
 
     # noinspection PyUnusedLocal
-    def genDefVal(self, data, classmode=False):  # XXX should be fixed, see pysnmp.py
+    def gen_def_val(self, data, classmode=False):  # XXX should be fixed, see pysnmp.py
         defval = data[0]
 
         if isinstance(defval, int):  # number
             val = str(defval)
 
-        elif self.isHex(defval):  # hex
+        elif self.is_hex(defval):  # hex
             val = 'hexValue="' + defval[1:-2] + '"'  # not working for Integer baseTypes
 
-        elif self.isBinary(defval):  # binary
+        elif self.is_binary(defval):  # binary
             binval = defval[1:-2]
             hexval = binval and hex(int(binval, 2))[2:] or ""
             val = 'hexValue="' + hexval + '"'
@@ -435,22 +433,22 @@ class SymtableCodeGen(AbstractCodeGen):
         return val
 
     # noinspection PyUnusedLocal,PyUnusedLocal,PyMethodMayBeStatic
-    def genDescription(self, data, classmode=False):
+    def gen_description(self, data, classmode=False):
         return ""
 
-    def genReference(self, data, classmode=False):
+    def gen_reference(self, data, classmode=False):
         return ""
 
-    def genStatus(self, data, classmode=False):
+    def gen_status(self, data, classmode=False):
         return ""
 
-    def genProductRelease(self, data, classmode=False):
+    def gen_product_release(self, data, classmode=False):
         return ""
 
-    def genEnumSpec(self, data, classmode=False):
-        return self.genBits(data, classmode=classmode)[1]
+    def gen_enum_spec(self, data, classmode=False):
+        return self.gen_bits(data, classmode=classmode)[1]
 
-    def genIndex(self, data, classmode=False):
+    def gen_index(self, data, classmode=False):
         indexes = data[0]
 
         fakeIndexes, fakeSymsSyntax = [], []
@@ -461,7 +459,7 @@ class SymtableCodeGen(AbstractCodeGen):
                 idxType = idxName
 
                 objType = self.typeClasses.get(idxType, idxType)
-                objType = self.transOpers(objType)
+                objType = self.trans_opers(objType)
 
                 fakeIndexes.append(self.fakeIdxNumber)
                 fakeSymsSyntax.append((("MibTableColumn", ""), objType))
@@ -470,23 +468,23 @@ class SymtableCodeGen(AbstractCodeGen):
         return self.fakeIdxPrefix, fakeIndexes, fakeSymsSyntax
 
     # noinspection PyUnusedLocal,PyUnusedLocal,PyMethodMayBeStatic
-    def genIntegerSubType(self, data, classmode=False):
+    def gen_integer_subtype(self, data, classmode=False):
         return ""
 
     # noinspection PyUnusedLocal,PyUnusedLocal,PyMethodMayBeStatic
-    def genMaxAccess(self, data, classmode=False):
+    def gen_max_access(self, data, classmode=False):
         return ""
 
     # noinspection PyUnusedLocal,PyUnusedLocal,PyMethodMayBeStatic
-    def genOctetStringSubType(self, data, classmode=False):
+    def gen_octetstring_subtype(self, data, classmode=False):
         return ""
 
     # noinspection PyUnusedLocal
-    def genOid(self, data, classmode=False):
+    def gen_oid(self, data, classmode=False):
         out = ()
         for el in data[0]:
             if isinstance(el, str):
-                parent = self.transOpers(el)
+                parent = self.trans_opers(el)
                 self._parentOids.add(parent)
                 out += ((parent, self._importMap.get(parent, self.moduleName[0])),)
 
@@ -502,49 +500,49 @@ class SymtableCodeGen(AbstractCodeGen):
         return out
 
     # noinspection PyUnusedLocal,PyUnusedLocal,PyMethodMayBeStatic
-    def genObjects(self, data, classmode=False):
+    def gen_objects(self, data, classmode=False):
         return ""
 
     # noinspection PyUnusedLocal,PyUnusedLocal,PyMethodMayBeStatic
-    def genTime(self, data, classmode=False):
+    def gen_time(self, data, classmode=False):
         return ""
 
     # noinspection PyUnusedLocal,PyUnusedLocal,PyMethodMayBeStatic
-    def genLastUpdated(self, data, classmode=False):
+    def gen_last_updated(self, data, classmode=False):
         return data[0]
 
     # noinspection PyUnusedLocal,PyUnusedLocal,PyMethodMayBeStatic
-    def genOrganization(self, data, classmode=False):
+    def gen_organization(self, data, classmode=False):
         return data[0]
 
     # noinspection PyUnusedLocal,PyUnusedLocal,PyMethodMayBeStatic
-    def genRevisions(self, data, classmode=False):
+    def gen_revisions(self, data, classmode=False):
         lastRevision, lastDescription = data[0][0][0], data[0][0][1][1]
         return lastRevision, lastDescription
 
-    def genRow(self, data, classmode=False):
+    def gen_row(self, data, classmode=False):
         row = data[0]
-        row = self.transOpers(row)
+        row = self.trans_opers(row)
         return (
             row in self._rows
             and (("MibTableRow", ""), "")
-            or self.genSimpleSyntax(data, classmode=classmode)
+            or self.gen_simple_syntax(data, classmode=classmode)
         )
 
     # noinspection PyUnusedLocal
-    def genSequence(self, data, classmode=False):
+    def gen_sequence(self, data, classmode=False):
         cols = data[0]
         self._cols.update(cols)
         return "", ""
 
     # noinspection PyUnusedLocal
-    def genSimpleSyntax(self, data, classmode=False):
+    def gen_simple_syntax(self, data, classmode=False):
         objType = data[0]
 
         module = ""
 
         objType = self.typeClasses.get(objType, objType)
-        objType = self.transOpers(objType)
+        objType = self.trans_opers(objType)
 
         if objType not in self.baseTypes:
             module = self._importMap.get(objType, self.moduleName[0])
@@ -554,7 +552,7 @@ class SymtableCodeGen(AbstractCodeGen):
         return (objType, module), subtype
 
     # noinspection PyUnusedLocal,PyMethodMayBeStatic
-    def genTypeDeclarationRHS(self, data, classmode=False):
+    def gen_type_declaration_rhs(self, data, classmode=False):
         if len(data) == 1:
             parentType, attrs = data[0]  # just syntax
 
@@ -566,56 +564,57 @@ class SymtableCodeGen(AbstractCodeGen):
         return parentType, attrs
 
     # noinspection PyUnusedLocal,PyUnusedLocal,PyMethodMayBeStatic
-    def genUnits(self, data, classmode=False):
+    def gen_units(self, data, classmode=False):
         return ""
 
     handlersTable = {
-        "agentCapabilitiesClause": genAgentCapabilities,
-        "moduleIdentityClause": genModuleIdentity,
-        "moduleComplianceClause": genModuleCompliance,
-        "notificationGroupClause": genNotificationGroup,
-        "notificationTypeClause": genNotificationType,
-        "objectGroupClause": genObjectGroup,
-        "objectIdentityClause": genObjectIdentity,
-        "objectTypeClause": genObjectType,
-        "trapTypeClause": genTrapType,
-        "typeDeclaration": genTypeDeclaration,
-        "valueDeclaration": genValueDeclaration,
-        "ApplicationSyntax": genSimpleSyntax,
-        "BitNames": genBitNames,
-        "BITS": genBits,
-        "ComplianceModules": genCompliances,
-        "conceptualTable": genConceptualTable,
-        "CONTACT-INFO": genContactInfo,
-        "DISPLAY-HINT": genDisplayHint,
-        "DEFVAL": genDefVal,
-        "DESCRIPTION": genDescription,
-        "REFERENCE": genReference,
-        "Status": genStatus,
-        "PRODUCT-RELEASE": genProductRelease,
-        "enumSpec": genEnumSpec,
-        "INDEX": genIndex,
-        "integerSubType": genIntegerSubType,
-        "MaxAccessPart": genMaxAccess,
-        "Notifications": genObjects,
-        "octetStringSubType": genOctetStringSubType,
-        "objectIdentifier": genOid,
-        "Objects": genObjects,
-        "LAST-UPDATED": genLastUpdated,
-        "ORGANIZATION": genOrganization,
-        "Revisions": genRevisions,
-        "row": genRow,
-        "SEQUENCE": genSequence,
-        "SimpleSyntax": genSimpleSyntax,
-        "typeDeclarationRHS": genTypeDeclarationRHS,
-        "UNITS": genUnits,
-        "VarTypes": genObjects,
+        "agentCapabilitiesClause": gen_agent_capabilities,
+        "moduleIdentityClause": gen_module_identity,
+        "moduleComplianceClause": gen_module_compliance,
+        "notificationGroupClause": gen_notification_group,
+        "notificationTypeClause": gen_notification_type,
+        "objectGroupClause": gen_object_group,
+        "objectIdentityClause": gen_object_identity,
+        "objectTypeClause": gen_object_type,
+        "trapTypeClause": gen_trap_type,
+        "typeDeclaration": gen_type_declaration,
+        "valueDeclaration": gen_value_declaration,
+        "ApplicationSyntax": gen_simple_syntax,
+        "BitNames": gen_bit_names,
+        "BITS": gen_bits,
+        "ComplianceModules": gen_compliances,
+        "conceptualTable": gen_conceptual_table,
+        "CONTACT-INFO": gen_contact_info,
+        "DISPLAY-HINT": gen_display_hint,
+        "DEFVAL": gen_def_val,
+        "DESCRIPTION": gen_description,
+        "REFERENCE": gen_reference,
+        "Status": gen_status,
+        "PRODUCT-RELEASE": gen_product_release,
+        "enumSpec": gen_enum_spec,
+        "INDEX": gen_index,
+        "integerSubType": gen_integer_subtype,
+        "MaxAccessPart": gen_max_access,
+        "Notifications": gen_objects,
+        "octetStringSubType": gen_octetstring_subtype,
+        "objectIdentifier": gen_oid,
+        "Objects": gen_objects,
+        "LAST-UPDATED": gen_last_updated,
+        "ORGANIZATION": gen_organization,
+        "Revisions": gen_revisions,
+        "row": gen_row,
+        "SEQUENCE": gen_sequence,
+        "SimpleSyntax": gen_simple_syntax,
+        "typeDeclarationRHS": gen_type_declaration_rhs,
+        "UNITS": gen_units,
+        "VarTypes": gen_objects,
     }
 
-    def correctPostponedSyms(self):
+    def correct_postponed_syms(self):
         """
-        We are about to fail on unresolvable symbols. See if we can correct any
-        cases to make them valid after all.
+        We are about to fail on unresolvable symbols.
+
+        See if we can correct any cases to make them valid after all.
         """
         for sym, val in self._postponedSyms.items():
             parents, symProps = val
@@ -633,9 +632,9 @@ class SymtableCodeGen(AbstractCodeGen):
                     symProps["syntax"] = (("MibTableRow", ""), "")
                     parents[0] = "MibTableRow"
 
-        self.regPostponedSyms()
+        self.reg_postponed_syms()
 
-    def genCode(self, ast, symbolTable, **kwargs):
+    def gen_code(self, ast, symbolTable, **kwargs):
         self.genRules["text"] = kwargs.get("genTexts", False)
         self._rows.clear()
         self._cols.clear()
@@ -646,18 +645,18 @@ class SymtableCodeGen(AbstractCodeGen):
         self._out = {}  # should be new object, do not use `clear` method
         self.moduleName[0], moduleOid, imports, declarations = ast
 
-        out, importedModules = self.genImports(imports)
+        out, importedModules = self.gen_imports(imports)
 
         for declr in declarations or []:
             if declr:
                 clausetype = declr[0]
                 classmode = clausetype == "typeDeclaration"
                 self.handlersTable[declr[0]](
-                    self, self.prepData(declr[1:], classmode), classmode
+                    self, self.prep_data(declr[1:], classmode), classmode
                 )
 
         if self._postponedSyms:
-            self.correctPostponedSyms()
+            self.correct_postponed_syms()
             if self._postponedSyms:
                 raise error.PySmiSemanticError(
                     f"Unknown parents for symbols: {', '.join(self._postponedSyms)}"
@@ -671,7 +670,7 @@ class SymtableCodeGen(AbstractCodeGen):
         self._out["_symtable_cols"] = list(self._cols)
         self._out["_symtable_rows"] = list(self._rows)
 
-        debug.logger & debug.flagCodegen and debug.logger(
+        debug.logger & debug.FLAG_CODEGEN and debug.logger(
             f"canonical MIB name {self.moduleName[0]} ({moduleOid}), imported MIB(s) {','.join(importedModules) or '<none>'}, Symbol table size {len(self._out)} symbols"
         )
 

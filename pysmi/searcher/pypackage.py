@@ -5,8 +5,13 @@
 # License: https://www.pysnmp.com/pysmi/license.html
 #
 import os
-import time
 import struct
+import time
+
+from pysmi import debug, error
+from pysmi.compat import decode
+from pysmi.searcher.base import AbstractSearcher
+from pysmi.searcher.pyfile import PyFileSearcher
 
 try:
     import importlib
@@ -26,23 +31,15 @@ except ImportError:
     SOURCE_SUFFIXES = [s[0] for s in imp.get_suffixes() if s[2] == imp.PY_SOURCE]
     BYTECODE_SUFFIXES = [s[0] for s in imp.get_suffixes() if s[2] == imp.PY_COMPILED]
 
-from pysmi.searcher.base import AbstractSearcher
-from pysmi.searcher.pyfile import PyFileSearcher
-from pysmi.compat import decode
-from pysmi import debug
-from pysmi import error
-
 
 class PyPackageSearcher(AbstractSearcher):
-    """Figures out if given Python module (source or bytecode) exists in given
-    Python package.
+    """Figures out if given Python module (source or bytecode) exists in given Python package.
 
     Python package must be importable.
     """
 
     def __init__(self, package):
-        """Create an instance of *PyPackageSearcher* bound to specific Python
-        package.
+        """Create an instance of *PyPackageSearcher* bound to specific Python package.
 
         Args:
             package (str): name of the Python package to look up Python
@@ -52,10 +49,11 @@ class PyPackageSearcher(AbstractSearcher):
         self.__loader = None
 
     def __str__(self):
+        """Return a string representation of the instance."""
         return f'{self.__class__.__name__}{{"{self._package}"}}'
 
     @staticmethod
-    def _parseDosTime(dosdate, dostime):
+    def _parse_dos_time(dosdate, dostime):
         t = (
             ((dosdate >> 9) & 0x7F) + 1980,  # year
             ((dosdate >> 5) & 0x0F),  # month
@@ -69,9 +67,9 @@ class PyPackageSearcher(AbstractSearcher):
         )  # dst
         return time.mktime(t)
 
-    def fileExists(self, mibname, mtime, rebuild=False):
+    def file_exists(self, mibname, mtime, rebuild=False):
         if rebuild:
-            debug.logger & debug.flagSearcher and debug.logger(
+            debug.logger & debug.FLAG_SEARCHER and debug.logger(
                 f"pretend {mibname} is very old"
             )
             return
@@ -84,15 +82,15 @@ class PyPackageSearcher(AbstractSearcher):
             if hasattr(p, "__loader__") and hasattr(p.__loader__, "_files"):
                 self.__loader = p.__loader__
                 self._package = self._package.replace(".", os.sep)
-                debug.logger & debug.flagSearcher and debug.logger(
+                debug.logger & debug.FLAG_SEARCHER and debug.logger(
                     f"{self._package} is an importable egg at {os.path.split(p.__file__)[0]}"
                 )
 
             elif hasattr(p, "__file__"):
-                debug.logger & debug.flagSearcher and debug.logger(
+                debug.logger & debug.FLAG_SEARCHER and debug.logger(
                     f"{self._package} is not an egg, trying it as a package directory"
                 )
-                return PyFileSearcher(os.path.split(p.__file__)[0]).fileExists(
+                return PyFileSearcher(os.path.split(p.__file__)[0]).file_exists(
                     mibname, mtime, rebuild=rebuild
                 )
 
@@ -110,7 +108,7 @@ class PyPackageSearcher(AbstractSearcher):
             f = os.path.join(self._package, mibname.upper()) + pySfx
 
             if f not in self.__loader._files:
-                debug.logger & debug.flagSearcher and debug.logger(
+                debug.logger & debug.FLAG_SEARCHER and debug.logger(
                     f"{f} is not in {self._package}"
                 )
                 continue
@@ -119,7 +117,7 @@ class PyPackageSearcher(AbstractSearcher):
             if pyData[:4] == PY_MAGIC_NUMBER:
                 pyData = pyData[4:]
                 pyTime = struct.unpack("<L", pyData[:4])[0]
-                debug.logger & debug.flagSearcher and debug.logger(
+                debug.logger & debug.FLAG_SEARCHER and debug.logger(
                     f"found {f}, mtime {time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.gmtime(pyTime))}"
                 )
                 if pyTime >= mtime:
@@ -130,23 +128,23 @@ class PyPackageSearcher(AbstractSearcher):
                     )
 
             else:
-                debug.logger & debug.flagSearcher and debug.logger(f"bad magic in {f}")
+                debug.logger & debug.FLAG_SEARCHER and debug.logger(f"bad magic in {f}")
                 continue
 
         for pySfx in SOURCE_SUFFIXES:
             f = os.path.join(self._package, mibname.upper()) + pySfx
 
             if f not in self.__loader._files:
-                debug.logger & debug.flagSearcher and debug.logger(
+                debug.logger & debug.FLAG_SEARCHER and debug.logger(
                     f"{f} is not in {self._package}"
                 )
                 continue
 
-            pyTime = self._parseDosTime(
+            pyTime = self._parse_dos_time(
                 self.__loader._files[f][6], self.__loader._files[f][5]
             )
 
-            debug.logger & debug.flagSearcher and debug.logger(
+            debug.logger & debug.FLAG_SEARCHER and debug.logger(
                 f"found {f}, mtime {time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.gmtime(pyTime))}"
             )
             if pyTime >= mtime:

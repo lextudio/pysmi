@@ -7,10 +7,10 @@
 
 
 class AbstractSearcher:
-    def setOptions(self, **kwargs):
+    def set_options(self, **kwargs):
         for k in kwargs:
             setattr(self, k, kwargs[k])
         return self
 
-    def fileExists(self, mibname, mtime, rebuild=False):
+    def file_exists(self, mibname, mtime, rebuild=False):
         raise NotImplementedError()

@@ -5,10 +5,10 @@
 # License: https://www.pysnmp.com/pysmi/license.html
 #
 import time
-from pysmi.reader.base import AbstractReader
+
+from pysmi import debug, error
 from pysmi.mibinfo import MibInfo
-from pysmi import error
-from pysmi import debug
+from pysmi.reader.base import AbstractReader
 
 
 class CallbackReader(AbstractReader):
@@ -32,10 +32,11 @@ class CallbackReader(AbstractReader):
         self._cbCtx = cbCtx
 
     def __str__(self):
+        """Return string representation of the instance."""
         return f'{self.__class__.__name__}{{"{self._cbFun}"}}'
 
-    def getData(self, mibname, **options):
-        debug.logger & debug.flagReader and debug.logger(
+    def get_data(self, mibname, **options):
+        debug.logger & debug.FLAG_READER and debug.logger(
             f"calling user callback {self._cbFun} for MIB {mibname}"
         )
 

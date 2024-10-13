@@ -4,19 +4,14 @@
 # Copyright (c) 2015-2020, Ilya Etingof <etingof@gmail.com>
 # License: https://www.pysnmp.com/pysmi/license.html
 #
-import sys
 import os
-
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
-from pysmi.codegen.intermediate import IntermediateCodeGen
-from pysmi.codegen import jfilters
-from pysmi import error
-from pysmi import debug
+import sys
+from collections import OrderedDict
 
 import jinja2
+from pysmi import debug, error
+from pysmi.codegen import jfilters
+from pysmi.codegen.intermediate import IntermediateCodeGen
 
 
 class PySnmpCodeGen(IntermediateCodeGen):
@@ -82,8 +77,10 @@ class PySnmpCodeGen(IntermediateCodeGen):
         "INET-ADDRESS-MIB",
     ) + IntermediateCodeGen.baseMibs
 
-    def genCode(self, ast, symbolTable, **kwargs):
-        mibInfo, context = IntermediateCodeGen.genCode(self, ast, symbolTable, **kwargs)
+    def gen_code(self, ast, symbolTable, **kwargs):
+        mibInfo, context = IntermediateCodeGen.gen_code(
+            self, ast, symbolTable, **kwargs
+        )
 
         # Adapt intermediate context to pysnmp template requirements
 
@@ -108,14 +105,14 @@ class PySnmpCodeGen(IntermediateCodeGen):
         # Turn string OIDs into tuples which is native to pysnmp
         # TODO: we should make intermediate format producing tuples
 
-        def translateOids(dct):
+        def translate_oids(dct):
             for key, value in tuple(dct.items()):
                 if isinstance(value, dict):
-                    translateOids(value)
+                    translate_oids(value)
                 elif key == "oid":
                     dct[key] = tuple(int(x) for x in value.split("."))
 
-        translateOids(context)
+        translate_oids(context)
 
         # Translate SMI types into pysnmp class names
 
@@ -158,7 +155,7 @@ class PySnmpCodeGen(IntermediateCodeGen):
             err = sys.exc_info()[1]
             raise error.PySmiCodegenError(f"Jinja template rendering error: {err}")
 
-        debug.logger & debug.flagCodegen and debug.logger(
+        debug.logger & debug.FLAG_CODEGEN and debug.logger(
             f"canonical MIB name {mibInfo.name} ({mibInfo.identity}), imported MIB(s) {','.join(mibInfo.imported) or '<none>'}, rendered from {dstTemplate}, Python code size {len(text)} bytes"
         )
 
@@ -166,5 +163,5 @@ class PySnmpCodeGen(IntermediateCodeGen):
 
 
 # backward compatibility
-baseMibs = PySnmpCodeGen.baseMibs
-fakeMibs = PySnmpCodeGen.fakeMibs
+baseMibs = PySnmpCodeGen.baseMibs  # noqa: N816
+fakeMibs = PySnmpCodeGen.fakeMibs  # noqa: N816

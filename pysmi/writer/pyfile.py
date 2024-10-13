@@ -5,9 +5,14 @@
 # License: https://www.pysnmp.com/pysmi/license.html
 #
 import os
+import py_compile
 import sys
 import tempfile
-import py_compile
+
+from pysmi import debug
+from pysmi import error
+from pysmi.compat import decode, encode
+from pysmi.writer.base import AbstractWriter
 
 try:
     import importlib
@@ -22,11 +27,6 @@ except ImportError:
     import imp
 
     SOURCE_SUFFIXES = [s[0] for s in imp.get_suffixes() if s[2] == imp.PY_SOURCE]
-
-from pysmi.writer.base import AbstractWriter
-from pysmi.compat import encode, decode
-from pysmi import debug
-from pysmi import error
 
 
 class PyFileWriter(AbstractWriter):
@@ -48,11 +48,12 @@ class PyFileWriter(AbstractWriter):
         self._path = decode(os.path.normpath(path))
 
     def __str__(self):
+        """Return a string representation of the instance."""
         return f'{self.__class__.__name__}{{"{self._path}"}}'
 
-    def putData(self, mibname, data, comments=(), dryRun=False):
+    def put_data(self, mibname, data, comments=(), dryRun=False):
         if dryRun:
-            debug.logger & debug.flagWriter and debug.logger("dry run mode")
+            debug.logger & debug.FLAG_WRITER and debug.logger("dry run mode")
             return
 
         if not os.path.exists(self._path):
@@ -88,7 +89,7 @@ class PyFileWriter(AbstractWriter):
                 f"failure writing file {pyfile}: {exc[1]}", file=pyfile, writer=self
             )
 
-        debug.logger & debug.flagWriter and debug.logger(f"created file {pyfile}")
+        debug.logger & debug.FLAG_WRITER and debug.logger(f"created file {pyfile}")
 
         if self.pyCompile:
             try:
@@ -109,7 +110,7 @@ class PyFileWriter(AbstractWriter):
                     writer=self,
                 )
 
-        debug.logger & debug.flagWriter and debug.logger(f"{mibname} stored")
+        debug.logger & debug.FLAG_WRITER and debug.logger(f"{mibname} stored")
 
-    def getData(self, filename):
+    def get_data(self, filename):
         return ""

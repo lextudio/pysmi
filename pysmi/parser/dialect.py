@@ -9,13 +9,13 @@
 # Preconfigured sets of parser options.
 # Individual options could be used in certain combinations.
 #
-smiV2 = {}
+smi_v2 = {}  # TODO: move strict mode here.
 
-smiV1 = smiV2.copy()
-smiV1.update(supportSmiV1Keywords=True, supportIndex=True)
+smi_v1 = smi_v2.copy()
+smi_v1.update(supportSmiV1Keywords=True, supportIndex=True)
 
-smiV1Relaxed = smiV1.copy()
-smiV1Relaxed.update(
+smi_v1_relaxed = smi_v1.copy()
+smi_v1_relaxed.update(
     commaAtTheEndOfImport=True,
     commaAtTheEndOfSequence=True,
     mixOfCommasAndSpaces=True,

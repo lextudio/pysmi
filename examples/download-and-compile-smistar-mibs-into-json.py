@@ -35,13 +35,13 @@ def printOut(mibName, jsonDoc, cbCtx):
 mibCompiler = MibCompiler(SmiStarParser(), JsonCodeGen(), CallbackWriter(printOut))
 
 # search for source MIBs here
-mibCompiler.addSources(*[FileReader(x) for x in srcDirectories])
+mibCompiler.add_sources(*[FileReader(x) for x in srcDirectories])
 
 # search for source MIBs at Web sites
-mibCompiler.addSources(*[HttpReader(*x) for x in httpSources])
+mibCompiler.add_sources(*[HttpReader(*x) for x in httpSources])
 
 # never recompile MIBs with MACROs
-mibCompiler.addSearchers(StubSearcher(*JsonCodeGen.baseMibs))
+mibCompiler.add_searchers(StubSearcher(*JsonCodeGen.baseMibs))
 
 # run recursive MIB compilation
 results = mibCompiler.compile(*inputMibs)

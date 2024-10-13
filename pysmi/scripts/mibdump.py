@@ -7,23 +7,24 @@
 #
 # SNMP SMI/MIB data management tool
 #
+import getopt
 import os
 import sys
-import getopt
 from pathlib import Path
-from pysmi.reader import getReadersFromUrls
+
+from pysmi import config, debug, error
+from pysmi.borrower import AnyFileBorrower, PyFileBorrower
+from pysmi.codegen import JsonCodeGen, NullCodeGen, PySnmpCodeGen
+from pysmi.compiler import MibCompiler
+from pysmi.parser import SmiV1CompatParser
+from pysmi.reader import get_readers_from_urls
 from pysmi.searcher import (
     AnyFileSearcher,
     PyFileSearcher,
     PyPackageSearcher,
     StubSearcher,
 )
-from pysmi.borrower import AnyFileBorrower, PyFileBorrower
-from pysmi.writer import PyFileWriter, FileWriter, CallbackWriter
-from pysmi.parser import SmiV1CompatParser
-from pysmi.codegen import PySnmpCodeGen, JsonCodeGen, NullCodeGen
-from pysmi.compiler import MibCompiler
-from pysmi import config, debug, error
+from pysmi.writer import CallbackWriter, FileWriter, PyFileWriter
 
 
 def start():
@@ -61,7 +62,7 @@ def start():
         [--version]
         [--quiet]
         [--strict]
-        [--debug=<{"|".join(sorted(debug.flagMap))}>]
+        [--debug=<{"|".join(sorted(debug.FLAG_MAP))}>]
         [--mib-source=<URI>]
         [--mib-searcher=<PATH|PACKAGE>]
         [--mib-stub=<MIB-NAME>]
@@ -164,7 +165,7 @@ def start():
             config.STRICT_MODE = True
 
         if opt[0] == "--debug":
-            debug.setLogger(debug.Debug(*opt[1].split(",")))
+            debug.set_logger(debug.Debug(*opt[1].split(",")))
 
         if opt[0] == "--mib-source":
             mibSources.append(opt[1])
@@ -288,7 +289,7 @@ def start():
         borrowers = [
             PyFileBorrower(x[1], genTexts=mibBorrowers[x[0]][1])
             for x in enumerate(
-                getReadersFromUrls(
+                get_readers_from_urls(
                     *[m[0] for m in mibBorrowers], **dict(lowcaseMatching=False)
                 )
             )
@@ -303,7 +304,7 @@ def start():
 
         codeGenerator = PySnmpCodeGen()
 
-        fileWriter = PyFileWriter(dstDirectory).setOptions(
+        fileWriter = PyFileWriter(dstDirectory).set_options(
             pyCompile=pyCompileFlag, pyOptimizationLevel=pyOptimizationLevel
         )
 
@@ -323,24 +324,24 @@ def start():
         # Compiler infrastructure
 
         borrowers = [
-            AnyFileBorrower(x[1], genTexts=mibBorrowers[x[0]][1]).setOptions(
+            AnyFileBorrower(x[1], genTexts=mibBorrowers[x[0]][1]).set_options(
                 exts=[".json"]
             )
             for x in enumerate(
-                getReadersFromUrls(
+                get_readers_from_urls(
                     *[m[0] for m in mibBorrowers], **dict(lowcaseMatching=False)
                 )
             )
         ]
 
         searchers = [
-            AnyFileSearcher(dstDirectory).setOptions(exts=[".json"]),
+            AnyFileSearcher(dstDirectory).set_options(exts=[".json"]),
             StubSearcher(*mibStubs),
         ]
 
         codeGenerator = JsonCodeGen()
 
-        fileWriter = FileWriter(dstDirectory).setOptions(suffix=".json")
+        fileWriter = FileWriter(dstDirectory).set_options(suffix=".json")
 
     elif dstFormat == "null":
         if not mibStubs:
@@ -364,7 +365,7 @@ def start():
         borrowers = [
             AnyFileBorrower(x[1], genTexts=mibBorrowers[x[0]][1])
             for x in enumerate(
-                getReadersFromUrls(
+                get_readers_from_urls(
                     *[m[0] for m in mibBorrowers], **dict(lowcaseMatching=False)
                 )
             )
@@ -410,13 +411,15 @@ Try various file names while searching for MIB module: {"yes" if doFuzzyMatching
     )
 
     try:
-        mibCompiler.addSources(
-            *getReadersFromUrls(*mibSources, **dict(fuzzyMatching=doFuzzyMatchingFlag))
+        mibCompiler.add_sources(
+            *get_readers_from_urls(
+                *mibSources, **dict(fuzzyMatching=doFuzzyMatchingFlag)
+            )
         )
 
-        mibCompiler.addSearchers(*searchers)
+        mibCompiler.add_searchers(*searchers)
 
-        mibCompiler.addBorrowers(*borrowers)
+        mibCompiler.add_borrowers(*borrowers)
 
         processed = mibCompiler.compile(
             *inputMibs,
@@ -439,7 +442,7 @@ Try various file names while searching for MIB module: {"yes" if doFuzzyMatching
                 safe[x] = processed[x]
 
         if buildIndexFlag:
-            mibCompiler.buildIndex(safe, dryRun=dryrunFlag, ignoreErrors=True)
+            mibCompiler.build_index(safe, dryRun=dryrunFlag, ignoreErrors=True)
 
     except error.PySmiError:
         sys.stderr.write(f"ERROR: {sys.exc_info()[1]}{os.linesep}")

@@ -4,8 +4,8 @@
 # Copyright (c) 2015-2020, Ilya Etingof <etingof@gmail.com>
 # License: https://www.pysnmp.com/pysmi/license.html
 #
+from pysmi.parser.dialect import smi_v1
 from pysmi.parser.smi import parserFactory
-from pysmi.parser.dialect import smiV1
 
 # compatibility stub
-SmiV1Parser = parserFactory(**smiV1)
+SmiV1Parser = parserFactory(**smi_v1)

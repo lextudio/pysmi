@@ -4,8 +4,7 @@
 # Copyright (c) 2015-2020, Ilya Etingof <etingof@gmail.com>
 # License: https://www.pysnmp.com/pysmi/license.html
 #
-from pysmi import error
-from pysmi import debug
+from pysmi import debug, error
 
 
 class AbstractBorrower:
@@ -28,9 +27,10 @@ class AbstractBorrower:
         self._reader = reader
 
     def __str__(self):
+        """Return a string representation of the instance."""
         return f"{self.__class__.__name__}{{{self._reader}, genTexts={self.genTexts}, exts={self.exts}}}"
 
-    def setOptions(self, **kwargs):
+    def set_options(self, **kwargs):
         self._reader.setOptions(**kwargs)
 
         for k in kwargs:
@@ -38,14 +38,14 @@ class AbstractBorrower:
 
         return self
 
-    def getData(self, mibname, **options):
+    def get_data(self, mibname, **options):
         if bool(options.get("genTexts")) != self.genTexts:
-            debug.logger & debug.flagBorrower and debug.logger(
+            debug.logger & debug.FLAG_BORROWER and debug.logger(
                 f"skipping incompatible borrower {self} for file {mibname}"
             )
             raise error.PySmiFileNotFoundError(mibname=mibname, reader=self._reader)
 
-        debug.logger & debug.flagBorrower and (
+        debug.logger & debug.FLAG_BORROWER and (
             debug.logger(f"trying to borrow file {mibname} from {self._reader}")
         )
 
