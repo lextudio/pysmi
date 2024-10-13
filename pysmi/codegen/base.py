@@ -5,6 +5,7 @@
 # License: https://www.pysnmp.com/pysmi/license.html
 #
 from keyword import iskeyword
+import warnings
 
 from pysmi import error
 
@@ -318,3 +319,25 @@ class AbstractCodeGen:
         if iskeyword(symbol):
             symbol = RESERVED_KEYWORDS_PREFIX + symbol
         return symbol.replace("-", "_")
+
+    # compatibility with legacy code
+    # Old to new attribute mapping
+    deprecated_attributes = {
+        "genCode": "gen_code",
+        "genIndex": "gen_index",
+        "isBinary": "is_binary",
+        "isHex": "is_hex",
+        "transOpers": "trans_opers",
+    }
+
+    def __getattr__(self, attr: str):
+        if new_attr := self.deprecated_attributes.get(attr):
+            warnings.warn(
+                f"{attr} is deprecated. Please use {new_attr} instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            return getattr(self, new_attr)
+        raise AttributeError(
+            f"'{self.__class__.__name__}' object has no attribute '{attr}'"
+        )

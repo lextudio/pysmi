@@ -8,6 +8,7 @@ import getpass
 import platform
 import sys
 import time
+import warnings
 
 from pysmi.codegen.base import AbstractCodeGen
 from pysmi.reader.base import AbstractReader
@@ -647,3 +648,22 @@ class MibCompiler:
                 raise exc.with_traceback(tb)
             else:
                 raise exc
+
+    # compatibility with legacy code
+    # Old to new attribute mapping
+    deprecated_attributes = {
+        "addSources": "add_sources",
+        "addSearchers": "add_searchers",
+    }
+
+    def __getattr__(self, attr: str):
+        if new_attr := self.deprecated_attributes.get(attr):
+            warnings.warn(
+                f"{attr} is deprecated. Please use {new_attr} instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            return getattr(self, new_attr)
+        raise AttributeError(
+            f"'{self.__class__.__name__}' object has no attribute '{attr}'"
+        )
