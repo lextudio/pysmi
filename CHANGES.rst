@@ -1,3 +1,8 @@
+Revision 1.5.4, released on Oct 14, 2024
+----------------------------------------
+
+- Fixed a runtime error in pysnmp.
+
 Revision 1.5.3, released on Oct 14, 2024
 ----------------------------------------
 
