@@ -644,6 +644,7 @@ class MibCompiler:
     deprecated_attributes = {
         "addSources": "add_sources",
         "addSearchers": "add_searchers",
+        "addBorrowers": "add_borrowers",
     }
 
     def __getattr__(self, attr: str):
