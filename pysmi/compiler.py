@@ -10,15 +10,11 @@ import sys
 import time
 import warnings
 
-from pysmi.codegen.base import AbstractCodeGen
-from pysmi.reader.base import AbstractReader
-from pysmi.searcher.base import AbstractSearcher
-from pysmi.writer.base import AbstractWriter
-
 from pysmi import __name__ as package_name
 from pysmi import __version__ as package_version
 from pysmi import debug
 from pysmi import error
+from pysmi.borrower.base import AbstractBorrower
 from pysmi.codegen.base import AbstractCodeGen
 from pysmi.codegen.symtable import SymtableCodeGen
 from pysmi.mibinfo import MibInfo
@@ -83,6 +79,8 @@ class MibCompiler:
     indexFile = "index"
     _searchers: list[AbstractSearcher]
     _sources: list[AbstractReader]
+    _borrowers: list[AbstractBorrower]
+    _parsedMibs: dict[str, tuple]
 
     def __init__(self, parser, codegen: AbstractCodeGen, writer: AbstractWriter):
         """Creates an instance of *MibCompiler* class.
@@ -286,8 +284,7 @@ class MibCompiler:
                     )
                     continue
 
-                except error.PySmiError:
-                    exc_class, exc, tb = sys.exc_info()
+                except error.PySmiError as exc:
                     exc.source = source
                     exc.mibname = mibname
                     exc.msg += f" at MIB {mibname}"
@@ -331,7 +328,7 @@ class MibCompiler:
             for searcher in self._searchers:
                 try:
                     searcher.file_exists(
-                        mibname, fileInfo.mtime, rebuild=options.get("rebuild")
+                        mibname, fileInfo.mtime, rebuild=options.get("rebuild")  # type: ignore
                     )
 
                 except error.PySmiFileNotFoundError:
@@ -348,8 +345,7 @@ class MibCompiler:
                     processed[mibname] = status_untouched
                     break
 
-                except error.PySmiError:
-                    exc_class, exc, tb = sys.exc_info()
+                except error.PySmiError as exc:
                     exc.searcher = searcher
                     exc.mibname = mibname
                     exc.msg += f" at MIB {mibname}"
@@ -412,8 +408,7 @@ class MibCompiler:
                     f"{mibname} read from {fileInfo.path} and compiled by {self._writer}"
                 )
 
-            except error.PySmiError:
-                exc_class, exc, tb = sys.exc_info()
+            except error.PySmiError as exc:
                 exc.handler = self._codegen
                 exc.mibname = mibname
                 exc.msg += f" at MIB {mibname}"
@@ -447,7 +442,7 @@ class MibCompiler:
                     f"trying to borrow {mibname} from {borrower}"
                 )
                 try:
-                    fileInfo, fileData = borrower.getData(
+                    fileInfo, fileData = borrower.get_data(
                         mibname, genTexts=options.get("genTexts")
                     )
 
@@ -487,7 +482,7 @@ class MibCompiler:
             for searcher in self._searchers:
                 try:
                     searcher.file_exists(
-                        mibname, fileInfo.mtime, rebuild=options.get("rebuild")
+                        mibname, fileInfo.mtime, rebuild=options.get("rebuild")  # type: ignore
                     )
 
                 except error.PySmiFileNotFoundError:
@@ -504,8 +499,7 @@ class MibCompiler:
                     processed[mibname] = status_untouched
                     break
 
-                except error.PySmiError:
-                    exc_class, exc, tb = sys.exc_info()
+                except error.PySmiError as exc:
                     exc.searcher = searcher
                     exc.mibname = mibname
                     exc.msg += f" at MIB {mibname}"
@@ -570,7 +564,7 @@ class MibCompiler:
             try:
                 if options.get("writeMibs", True):
                     self._writer.put_data(
-                        mibname, mibData, dryRun=options.get("dryRun")
+                        mibname, mibData, dryRun=options.get("dryRun")  # type: ignore
                     )
 
                 debug.logger & debug.FLAG_COMPILER and debug.logger(
@@ -624,17 +618,16 @@ class MibCompiler:
         ]
 
         try:
-            self._writer.putData(
+            self._writer.put_data(
                 self.indexFile,
                 self._codegen.genIndex(
                     processedMibs,
                     comments=comments,
-                    old_index_data=self._writer.getData(self.indexFile),
+                    old_index_data=self._writer.get_data(self.indexFile),
                 ),
-                dryRun=options.get("dryRun"),
+                dryRun=options.get("dryRun"),  # type: ignore
             )
-        except error.PySmiError:
-            exc_class, exc, tb = sys.exc_info()
+        except error.PySmiError as exc:
             exc.msg += f" at MIB index {self.indexFile}"
 
             debug.logger & debug.FLAG_COMPILER and debug.logger(
@@ -644,10 +637,7 @@ class MibCompiler:
             if options.get("ignoreErrors"):
                 return
 
-            if hasattr(exc, "with_traceback"):
-                raise exc.with_traceback(tb)
-            else:
-                raise exc
+            raise exc
 
     # compatibility with legacy code
     # Old to new attribute mapping
@@ -657,6 +647,7 @@ class MibCompiler:
     }
 
     def __getattr__(self, attr: str):
+        """Handle deprecated attributes."""
         if new_attr := self.deprecated_attributes.get(attr):
             warnings.warn(
                 f"{attr} is deprecated. Please use {new_attr} instead.",

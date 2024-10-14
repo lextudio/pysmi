@@ -14,7 +14,18 @@
 #
 
 
+from pysmi.codegen.base import AbstractCodeGen
+from pysmi.reader.base import AbstractReader
+from pysmi.searcher.base import AbstractSearcher
+
+
 class PySmiError(Exception):
+    msg: str
+    source: AbstractReader
+    mibname: str
+    searcher: AbstractSearcher
+    handler: AbstractCodeGen
+
     def __init__(self, *args, **kwargs):
         Exception.__init__(self, *args)
         self.msg = args and args[0] or ""

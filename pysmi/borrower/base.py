@@ -5,11 +5,13 @@
 # License: https://www.pysnmp.com/pysmi/license.html
 #
 from pysmi import debug, error
+from pysmi.reader.base import AbstractReader
 
 
 class AbstractBorrower:
     genTexts = False
     exts = ""
+    _reader: "AbstractReader"
 
     def __init__(self, reader, genTexts=False):
         """Creates an instance of *Borrower* class.
@@ -31,7 +33,7 @@ class AbstractBorrower:
         return f"{self.__class__.__name__}{{{self._reader}, genTexts={self.genTexts}, exts={self.exts}}}"
 
     def set_options(self, **kwargs):
-        self._reader.setOptions(**kwargs)
+        self._reader.set_options(**kwargs)
 
         for k in kwargs:
             setattr(self, k, kwargs[k])
@@ -52,4 +54,4 @@ class AbstractBorrower:
         if "exts" not in options:
             options["exts"] = self.exts
 
-        return self._reader.getData(mibname, **options)
+        return self._reader.get_data(mibname, **options)
