@@ -1,3 +1,8 @@
+Revision 1.5.2, released on Oct 14, 2024
+----------------------------------------
+
+- Fixed a few runtime errors.
+
 Revision 1.5.1, released on Oct 13, 2024
 ----------------------------------------
 
