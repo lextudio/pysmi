@@ -4,6 +4,7 @@
 # Copyright (c) 2015-2020, Ilya Etingof <etingof@gmail.com>
 # License: https://www.pysnmp.com/pysmi/license.html
 #
+import warnings
 from urllib import parse as urlparse
 from urllib.request import url2pathname
 
@@ -41,3 +42,19 @@ def get_readers_from_urls(*sourceUrls, **options):
             raise error.PySmiError(f"Unsupported URL scheme {sourceUrl}")
 
     return readers
+
+
+# Compatibility API
+deprecated_attributes = {
+    "getReadersFromUrls": "get_readers_from_urls",
+}
+
+
+def __getattr__(attr: str):
+    """Handle deprecated attributes."""
+    if newAttr := deprecated_attributes.get(attr):
+        warnings.warn(
+            f"{attr} is deprecated. Please use {newAttr} instead.", DeprecationWarning
+        )
+        return globals()[newAttr]
+    raise AttributeError(f"module {__name__} has no attribute {attr}")
