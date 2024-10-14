@@ -4,6 +4,7 @@
 # Copyright (c) 2015-2020, Ilya Etingof <etingof@gmail.com>
 # License: https://www.pysnmp.com/pysmi/license.html
 #
+import importlib.machinery
 import os
 import py_compile
 import sys
@@ -14,19 +15,7 @@ from pysmi import error
 from pysmi.compat import decode, encode
 from pysmi.writer.base import AbstractWriter
 
-try:
-    import importlib
-
-    try:
-        SOURCE_SUFFIXES = importlib.machinery.SOURCE_SUFFIXES
-
-    except Exception:
-        raise ImportError()
-
-except ImportError:
-    import imp
-
-    SOURCE_SUFFIXES = [s[0] for s in imp.get_suffixes() if s[2] == imp.PY_SOURCE]
+SOURCE_SUFFIXES = importlib.machinery.SOURCE_SUFFIXES
 
 
 class PyFileWriter(AbstractWriter):

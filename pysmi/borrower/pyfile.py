@@ -4,21 +4,12 @@
 # Copyright (c) 2015-2020, Ilya Etingof <etingof@gmail.com>
 # License: https://www.pysnmp.com/pysmi/license.html
 #
-try:
-    import importlib
-
-    try:
-        SOURCE_SUFFIXES = importlib.machinery.SOURCE_SUFFIXES
-
-    except Exception:
-        raise ImportError()
-
-except ImportError:
-    import imp
-
-    SOURCE_SUFFIXES = [s[0] for s in imp.get_suffixes() if s[2] == imp.PY_SOURCE]
+import importlib.machinery
 
 from pysmi.borrower.base import AbstractBorrower
+
+
+SOURCE_SUFFIXES = importlib.machinery.EXTENSION_SUFFIXES
 
 
 class PyFileBorrower(AbstractBorrower):

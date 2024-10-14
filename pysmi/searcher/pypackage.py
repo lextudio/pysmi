@@ -4,6 +4,8 @@
 # Copyright (c) 2015-2020, Ilya Etingof <etingof@gmail.com>
 # License: https://www.pysnmp.com/pysmi/license.html
 #
+import importlib.machinery
+import importlib.util
 import os
 import struct
 import time
@@ -13,23 +15,9 @@ from pysmi.compat import decode
 from pysmi.searcher.base import AbstractSearcher
 from pysmi.searcher.pyfile import PyFileSearcher
 
-try:
-    import importlib
-
-    try:
-        PY_MAGIC_NUMBER = importlib.util.MAGIC_NUMBER
-        SOURCE_SUFFIXES = importlib.machinery.SOURCE_SUFFIXES
-        BYTECODE_SUFFIXES = importlib.machinery.BYTECODE_SUFFIXES
-
-    except Exception:
-        raise ImportError()
-
-except ImportError:
-    import imp
-
-    PY_MAGIC_NUMBER = imp.get_magic()
-    SOURCE_SUFFIXES = [s[0] for s in imp.get_suffixes() if s[2] == imp.PY_SOURCE]
-    BYTECODE_SUFFIXES = [s[0] for s in imp.get_suffixes() if s[2] == imp.PY_COMPILED]
+PY_MAGIC_NUMBER = importlib.util.MAGIC_NUMBER
+SOURCE_SUFFIXES = importlib.machinery.SOURCE_SUFFIXES
+BYTECODE_SUFFIXES = importlib.machinery.BYTECODE_SUFFIXES
 
 
 class PyPackageSearcher(AbstractSearcher):
