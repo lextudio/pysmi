@@ -1,3 +1,8 @@
+Revision 1.5.5, released on Oct 21, 2024
+----------------------------------------
+
+- Improved BITS type support.
+
 Revision 1.5.4, released on Oct 14, 2024
 ----------------------------------------
 
