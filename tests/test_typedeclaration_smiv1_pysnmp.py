@@ -16,6 +16,7 @@ from pysmi.parser.smi import parserFactory
 from pysmi.parser.dialect import smi_v1_relaxed
 from pysmi.codegen.pysnmp import PySnmpCodeGen
 from pysmi.codegen.symtable import SymtableCodeGen
+from pyasn1.type.namedval import NamedValues
 from pysnmp.smi.builder import MibBuilder
 from pysnmp.smi.view import MibViewController
 
@@ -124,6 +125,55 @@ for s, k in typesMap:
     )
 
 # XXX constraints flavor not checked
+
+
+class TypeDeclarationBitsSyntaxTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      OBJECT-TYPE
+        FROM RFC1155-SMI;
+
+    TestTypeBits ::= BITS { value(0), otherValue(1) }
+
+    testObject OBJECT-TYPE
+        SYNTAX      TestTypeBits
+        ACCESS      read-only
+        STATUS      mandatory
+        DESCRIPTION "Test object"
+      ::= { 1 4 }
+
+    END
+    """
+
+    def setUp(self):
+        ast = parserFactory()().parse(self.__class__.__doc__)[0]
+        mibInfo, symtable = SymtableCodeGen().gen_code(ast, {})
+        self.mibInfo, pycode = PySnmpCodeGen().gen_code(ast, {mibInfo.name: symtable})
+        codeobj = compile(pycode, "test", "exec")
+
+        mibBuilder = MibBuilder()
+
+        self.ctx = {"mibBuilder": mibBuilder}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+        self.mibViewController = MibViewController(mibBuilder)
+
+    def testTypeNamedValues(self):
+        self.assertEqual(
+            self.ctx["TestTypeBits"]().namedValues,
+            NamedValues(("value", 0), ("otherValue", 1)),
+            "bad NAMED VALUES",
+        )
+
+    def testObjectTypeNamedValues(self):
+        self.assertEqual(
+            self.ctx["testObject"].getSyntax().namedValues,
+            NamedValues(("value", 0), ("otherValue", 1)),
+            "bad NAMED VALUES",
+        )
+
 
 suite = unittest.TestLoader().loadTestsFromModule(sys.modules[__name__])
 

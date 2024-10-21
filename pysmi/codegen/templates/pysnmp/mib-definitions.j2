@@ -151,6 +151,22 @@ if mibBuilder.loadTexts:
     {% endif %}
 {% endmacro -%}
 
+{% macro bits(namedbits) %}
+    namedValues = NamedValues(
+    {% for name, iden in namedbits.items()|sort %}
+        {% if loop.first and loop.last %}
+        ("{{ name}}", {{ iden }})
+        {% elif loop.first %}
+        *(("{{ name}}", {{ iden }}),
+        {% elif loop.last %}
+          ("{{ name}}", {{ iden }}))
+        {% else %}
+          ("{{ name}}", {{ iden }}),
+        {% endif %}
+    {% endfor %}
+    )
+{%- endmacro -%}
+
 {% macro default(definition) %}
     {% if definition['default']['default']['format'] == 'decimal' %}
     defaultValue = {{ definition['default']['default']['value'] }}
@@ -198,6 +214,9 @@ class {{ symbol }}({{ definition['type']['type'] }}):
     {% if 'constraints' in definition['type'] %}
 {{ constraints(definition['type']['type'], definition['type']['constraints']) }}
     {% endif %}
+    {% if 'bits' in definition['type'] %}
+{{ bits(definition['type']['bits']) }}
+    {% endif %}
 
 
 {%  endfor %}
@@ -217,6 +236,9 @@ class {{ symbol }}({{ definition['type']['type'] }}, TextualConvention):
     {% endif %}
     {% if 'constraints' in definition['type'] %}
 {{ constraints(definition['type']['type'], definition['type']['constraints']) }}
+    {% endif %}
+    {% if 'bits' in definition['type'] %}
+{{ bits(definition['type']['bits']) }}
     {% endif %}
     {% if 'description' in definition %}
     if mibBuilder.loadTexts:
@@ -250,19 +272,7 @@ class _{{ symbol|capfirst }}_Type({{ definition['syntax']['type'] }}):
 {{ constraints(definition['syntax']['type'], definition['syntax']['constraints']) }}
                 {% endif %}
                 {% if 'bits' in definition['syntax'] %}
-    namedValues = NamedValues(
-                    {% for name, iden in definition['syntax']['bits'].items()|sort %}
-                        {% if loop.first and loop.last %}
-        ("{{ name}}", {{ iden }})
-                        {% elif loop.first %}
-        *(("{{ name}}", {{ iden }}),
-                        {% elif loop.last %}
-          ("{{ name}}", {{ iden }}))
-                        {% else %}
-          ("{{ name}}", {{ iden }}),
-                        {% endif %}
-                    {% endfor %}
-    )
+{{ bits(definition['syntax']['bits']) }}
                 {% endif %}
 
                 {% if 'constraints' in definition['syntax'] or 'bits' in definition['syntax'] %}
