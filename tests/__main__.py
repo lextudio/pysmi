@@ -24,7 +24,7 @@ suite = unittest.TestLoader().loadTestsFromNames(
         "test_objecttype_smiv1_pysnmp",
         "test_objecttype_smiv2_pysnmp",
         "test_smiv1_smiv2_pysnmp",
-        "test_traptype_smiv2_pysnmp",
+        "test_traptype_smiv1_pysnmp",
         "test_typedeclaration_smiv1_pysnmp",
         "test_typedeclaration_smiv2_pysnmp",
         "test_valuedeclaration_smiv2_pysnmp",

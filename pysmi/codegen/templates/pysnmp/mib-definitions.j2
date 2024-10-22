@@ -73,7 +73,8 @@ Managed Objects Instances.
     {{ definition['oid'] }}
 )
     {% if 'revisions' in definition %}
-{{ symbol }}.setRevisions(
+if mibBuilder.loadTexts:
+    {{ symbol }}.setRevisions(
         {% for revision in definition.get('revisions', ()) %}
             {% if loop.first and loop.last %}
         ({{ revision['revision']|pythonstr }},)
@@ -85,17 +86,19 @@ Managed Objects Instances.
          {{ revision['revision']|pythonstr }},
             {%  endif %}
         {%  endfor %}
-)
+    )
     {% endif %}
     {% if 'lastupdated' in definition %}
-{{ symbol }}.setLastUpdated({{ definition['lastupdated']|pythonstr }})
+if mibBuilder.loadTexts:
+    {{ symbol }}.setLastUpdated({{ definition['lastupdated']|pythonstr }})
     {% endif %}
     {% if 'organization' in definition %}
 if mibBuilder.loadTexts:
     {{ symbol }}.setOrganization({{ definition['organization']|pythonstr }})
     {% endif %}
     {% if 'contactinfo' in definition %}
-{{ symbol }}.setContactInfo({{ definition['contactinfo']|pythonstr }})
+if mibBuilder.loadTexts:
+    {{ symbol }}.setContactInfo({{ definition['contactinfo']|pythonstr }})
     {% endif %}
     {% if 'description' in definition %}
 if mibBuilder.loadTexts:

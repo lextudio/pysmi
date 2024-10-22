@@ -127,6 +127,104 @@ class TrapTypeHyphenTestCase(unittest.TestCase):
         self.assertEqual(self.ctx["test_trap"].getLabel(), "test-trap", "bad label")
 
 
+class TrapTypeTextTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      TRAP-TYPE
+        FROM RFC-1215
+
+      OBJECT-TYPE
+        FROM RFC1155-SMI;
+
+    testId  OBJECT IDENTIFIER ::= { 1 3 }
+
+    testObject OBJECT-TYPE
+        SYNTAX          INTEGER
+        MAX-ACCESS      accessible-for-notify
+        STATUS          current
+        DESCRIPTION     "Test object"
+     ::= { 1 3 }
+
+    testTrap     TRAP-TYPE
+            ENTERPRISE  testId
+            VARIABLES { testObject }
+            DESCRIPTION
+                    "Test   \\trap"
+      ::= 1
+
+    END
+    """
+
+    def setUp(self):
+        ast = parserFactory()().parse(self.__class__.__doc__)[0]
+        mibInfo, symtable = SymtableCodeGen().gen_code(ast, {}, genTexts=True)
+        self.mibInfo, pycode = PySnmpCodeGen().gen_code(
+            ast,
+            {mibInfo.name: symtable},
+            genTexts=True,
+            textFilter=lambda symbol, text: text,
+        )
+        codeobj = compile(pycode, "test", "exec")
+
+        mibBuilder = MibBuilder()
+        mibBuilder.loadTexts = True
+
+        self.ctx = {"mibBuilder": mibBuilder}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+    def testTrapTypeDescription(self):
+        self.assertEqual(
+            self.ctx["testTrap"].getDescription(), "Test   \\trap", "bad DESCRIPTION"
+        )
+
+
+class TrapTypeNoLoadTextsTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      TRAP-TYPE
+        FROM RFC-1215
+
+      OBJECT-TYPE
+        FROM RFC1155-SMI;
+
+    testId  OBJECT IDENTIFIER ::= { 1 3 }
+
+    testObject OBJECT-TYPE
+        SYNTAX          INTEGER
+        MAX-ACCESS      accessible-for-notify
+        STATUS          current
+        DESCRIPTION     "Test object"
+     ::= { 1 3 }
+
+    testTrap     TRAP-TYPE
+            ENTERPRISE  testId
+            VARIABLES { testObject }
+            DESCRIPTION
+                    "Test trap"
+      ::= 1
+
+    END
+    """
+
+    def setUp(self):
+        ast = parserFactory()().parse(self.__class__.__doc__)[0]
+        mibInfo, symtable = SymtableCodeGen().gen_code(ast, {}, genTexts=True)
+        self.mibInfo, pycode = PySnmpCodeGen().gen_code(
+            ast, {mibInfo.name: symtable}, genTexts=True
+        )
+        codeobj = compile(pycode, "test", "exec")
+
+        self.ctx = {"mibBuilder": MibBuilder()}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+    def testTrapTypeDescription(self):
+        self.assertEqual(self.ctx["testTrap"].getDescription(), "", "bad DESCRIPTION")
+
+
 suite = unittest.TestLoader().loadTestsFromModule(sys.modules[__name__])
 
 if __name__ == "__main__":

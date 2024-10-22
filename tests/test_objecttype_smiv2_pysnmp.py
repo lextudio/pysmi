@@ -71,12 +71,12 @@ class ObjectTypeBasicTestCase(unittest.TestCase):
             self.ctx["testObjectType"].getStatus(), "current", "bad STATUS"
         )
 
-    # TODO:revisit
-    #    def testObjectTypeReference(self):
-    #        self.assertEqual(
-    #            self.ctx['testObjectType'].getReference(), 'ABC'.encode('iso-8859-1'),
-    #            'bad REFERENCE'
-    #        )
+    def testObjectTypeReference(self):
+        self.assertEqual(
+            self.ctx["testObjectType"].getReference(),
+            "ABC",
+            "bad REFERENCE",
+        )
 
     def testObjectTypeMaxAccess(self):
         self.assertEqual(
@@ -148,7 +148,7 @@ class ObjectTypeTextTestCase(unittest.TestCase):
         UNITS           "lines per
     text block"
         MAX-ACCESS      accessible-for-notify
-        STATUS          current
+        STATUS          deprecated
         DESCRIPTION     "Test
                          object\n"
         REFERENCE       "ABC\"
@@ -176,6 +176,13 @@ class ObjectTypeTextTestCase(unittest.TestCase):
 
         exec(codeobj, self.ctx, self.ctx)
 
+    def testObjectTypeStatus(self):
+        # Use a value other than "current" in this test, as "current" is the
+        # default pysnmp value (which could mean the test value was never set).
+        self.assertEqual(
+            self.ctx["testObjectType"].getStatus(), "deprecated", "bad SYNTAX"
+        )
+
     def testObjectTypeDescription(self):
         self.assertEqual(
             self.ctx["testObjectType"].getDescription(),
@@ -192,6 +199,58 @@ class ObjectTypeTextTestCase(unittest.TestCase):
         self.assertEqual(
             self.ctx["testObjectType"].getUnits(), "lines per\ntext block", "bad UNITS"
         )
+
+
+class ObjectTypeNoLoadTextsTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      OBJECT-TYPE
+        FROM SNMPv2-SMI;
+
+    testObjectType OBJECT-TYPE
+        SYNTAX          Integer32
+        UNITS           "seconds"
+        MAX-ACCESS      accessible-for-notify
+        STATUS          obsolete
+        DESCRIPTION     "Test object"
+        REFERENCE       "ABC"
+     ::= { 1 3 }
+
+    END
+    """
+
+    def setUp(self):
+        ast = parserFactory()().parse(self.__class__.__doc__)[0]
+        mibInfo, symtable = SymtableCodeGen().gen_code(ast, {}, genTexts=True)
+        self.mibInfo, pycode = PySnmpCodeGen().gen_code(
+            ast, {mibInfo.name: symtable}, genTexts=True
+        )
+        codeobj = compile(pycode, "test", "exec")
+
+        self.ctx = {"mibBuilder": MibBuilder()}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+    def testObjectTypeStatus(self):
+        # "current" is the default pysnmp value, and therefore what we get if
+        # we request that texts not be loaded.
+        self.assertEqual(
+            self.ctx["testObjectType"].getStatus(), "current", "bad STATUS"
+        )
+
+    def testObjectTypeDescription(self):
+        self.assertEqual(
+            self.ctx["testObjectType"].getDescription(),
+            "",
+            "bad DESCRIPTION",
+        )
+
+    def testObjectTypeReference(self):
+        self.assertEqual(self.ctx["testObjectType"].getReference(), "", "bad REFERENCE")
+
+    def testObjectTypeUnits(self):
+        self.assertEqual(self.ctx["testObjectType"].getUnits(), "", "bad UNITS")
 
 
 class ObjectTypeIntegerDefaultTestCase(unittest.TestCase):

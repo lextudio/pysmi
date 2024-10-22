@@ -213,6 +213,71 @@ class ModuleIdentityTextTestCase(unittest.TestCase):
         )
 
 
+class ModuleIdentityNoLoadTextsTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+     MODULE-IDENTITY
+        FROM SNMPv2-SMI;
+
+    testModule MODULE-IDENTITY
+     LAST-UPDATED "200001100000Z" -- Midnight 10 January 2000
+     ORGANIZATION "AgentX Working Group"
+     CONTACT-INFO "WG-email:   agentx@dorothy.bmc.com"
+     DESCRIPTION  "This is the MIB module for the SNMP"
+     REVISION     "200001100000Z" -- Midnight 10 January 2000
+     DESCRIPTION  "Initial version published as RFC 2742."
+     ::= { 1 3 }
+
+    END
+    """
+
+    def setUp(self):
+        ast = parserFactory()().parse(self.__class__.__doc__)[0]
+        mibInfo, symtable = SymtableCodeGen().gen_code(ast, {}, genTexts=True)
+        self.mibInfo, pycode = PySnmpCodeGen().gen_code(
+            ast, {mibInfo.name: symtable}, genTexts=True
+        )
+        codeobj = compile(pycode, "test", "exec")
+
+        self.ctx = {"mibBuilder": MibBuilder()}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+    def testModuleIdentityLastUpdated(self):
+        self.assertEqual(
+            self.ctx["testModule"].getLastUpdated(), "", "bad LAST-UPDATED"
+        )
+
+    def testModuleIdentityOrganization(self):
+        self.assertEqual(
+            self.ctx["testModule"].getOrganization(),
+            "",
+            "bad ORGANIZATION",
+        )
+
+    def testModuleIdentityRevisions(self):
+        self.assertEqual(
+            self.ctx["testModule"].getRevisions(),
+            (),
+            "bad REVISIONS",
+        )
+
+    def testModuleIdentityContactInfo(self):
+        self.assertEqual(
+            self.ctx["testModule"].getContactInfo(),
+            "",
+            "bad CONTACT-INFO",
+        )
+
+    def testModuleIdentityDescription(self):
+        self.assertEqual(
+            self.ctx["testModule"].getDescription(),
+            "",
+            "bad DESCRIPTION",
+        )
+
+
 suite = unittest.TestLoader().loadTestsFromModule(sys.modules[__name__])
 
 if __name__ == "__main__":

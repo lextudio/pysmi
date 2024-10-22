@@ -282,7 +282,7 @@ class TypeDeclarationTextTestCase(unittest.TestCase):
     TestTextualConvention ::= TEXTUAL-CONVENTION
         DISPLAY-HINT "semantically
     invalid"
-        STATUS       current
+        STATUS       obsolete
         DESCRIPTION  "Test\n TC\"
         REFERENCE
     "\Test
@@ -314,6 +314,13 @@ class TypeDeclarationTextTestCase(unittest.TestCase):
     def testTextualConventionSymbol(self):
         self.assertTrue("TestTextualConvention" in self.ctx, "symbol not present")
 
+    def testTextualConventionStatus(self):
+        # Use a value other than "current" in this test, as "current" is the
+        # default pysnmp value (which could mean the test value was never set).
+        self.assertEqual(
+            self.ctx["TestTextualConvention"]().getStatus(), "obsolete", "bad STATUS"
+        )
+
     def testTextualConventionDisplayHint(self):
         self.assertEqual(
             self.ctx["TestTextualConvention"]().getDisplayHint(),
@@ -332,6 +339,66 @@ class TypeDeclarationTextTestCase(unittest.TestCase):
         self.assertEqual(
             self.ctx["TestTextualConvention"]().getReference(),
             "\\Test\n  reference\\\\",
+            "bad REFERENCE",
+        )
+
+
+class TypeDeclarationNoLoadTextsTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      Unsigned32
+        FROM SNMPv2-SMI
+      TEXTUAL-CONVENTION
+        FROM SNMPv2-TC;
+
+    TestTextualConvention ::= TEXTUAL-CONVENTION
+        DISPLAY-HINT "d-2"
+        STATUS       deprecated
+        DESCRIPTION  "Test TC"
+        REFERENCE    "Test reference"
+        SYNTAX       Unsigned32
+
+    END
+    """
+
+    def setUp(self):
+        ast = parserFactory()().parse(self.__class__.__doc__)[0]
+        mibInfo, symtable = SymtableCodeGen().gen_code(ast, {}, genTexts=True)
+        self.mibInfo, pycode = PySnmpCodeGen().gen_code(
+            ast, {mibInfo.name: symtable}, genTexts=True
+        )
+        codeobj = compile(pycode, "test", "exec")
+
+        self.ctx = {"mibBuilder": MibBuilder()}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+    def testTextualConventionDisplayHint(self):
+        self.assertEqual(
+            self.ctx["TestTextualConvention"]().getDisplayHint(),
+            "d-2",
+            "bad DISPLAY-HINT",
+        )
+
+    def testTextualConventionStatus(self):
+        # Unlike all other classes, TextualConvention does take on the status
+        # even if generating and loading texts is disabled.
+        self.assertEqual(
+            self.ctx["TestTextualConvention"]().getStatus(), "deprecated", "bad STATUS"
+        )
+
+    def testTextualConventionDescription(self):
+        self.assertEqual(
+            self.ctx["TestTextualConvention"]().getDescription(),
+            "",
+            "bad DESCRIPTION",
+        )
+
+    def testTextualConventionReference(self):
+        self.assertEqual(
+            self.ctx["TestTextualConvention"]().getReference(),
+            "",
             "bad REFERENCE",
         )
 
@@ -656,8 +723,6 @@ class TypeDeclarationBitsTextualConventionSyntaxTestCase(unittest.TestCase):
         self.ctx = {"mibBuilder": mibBuilder}
 
         exec(codeobj, self.ctx, self.ctx)
-
-        self.mibViewController = MibViewController(mibBuilder)
 
     def testTextualConventionNamedValues(self):
         self.assertEqual(
