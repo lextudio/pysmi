@@ -22,16 +22,16 @@ Managed Objects Instances.
 
 {% block asn1_constraints_imports scoped %}
 (ConstraintsIntersection,
+ ConstraintsUnion,
  SingleValueConstraint,
  ValueRangeConstraint,
- ValueSizeConstraint,
- ConstraintsUnion) = mibBuilder.importSymbols(
+ ValueSizeConstraint) = mibBuilder.importSymbols(
     "ASN1-REFINEMENT",
     "ConstraintsIntersection",
+    "ConstraintsUnion",
     "SingleValueConstraint",
     "ValueRangeConstraint",
-    "ValueSizeConstraint",
-    "ConstraintsUnion")
+    "ValueSizeConstraint")
 {% endblock -%}
 
 {% block smi_imports scoped %}
@@ -127,7 +127,7 @@ if mibBuilder.loadTexts:
         )
     )
     namedValues = NamedValues(
-    {% for name, iden in spec['enumeration'].items()|sort %}
+    {% for name, iden in spec['enumeration'].items()|sort(attribute='1') %}
         {% if loop.first and loop.last %}
         ("{{ name}}", {{ iden }})
         {% elif loop.first %}
@@ -156,7 +156,7 @@ if mibBuilder.loadTexts:
 
 {% macro bits(namedbits) %}
     namedValues = NamedValues(
-    {% for name, iden in namedbits.items()|sort %}
+    {% for name, iden in namedbits.items()|sort(attribute='1') %}
         {% if loop.first and loop.last %}
         ("{{ name}}", {{ iden }})
         {% elif loop.first %}
