@@ -20,6 +20,7 @@ from pysmi.searcher import StubSearcher
 from pysmi.writer import CallbackWriter
 from pysmi.parser import SmiStarParser
 from pysmi.compiler import MibCompiler
+from pyasn1.type.namedval import NamedValues
 from pysnmp.smi.builder import MibBuilder
 
 
@@ -325,6 +326,67 @@ class ImportTypeTestCase(unittest.TestCase):
         self.assertEqual(
             self.ctx["testObject3"].getSyntax().prettyPrint(), "1:2:3", "bad defval"
         )
+
+
+class ImportTCEnumUsedByDefvalTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      OBJECT-TYPE
+        FROM SNMPv2-SMI
+      ImportedType
+        FROM IMPORTED-MIB;
+
+    testObject OBJECT-TYPE
+        SYNTAX       ImportedType
+        MAX-ACCESS   read-write
+        STATUS       current
+        DESCRIPTION  "Test object"
+        DEFVAL       { enabled }
+      ::= { 1 4 }
+
+    END
+    """
+
+    IMPORTED_MIB = """
+    IMPORTED-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      OBJECT-TYPE
+        FROM SNMPv2-SMI
+      TEXTUAL-CONVENTION
+        FROM SNMPv2-TC;
+
+    ImportedType ::= TEXTUAL-CONVENTION
+        STATUS       current
+        DESCRIPTION  "Test TC"
+        SYNTAX       INTEGER { enabled(1), disabled(2) }
+
+    END
+    """
+
+    def setUp(self):
+        self.ctx = {"mibBuilder": MibBuilder()}
+        symbolTable = {}
+
+        for mibData in (self.IMPORTED_MIB, self.__class__.__doc__):
+            ast = parserFactory()().parse(mibData)[0]
+            mibInfo, symtable = SymtableCodeGen().gen_code(ast, {})
+
+            symbolTable[mibInfo.name] = symtable
+
+            mibInfo, pycode = PySnmpCodeGen().gen_code(ast, dict(symbolTable))
+            codeobj = compile(pycode, "test", "exec")
+            exec(codeobj, self.ctx, self.ctx)
+
+    def testObjectTypeNamedValues(self):
+        self.assertEqual(
+            self.ctx["testObject"].getSyntax().namedValues,
+            NamedValues(("enabled", 1), ("disabled", 2)),
+            "bad NAMED VALUES",
+        )
+
+    def testObjectTypeSyntax(self):
+        self.assertEqual(self.ctx["testObject"].getSyntax(), 1, "bad DEFVAL")
 
 
 class ImportSelfTestCase(unittest.TestCase):

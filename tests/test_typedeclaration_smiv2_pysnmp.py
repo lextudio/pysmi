@@ -739,6 +739,97 @@ class TypeDeclarationBitsTextualConventionSyntaxTestCase(unittest.TestCase):
         )
 
 
+class TypeDeclarationTCEnumUsedByDefvalTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      OBJECT-TYPE
+        FROM SNMPv2-SMI
+      TEXTUAL-CONVENTION
+        FROM SNMPv2-TC;
+
+    TestTextualConvention ::= TEXTUAL-CONVENTION
+        STATUS       current
+        DESCRIPTION  "Test TC"
+        SYNTAX       INTEGER { enabled(1), disabled(2) }
+
+    testObject1 OBJECT-TYPE
+        SYNTAX       TestTextualConvention
+        MAX-ACCESS   read-write
+        STATUS       current
+        DESCRIPTION  "Test object"
+        DEFVAL       { enabled }
+      ::= { 1 4 }
+
+    testObject2 OBJECT-TYPE
+        SYNTAX       TestTextualConvention { disabled(2) }
+        MAX-ACCESS   read-write
+        STATUS       current
+        DESCRIPTION  "Test object"
+        DEFVAL       { disabled }
+      ::= { 1 5 }
+
+    testObject3 OBJECT-TYPE
+        SYNTAX       TestTextualConvention (2) -- dodgy; see comment below
+        MAX-ACCESS   read-write
+        STATUS       current
+        DESCRIPTION  "Test object"
+        DEFVAL       { disabled }
+      ::= { 1 6 }
+
+    END
+    """
+
+    def setUp(self):
+        ast = parserFactory()().parse(self.__class__.__doc__)[0]
+        mibInfo, symtable = SymtableCodeGen().gen_code(ast, {})
+        self.mibInfo, pycode = PySnmpCodeGen().gen_code(ast, {mibInfo.name: symtable})
+        codeobj = compile(pycode, "test", "exec")
+
+        mibBuilder = MibBuilder()
+
+        self.ctx = {"mibBuilder": mibBuilder}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+    def testObjectTypeNamedValues1(self):
+        self.assertEqual(
+            self.ctx["testObject1"].getSyntax().namedValues,
+            NamedValues(("enabled", 1), ("disabled", 2)),
+            "bad NAMED VALUES",
+        )
+
+    def testObjectTypeSyntax1(self):
+        self.assertEqual(self.ctx["testObject1"].getSyntax(), 1, "bad DEFVAL")
+
+    def testObjectTypeNamedValues2(self):
+        self.assertEqual(
+            self.ctx["testObject2"].getSyntax().namedValues,
+            NamedValues(
+                ("disabled", 2),
+            ),
+            "bad NAMED VALUES",
+        )
+
+    def testObjectTypeSyntax2(self):
+        self.assertEqual(self.ctx["testObject2"].getSyntax(), 2, "bad DEFVAL")
+
+    # Note the omission of a testObjectTypeNamedValues3() here. RFC 2578 seems
+    # to suggest that range-type constraints cannot be used on enumerated
+    # integers, and smilint says it is illegal. However, such constructions are
+    # used by some MIBs in practice. As of writing, pysmi parses but ignores
+    # such range restrictions on enumerations; seeing as that behavior may be
+    # changed in the future, the end result is not tested here.
+    #
+    # The resulting DEFVAL value is however tested below and must be set
+    # properly either way. The main reason that we test this case, is that
+    # before the commit that added this test class, this kind of construction
+    # would trigger an exception in pysmi.
+
+    def testObjectTypeSyntax3(self):
+        self.assertEqual(self.ctx["testObject3"].getSyntax(), 2, "bad DEFVAL")
+
+
 suite = unittest.TestLoader().loadTestsFromModule(sys.modules[__name__])
 
 if __name__ == "__main__":

@@ -734,15 +734,22 @@ class IntermediateCodeGen(AbstractCodeGen):
             elif defvalType[0][0] in ("Integer32", "Integer") and isinstance(
                 defvalType[1], list
             ):
+                # For enumerations, the ASN.1 DEFVAL statements contain names,
+                # whereas the code generation template expects integer values
+                # (represented as strings).
+                nameToValueMap = dict(defvalType[1])
+
                 # buggy MIB: DEFVAL { { ... } }
                 if isinstance(defval, list):
-                    defval = [dv for dv in defval if dv in dict(defvalType[1])]
+                    defval = [dv for dv in defval if dv in nameToValueMap]
                     if defval:
-                        outDict.update(value=defval[0], format="enum")
+                        outDict.update(
+                            value=str(nameToValueMap[defval[0]]), format="enum"
+                        )
 
                 # good MIB: DEFVAL { ... }
-                elif defval in dict(defvalType[1]):
-                    outDict.update(value=defval, format="enum")
+                elif defval in nameToValueMap:
+                    outDict.update(value=str(nameToValueMap[defval]), format="enum")
 
             elif defvalType[0][0] == "Bits":
                 defvalBits = []

@@ -190,12 +190,8 @@ if mibBuilder.loadTexts:
     {% elif definition['default']['default']['format'] == 'string' %}
     {# TODO: pyasn1 does not like defaulted strings #}
     defaultValue = OctetString({{ definition['default']['default']['value']|pythonstr }})
-    {% elif definition['default']['default']['format'] == 'oid' %}
+    {% elif definition['default']['default']['format'] in ('oid', 'enum') %}
     defaultValue = {{ definition['default']['default']['value'] }}
-    {% elif definition['default']['default']['format'] == 'enum'
-        and 'constraints' in definition['syntax'] %}
-    {# TODO: pyasn1 does not like default enum #}
-    defaultValue = {{ definition['syntax']['constraints']['enumeration'][definition['default']['default']['value']] }}
     {% elif definition['default']['default']['format'] == 'bits' %}
     {# TODO: pyasn1 does not like default named bits #}
     defaultBinValue = "{{ definition['default']['default']['value']['bits'].values()|bitstring }}"
