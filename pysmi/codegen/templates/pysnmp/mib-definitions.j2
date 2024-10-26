@@ -278,9 +278,7 @@ class _{{ symbol|capfirst }}_Type({{ definition['syntax']['type'] }}):
 {{ bits(definition['syntax']['bits']) }}
                 {% endif %}
 
-                {% if 'constraints' in definition['syntax'] or 'bits' in definition['syntax'] %}
 _{{ symbol|capfirst }}_Type.__name__ = "{{ definition['syntax']['type'] }}"
-                {% endif %}
             {% else %}
 _{{ symbol|capfirst }}_Type = {{ definition['syntax']['type'] }}
             {% endif %}
