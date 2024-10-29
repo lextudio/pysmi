@@ -134,7 +134,10 @@ class ImportTypeTestCase(unittest.TestCase):
         FROM SNMPv2-SMI
       TEXTUAL-CONVENTION
         FROM SNMPv2-TC
-      ImportedType1, Imported-Type-2, True
+      ImportedType1,
+      Imported-Type-2,
+      True,
+      ImportedType3
         FROM IMPORTED-MIB;
 
     testObject1 OBJECT-TYPE
@@ -142,6 +145,7 @@ class ImportTypeTestCase(unittest.TestCase):
         MAX-ACCESS  read-only
         STATUS      current
         DESCRIPTION "Test object"
+        DEFVAL      { '01020304'H }
       ::= { 1 3 }
 
     Test-Type-2 ::= TEXTUAL-CONVENTION
@@ -155,6 +159,7 @@ class ImportTypeTestCase(unittest.TestCase):
         MAX-ACCESS  read-only
         STATUS      current
         DESCRIPTION "Test object"
+        DEFVAL      { 'aabbccdd'H }
       ::= { 1 4 }
 
     False ::= TEXTUAL-CONVENTION
@@ -177,6 +182,20 @@ class ImportTypeTestCase(unittest.TestCase):
         DESCRIPTION "Test object"
       ::= { 1 6 }
 
+    TestType3 ::= TEXTUAL-CONVENTION
+        DISPLAY-HINT "2d:"
+        STATUS       current
+        DESCRIPTION  "Test TC"
+        SYNTAX       ImportedType3
+
+    testObject3 OBJECT-TYPE
+        SYNTAX      TestType3
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION "Test object"
+        DEFVAL      { '000100020003'H }
+      ::= { 1 7 }
+
     END
     """
 
@@ -189,7 +208,7 @@ class ImportTypeTestCase(unittest.TestCase):
         FROM SNMPv2-TC;
 
     ImportedType1 ::= TEXTUAL-CONVENTION
-        DISPLAY-HINT "255a"
+        DISPLAY-HINT "1d:"
         STATUS       current
         DESCRIPTION  "Test TC with display hint"
         SYNTAX       OCTET STRING
@@ -203,6 +222,8 @@ class ImportTypeTestCase(unittest.TestCase):
         STATUS       current
         DESCRIPTION  "Test TC"
         SYNTAX       OCTET STRING
+
+    ImportedType3 ::= OCTET STRING
 
     END
     """
@@ -230,8 +251,13 @@ class ImportTypeTestCase(unittest.TestCase):
     def testObjectTypeDisplayHint1(self):
         self.assertEqual(
             self.ctx["testObject1"].getSyntax().getDisplayHint(),
-            "255a",
+            "1d:",
             "bad display hint",
+        )
+
+    def testObjectTypePrettyValue1(self):
+        self.assertEqual(
+            self.ctx["testObject1"].getSyntax().prettyPrint(), "1:2:3:4", "bad defval"
         )
 
     def testObjectTypeName2(self):
@@ -247,6 +273,13 @@ class ImportTypeTestCase(unittest.TestCase):
             self.ctx["test_object_2"].getSyntax().getDisplayHint(),
             "1x:",
             "bad display hint",
+        )
+
+    def testObjectTypePrettyValue2(self):
+        self.assertEqual(
+            self.ctx["test_object_2"].getSyntax().prettyPrint(),
+            "aa:bb:cc:dd",
+            "bad defval",
         )
 
     def testObjectTypeNameReservedKeyword1(self):
@@ -273,6 +306,24 @@ class ImportTypeTestCase(unittest.TestCase):
             self.ctx["_pysmi_if"].getSyntax().getDisplayHint(),
             "2x:",
             "bad display hint",
+        )
+
+    def testObjectTypeName3(self):
+        self.assertEqual(self.ctx["testObject3"].getName(), (1, 7), "bad value")
+
+    def testObjectTypeLabel3(self):
+        self.assertEqual(self.ctx["testObject3"].getLabel(), "testObject3", "bad label")
+
+    def testObjectTypeDisplayHint3(self):
+        self.assertEqual(
+            self.ctx["testObject3"].getSyntax().getDisplayHint(),
+            "2d:",
+            "bad display hint",
+        )
+
+    def testObjectTypePrettyValue3(self):
+        self.assertEqual(
+            self.ctx["testObject3"].getSyntax().prettyPrint(), "1:2:3", "bad defval"
         )
 
 

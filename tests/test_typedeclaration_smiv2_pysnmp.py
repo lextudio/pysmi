@@ -343,12 +343,12 @@ class TypeDeclarationInheritanceTestCase(unittest.TestCase):
     """
     TEST-MIB DEFINITIONS ::= BEGIN
     IMPORTS
-      Unsigned32
+      OBJECT-TYPE
         FROM SNMPv2-SMI
       TEXTUAL-CONVENTION
         FROM SNMPv2-TC;
 
-    TestTypeUnsigned32 ::= Unsigned32
+    TestTypeInteger ::= INTEGER
 
     --
     -- without constraints
@@ -359,14 +359,14 @@ class TypeDeclarationInheritanceTestCase(unittest.TestCase):
         DISPLAY-HINT "d-1"
         STATUS       current
         DESCRIPTION  "Test TC 1"
-        SYNTAX       Unsigned32
+        SYNTAX       INTEGER
 
     -- textual convention for simple type, derived from base type
     TestTC-SB ::= TEXTUAL-CONVENTION
         DISPLAY-HINT "d-2"
         STATUS       current
         DESCRIPTION  "Test TC 2"
-        SYNTAX       TestTypeUnsigned32
+        SYNTAX       TestTypeInteger
 
     -- textual convention for textual convention, derived from base type
     TestTC-TB ::= TEXTUAL-CONVENTION
@@ -430,6 +430,50 @@ class TypeDeclarationInheritanceTestCase(unittest.TestCase):
         STATUS       current
         DESCRIPTION  "Test TC 10"
         SYNTAX       TestTC-TC (SIZE (20..23))
+
+    --
+    -- test objects (without constraints only)
+    --
+
+    testObjectB OBJECT-TYPE
+        SYNTAX       TestTC-B
+        MAX-ACCESS   read-only
+        STATUS       current
+        DESCRIPTION  "Test object"
+        DEFVAL       { 123456 }
+      ::= { 1 4 1 }
+
+    testObjectSB OBJECT-TYPE
+        SYNTAX       TestTC-SB
+        MAX-ACCESS   read-only
+        STATUS       current
+        DESCRIPTION  "Test object"
+        DEFVAL       { 123456 }
+      ::= { 1 4 2 }
+
+    testObjectTB OBJECT-TYPE
+        SYNTAX       TestTC-TB
+        MAX-ACCESS   read-only
+        STATUS       current
+        DESCRIPTION  "Test object"
+        DEFVAL       { 123456 }
+      ::= { 1 4 3 }
+
+    testObjectTSB OBJECT-TYPE
+        SYNTAX       TestTC-TSB
+        MAX-ACCESS   read-only
+        STATUS       current
+        DESCRIPTION  "Test object"
+        DEFVAL       { 123456 }
+      ::= { 1 4 4 }
+
+    testObjectTTB OBJECT-TYPE
+        SYNTAX       TestTC-TTB
+        MAX-ACCESS   read-only
+        STATUS       current
+        DESCRIPTION  "Test object"
+        DEFVAL       { 123456 }
+      ::= { 1 4 5 }
 
     END
     """
@@ -549,6 +593,31 @@ class TypeDeclarationInheritanceTestCase(unittest.TestCase):
             self.ctx["TestTC_TTC"]().getDisplayHint(),
             "1x:",
             "bad DISPLAY-HINT",
+        )
+
+    def testObjectTypePrettyValueB(self):
+        self.assertEqual(
+            self.ctx["testObjectB"].getSyntax().prettyPrint(), "12345.6", "bad DEFVAL"
+        )
+
+    def testObjectTypePrettyValueSB(self):
+        self.assertEqual(
+            self.ctx["testObjectSB"].getSyntax().prettyPrint(), "1234.56", "bad DEFVAL"
+        )
+
+    def testObjectTypePrettyValueTB(self):
+        self.assertEqual(
+            self.ctx["testObjectTB"].getSyntax().prettyPrint(), "123.456", "bad DEFVAL"
+        )
+
+    def testObjectTypePrettyValueTSB(self):
+        self.assertEqual(
+            self.ctx["testObjectTSB"].getSyntax().prettyPrint(), "12.3456", "bad DEFVAL"
+        )
+
+    def testObjectTypePrettyValueTTB(self):
+        self.assertEqual(
+            self.ctx["testObjectTTB"].getSyntax().prettyPrint(), "1.23456", "bad DEFVAL"
         )
 
 

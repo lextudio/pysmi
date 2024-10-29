@@ -228,6 +228,20 @@ class IntermediateCodeGen(AbstractCodeGen):
 
             return baseSymType, symSubtype
 
+    def is_type_derived_from_tc(self, symName, module):
+        """Is the given type derived from a Textual-Convention declaration?
+
+        Given that deriving simple types from textual conventions is currently
+        not supported altogether, this method tests only the immediate parent.
+
+        Any problems are ignored: if the given type is not definitely derived
+        from a textual convention, this method returns False.
+        """
+        if module not in self.symbolTable or symName not in self.symbolTable[module]:
+            return False
+
+        return self.symbolTable[module][symName]["isTC"]
+
     # Clause generation functions
 
     # noinspection PyUnusedLocal
@@ -563,6 +577,19 @@ class IntermediateCodeGen(AbstractCodeGen):
                 pysmiName = self.trans_opers(name)
                 outDict.update(attrs)
                 self.reg_sym(pysmiName, outDict)
+
+                # Establish if this type is derived from a Textual-Convention
+                # declaration, as needed for pysnmp code generation.
+                typeType = outDict["type"]["type"]
+                if (
+                    typeType in self.symbolTable[self.moduleName[0]]
+                    or typeType in self._importMap
+                ):
+                    module = self._importMap.get(typeType, self.moduleName[0])
+                    isDerivedFromTC = self.is_type_derived_from_tc(typeType, module)
+                else:
+                    isDerivedFromTC = False
+                outDict["type"]["tcbase"] = isDerivedFromTC
 
         return outDict
 
