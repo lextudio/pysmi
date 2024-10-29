@@ -351,12 +351,14 @@ class SymtableCodeGen(AbstractCodeGen):
         pysmiName = self.trans_opers(origName)
 
         if declaration:
-            parentType, attrs = declaration
+            parentType, attrs, isTC = declaration
+
             if parentType:  # skipping SEQUENCE case
                 symProps = {
                     "type": "TypeDeclaration",
-                    "syntax": declaration,  # (type, module), subtype
+                    "syntax": (parentType, attrs),  # (type, module), subtype
                     "origName": origName,
+                    "isTC": isTC,
                 }
 
                 self.reg_sym(pysmiName, symProps, [declaration[0][0]])
@@ -555,13 +557,15 @@ class SymtableCodeGen(AbstractCodeGen):
     def gen_type_declaration_rhs(self, data, classmode=False):
         if len(data) == 1:
             parentType, attrs = data[0]  # just syntax
+            isTC = False
 
         else:
             # Textual convention
             display, status, description, reference, syntax = data
             parentType, attrs = syntax
+            isTC = True
 
-        return parentType, attrs
+        return parentType, attrs, isTC
 
     # noinspection PyUnusedLocal,PyUnusedLocal,PyMethodMayBeStatic
     def gen_units(self, data, classmode=False):
