@@ -1,3 +1,8 @@
+Revision 1.5.6, released on Oct 29, 2024
+----------------------------------------
+
+- Improved DISPLAY-HINT support.
+
 Revision 1.5.5, released on Oct 21, 2024
 ----------------------------------------
 
