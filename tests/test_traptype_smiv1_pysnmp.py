@@ -73,6 +73,13 @@ class TrapTypeTestCase(unittest.TestCase):
             self.ctx["testTrap"].getDescription(), "Test trap", "bad DESCRIPTION"
         )
 
+    def testTrapTypeObjects(self):
+        self.assertEqual(
+            self.ctx["testTrap"].getObjects(),
+            (("TEST-MIB", "testObject"),),
+            "bad OBJECTS",
+        )
+
     def testTrapTypeClass(self):
         self.assertEqual(
             self.ctx["testTrap"].__class__.__name__,

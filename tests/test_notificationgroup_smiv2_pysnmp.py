@@ -77,6 +77,17 @@ class NotificationGroupTestCase(unittest.TestCase):
             "bad DESCRIPTION",
         )
 
+    def testNotificationGroupObjects(self):
+        self.assertEqual(
+            self.ctx["testNotificationGroup"].getObjects(),
+            (
+                ("TEST-MIB", "testStatusChangeNotify"),
+                ("TEST-MIB", "testClassEventNotify"),
+                ("TEST-MIB", "testThresholdBelowNotify"),
+            ),
+            "bad OBJECTS",
+        )
+
     def testNotificationGroupClass(self):
         self.assertEqual(
             self.ctx["testNotificationGroup"].__class__.__name__,

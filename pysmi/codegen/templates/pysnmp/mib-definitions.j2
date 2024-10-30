@@ -514,9 +514,9 @@ if mibBuilder.loadTexts:
 {{ symbol }} = ModuleCompliance(
     {{ definition['oid'] }}
 )
-    {% if 'objects' in definition %}
+    {% if 'modulecompliance' in definition %}
 {{ symbol }}.setObjects(
-    {% for obj in definition['objects'] %}
+    {% for obj in definition['modulecompliance'] %}
         {% if loop.first and loop.last %}
     ("{{ obj['module'] }}", "{{  obj['object'] }}")
         {% elif loop.first %}

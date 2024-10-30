@@ -77,6 +77,17 @@ class ModuleComplianceTestCase(unittest.TestCase):
             "bad DESCRIPTION",
         )
 
+    def testModuleComplianceObjects(self):
+        self.assertEqual(
+            self.ctx["testCompliance"].getObjects(),
+            (
+                ("TEST-MIB", "testComplianceInfoGroup"),
+                ("TEST-MIB", "testNotificationInfoGroup"),
+                ("TEST-MIB", "testNotificationGroup"),
+            ),
+            "bad OBJECTS",
+        )
+
     def testModuleComplianceClass(self):
         self.assertEqual(
             self.ctx["testCompliance"].__class__.__name__,

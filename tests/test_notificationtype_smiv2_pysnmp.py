@@ -71,6 +71,16 @@ class NotificationTypeTestCase(unittest.TestCase):
             "bad DESCRIPTION",
         )
 
+    def testNotificationTypeObjects(self):
+        self.assertEqual(
+            self.ctx["testNotificationType"].getObjects(),
+            (
+                ("TEST-MIB", "testChangeConfigType"),
+                ("TEST-MIB", "testChangeConfigValue"),
+            ),
+            "bad OBJECTS",
+        )
+
     def testNotificationTypeClass(self):
         self.assertEqual(
             self.ctx["testNotificationType"].__class__.__name__,
