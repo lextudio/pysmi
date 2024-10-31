@@ -97,8 +97,8 @@ class ObjectGroupHyphenTestCase(unittest.TestCase):
 
     test-object-group OBJECT-GROUP
         OBJECTS         {
-                            testStorageType,
-                            testRowStatus
+                            test-storage-type,
+                            global              -- a reserved Python keyword
                         }
         STATUS          current
         DESCRIPTION
@@ -124,6 +124,13 @@ class ObjectGroupHyphenTestCase(unittest.TestCase):
     def testObjectGroupLabel(self):
         self.assertEqual(
             self.ctx["test_object_group"].getLabel(), "test-object-group", "bad label"
+        )
+
+    def testObjectGroupObjects(self):
+        self.assertEqual(
+            self.ctx["test_object_group"].getObjects(),
+            (("TEST-MIB", "test-storage-type"), ("TEST-MIB", "global")),
+            "bad OBJECTS",
         )
 
 

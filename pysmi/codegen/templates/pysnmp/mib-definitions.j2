@@ -364,7 +364,7 @@ if mibBuilder.loadTexts:
    and 'augmention' in definition %}
 {{ definition['augmention']['object'] }}.registerAugmentions(
     ("{{ mib['meta']['module'] }}",
-     "{{ symbol }}")
+     "{{ definition['name'] }}")
 )
 {{ symbol }}.setIndexNames(*{{ definition['augmention']['object'] }}.getIndexNames())
 {% endfor %}

@@ -133,6 +133,13 @@ class TrapTypeHyphenTestCase(unittest.TestCase):
     def testTrapTypeLabel(self):
         self.assertEqual(self.ctx["test_trap"].getLabel(), "test-trap", "bad label")
 
+    def testTrapTypeObjects(self):
+        self.assertEqual(
+            self.ctx["test_trap"].getObjects(),
+            (("TEST-MIB", "test-object"),),
+            "bad OBJECTS",
+        )
+
 
 class TrapTypeTextTestCase(unittest.TestCase):
     """

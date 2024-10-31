@@ -707,7 +707,7 @@ class ObjectTypeObjectIdentifierTestCase(unittest.TestCase):
     """
     TEST-MIB DEFINITIONS ::= BEGIN
     IMPORTS
-      OBJECT-TYPE
+      OBJECT-TYPE, Integer32
         FROM SNMPv2-SMI;
 
     testTargetObjectType OBJECT-TYPE
@@ -783,6 +783,62 @@ class ObjectTypeObjectIdentifierInvalidTestCase(unittest.TestCase):
         exec(codeobj, self.ctx, self.ctx)
 
         self.ctx["testObjectType"].getSyntax()
+
+
+class ObjectTypeObjectIdentifierHyphenTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      OBJECT-TYPE
+        FROM SNMPv2-SMI;
+
+    test-target-object-type OBJECT IDENTIFIER ::= { 1 3 }
+    global                  OBJECT IDENTIFIER ::= { 1 4 }  -- a reserved Python keyword
+
+    testObjectType1 OBJECT-TYPE
+        SYNTAX          OBJECT IDENTIFIER
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "Test object"
+        DEFVAL          { test-target-object-type }
+     ::= { 1 5 }
+
+    testObjectType2 OBJECT-TYPE
+        SYNTAX          OBJECT IDENTIFIER
+        MAX-ACCESS      read-only
+        STATUS          current
+        DESCRIPTION     "Test object"
+        DEFVAL          { global }
+     ::= { 1 6 }
+
+    END
+    """
+
+    def setUp(self):
+        ast = parserFactory()().parse(self.__class__.__doc__)[0]
+        mibInfo, symtable = SymtableCodeGen().gen_code(ast, {}, genTexts=True)
+        self.mibInfo, pycode = PySnmpCodeGen().gen_code(
+            ast, {mibInfo.name: symtable}, genTexts=True
+        )
+        codeobj = compile(pycode, "test", "exec")
+
+        self.ctx = {"mibBuilder": MibBuilder()}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+    def testObjectTypeSyntax1(self):
+        self.assertEqual(
+            self.ctx["testObjectType1"].getSyntax(),
+            (1, 3),
+            "bad DEFVAL",
+        )
+
+    def testObjectTypeSyntax2(self):
+        self.assertEqual(
+            self.ctx["testObjectType2"].getSyntax(),
+            (1, 4),
+            "bad DEFVAL",
+        )
 
 
 class ObjectTypeMibTableTestCase(unittest.TestCase):
@@ -988,7 +1044,7 @@ class ObjectTypeMibTableMultipleIndicesTestCase(unittest.TestCase):
         )
 
 
-class ObjectTypeAurmentingMibTableTestCase(unittest.TestCase):
+class ObjectTypeAugmentingMibTableTestCase(unittest.TestCase):
     """
     TEST-MIB DEFINITIONS ::= BEGIN
     IMPORTS
@@ -1074,6 +1130,144 @@ class ObjectTypeAurmentingMibTableTestCase(unittest.TestCase):
             list(augmentingRows)[0],
             ("TEST-MIB", "testEntryExt"),
             "bad AUGMENTS table clause",
+        )
+
+
+class ObjectTypeMibTableHyphenTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      OBJECT-TYPE
+        FROM SNMPv2-SMI;
+
+    -- deliberately moved up
+    test-index OBJECT-TYPE
+        SYNTAX          INTEGER
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION     "Test column"
+      ::= { test-entry 1 }
+
+    test-table OBJECT-TYPE
+        SYNTAX          SEQUENCE OF Test-Entry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "Test table"
+      ::= { 1 3 }
+
+    test-entry OBJECT-TYPE
+        SYNTAX          Test-Entry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "Test row"
+        INDEX           { test-index, global }
+      ::= { test-table 3 }
+
+    Test-Entry ::= SEQUENCE {
+        test-index  INTEGER,
+        global      OCTET STRING  -- a reserved Python keyword
+    }
+
+    global OBJECT-TYPE
+        SYNTAX          OCTET STRING
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION     "Test column"
+      ::= { test-entry 2 }
+
+    test-table-ext OBJECT-TYPE
+        SYNTAX          SEQUENCE OF Test-Entry-Ext
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "Test table"
+      ::= { 1 4 }
+
+    test-entry-ext OBJECT-TYPE
+        SYNTAX          Test-Entry-Ext
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "Test row"
+        AUGMENTS        { test-entry }
+      ::= { test-table-ext 3 }
+
+    Test-Entry-Ext ::= SEQUENCE {
+        testIndexExt   INTEGER
+    }
+
+    testIndexExt OBJECT-TYPE
+        SYNTAX          INTEGER
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION     "Test column"
+      ::= { test-entry-ext 1 }
+
+    END
+    """
+
+    def setUp(self):
+        ast = parserFactory()().parse(self.__class__.__doc__)[0]
+        mibInfo, symtable = SymtableCodeGen().gen_code(ast, {}, genTexts=True)
+        self.mibInfo, pycode = PySnmpCodeGen().gen_code(
+            ast, {mibInfo.name: symtable}, genTexts=True
+        )
+        codeobj = compile(pycode, "test", "exec")
+
+        self.ctx = {"mibBuilder": MibBuilder()}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+    def testObjectTypeTableClass(self):
+        self.assertEqual(
+            self.ctx["test_table"].__class__.__name__, "MibTable", "bad table class"
+        )
+
+    def testObjectTypeTableRowClass(self):
+        self.assertEqual(
+            self.ctx["test_entry"].__class__.__name__,
+            "MibTableRow",
+            "bad table row class",
+        )
+
+    def testObjectTypeTableColumnClass1(self):
+        self.assertEqual(
+            self.ctx["test_index"].__class__.__name__,
+            "MibTableColumn",
+            "bad table column class",
+        )
+
+    def testObjectTypeTableColumnClass2(self):
+        self.assertEqual(
+            self.ctx["_pysmi_global"].__class__.__name__,
+            "MibTableColumn",
+            "bad table column class",
+        )
+
+    def testObjectTypeTableRowIndex(self):
+        self.assertEqual(
+            self.ctx["test_entry"].getIndexNames(),
+            ((0, "TEST-MIB", "test-index"), (0, "TEST-MIB", "global")),
+            "bad table indices",
+        )
+
+    def testObjectTypeTableRowAugmention(self):
+        # TODO: provide getAugmentation() method
+        try:
+            augmentingRows = self.ctx["test_entry"].augmentingRows
+
+        except AttributeError:
+            augmentingRows = self.ctx["test_entry"]._augmentingRows
+
+        self.assertEqual(
+            list(augmentingRows)[0],
+            ("TEST-MIB", "test-entry-ext"),
+            "bad AUGMENTS table clause",
+        )
+
+    def testObjectTypeTableAugRowIndex(self):
+        self.assertEqual(
+            self.ctx["test_entry_ext"].getIndexNames(),
+            ((0, "TEST-MIB", "test-index"), (0, "TEST-MIB", "global")),
+            "bad table indices",
         )
 
 

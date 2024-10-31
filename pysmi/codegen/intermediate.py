@@ -66,7 +66,6 @@ class IntermediateCodeGen(AbstractCodeGen):
 
     def __init__(self):
         self._rows = set()
-        self._cols = {}  # k, v = name, datatype
         self._seenSyms = set()
         self._importMap = {}
         self._out = {}  # k, v = name, generated code
@@ -349,8 +348,10 @@ class IntermediateCodeGen(AbstractCodeGen):
         if objects:
             outDict["objects"] = [
                 {
-                    "module": self._importMap.get(obj, self.moduleName[0]),
-                    "object": self.trans_opers(obj),
+                    "module": self._importMap.get(
+                        self.trans_opers(obj), self.moduleName[0]
+                    ),
+                    "object": obj,
                 }
                 for obj in objects
             ]
@@ -383,8 +384,10 @@ class IntermediateCodeGen(AbstractCodeGen):
         if objects:
             outDict["objects"] = [
                 {
-                    "module": self._importMap.get(obj, self.moduleName[0]),
-                    "object": self.trans_opers(obj),
+                    "module": self._importMap.get(
+                        self.trans_opers(obj), self.moduleName[0]
+                    ),
+                    "object": obj,
                 }
                 for obj in objects
             ]
@@ -414,8 +417,10 @@ class IntermediateCodeGen(AbstractCodeGen):
         if objects:
             outDict["objects"] = [
                 {
-                    "module": self._importMap.get(obj, self.moduleName[0]),
-                    "object": self.trans_opers(obj),
+                    "module": self._importMap.get(
+                        self.trans_opers(obj), self.moduleName[0]
+                    ),
+                    "object": obj,
                 }
                 for obj in objects
             ]
@@ -490,8 +495,11 @@ class IntermediateCodeGen(AbstractCodeGen):
             nodetype = syntax[0] == "Bits" and "scalar" or syntax[0]  # Bits hack
             # If this object type is used as a column, but it also has a
             # "SEQUENCE OF" syntax, then it is really a table and not a column.
+            #
+            # Note that _symtable_cols contains original (non-Pythonized)
+            # symbol names! Thus, check with 'name' rather than 'pysmiName'.
             isColumn = (
-                pysmiName in self.symbolTable[self.moduleName[0]]["_symtable_cols"]
+                name in self.symbolTable[self.moduleName[0]]["_symtable_cols"]
                 and syntax[1]
             )
             nodetype = isColumn and "column" or nodetype
@@ -547,8 +555,10 @@ class IntermediateCodeGen(AbstractCodeGen):
         if variables:
             outDict["objects"] = [
                 {
-                    "module": self._importMap.get(obj, self.moduleName[0]),
-                    "object": self.trans_opers(obj),
+                    "module": self._importMap.get(
+                        self.trans_opers(obj), self.moduleName[0]
+                    ),
+                    "object": obj,
                 }
                 for obj in variables
             ]
@@ -636,8 +646,7 @@ class IntermediateCodeGen(AbstractCodeGen):
         for complianceModule in data[0]:
             name = complianceModule[0] or self.moduleName[0]
             compliances += [
-                {"object": self.trans_opers(compl), "module": name}
-                for compl in complianceModule[1]
+                {"object": compl, "module": name} for compl in complianceModule[1]
             ]
 
         return compliances
@@ -712,14 +721,17 @@ class IntermediateCodeGen(AbstractCodeGen):
         else:
             # oid
             if defvalType[0][0] == "ObjectIdentifier" and (
-                defval in self.symbolTable[self.moduleName[0]]
-                or defval in self._importMap
+                self.trans_opers(defval) in self.symbolTable[self.moduleName[0]]
+                or self.trans_opers(defval) in self._importMap
             ):
-                module = self._importMap.get(defval, self.moduleName[0])
+                pysmiDefval = self.trans_opers(defval)
+                module = self._importMap.get(pysmiDefval, self.moduleName[0])
 
                 try:
                     val = str(
-                        self.gen_numeric_oid(self.symbolTable[module][defval]["oid"])
+                        self.gen_numeric_oid(
+                            self.symbolTable[module][pysmiDefval]["oid"]
+                        )
                     )
 
                     outDict.update(value=val, format="oid")
@@ -832,7 +844,9 @@ class IntermediateCodeGen(AbstractCodeGen):
                 fakeOidSuffix -= 1
 
             index = OrderedDict()
-            index["module"] = self._importMap.get(idxName, self.moduleName[0])
+            index["module"] = self._importMap.get(
+                self.trans_opers(idxName), self.moduleName[0]
+            )
             index["object"] = idxName
             index["implied"] = isImplied
             idxStrlist.append(index)
@@ -888,13 +902,9 @@ class IntermediateCodeGen(AbstractCodeGen):
 
         return ".".join([str(x) for x in self.gen_numeric_oid(out)]), parent
 
-    # noinspection PyUnusedLocal
+    # noinspection PyMethodMayBeStatic,PyUnusedLocal
     def gen_objects(self, data):
-        if data[0]:
-            return [
-                self.trans_opers(obj) for obj in data[0]
-            ]  # XXX self.transOpers or not??
-        return []
+        return data[0]
 
     # noinspection PyMethodMayBeStatic,PyUnusedLocal
     def gen_time(self, data):
@@ -949,10 +959,8 @@ class IntermediateCodeGen(AbstractCodeGen):
             or self.gen_simple_syntax(data)
         )
 
-    # noinspection PyUnusedLocal
+    # noinspection PyMethodMayBeStatic,PyUnusedLocal
     def gen_sequence(self, data):
-        cols = data[0]
-        self._cols.update(cols)
         return "", ""
 
     def gen_simple_syntax(self, data):
@@ -1062,7 +1070,6 @@ class IntermediateCodeGen(AbstractCodeGen):
         )
         self.symbolTable = symbolTable
         self._rows.clear()
-        self._cols.clear()
         self._seenSyms.clear()
         self._importMap.clear()
         self._out.clear()

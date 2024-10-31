@@ -98,8 +98,8 @@ class NotificationTypeHyphenTestCase(unittest.TestCase):
 
     test-notification-type NOTIFICATION-TYPE
        OBJECTS         {
-                            testChangeConfigType,
-                            testChangeConfigValue
+                            test-change-config-type,
+                            as                        -- a reserved Python keyword
                         }
         STATUS          current
         DESCRIPTION
@@ -127,6 +127,16 @@ class NotificationTypeHyphenTestCase(unittest.TestCase):
             self.ctx["test_notification_type"].getLabel(),
             "test-notification-type",
             "bad name",
+        )
+
+    def testNotificationTypeObjects(self):
+        self.assertEqual(
+            self.ctx["test_notification_type"].getObjects(),
+            (
+                ("TEST-MIB", "test-change-config-type"),
+                ("TEST-MIB", "as"),
+            ),
+            "bad OBJECTS",
         )
 
 

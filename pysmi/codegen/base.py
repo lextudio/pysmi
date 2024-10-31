@@ -316,6 +316,15 @@ class AbstractCodeGen:
 
     @staticmethod
     def trans_opers(symbol):
+        """Convert an ASN.1 name to a "Pythonized" symbol.
+
+        The resulting symbol must be usable as a name in Python code. As such,
+        dashes are replaced with underscores, and reserved Python keywords are
+        prefixed so as to make them usable as regular identifier names.
+
+        Calling this function on a symbol that is already "Pythonized", has no
+        effect, but should be avoided in general anyway.
+        """
         if iskeyword(symbol):
             symbol = RESERVED_KEYWORDS_PREFIX + symbol
         return symbol.replace("-", "_")

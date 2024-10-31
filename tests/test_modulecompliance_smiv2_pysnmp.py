@@ -108,10 +108,10 @@ class ModuleComplianceHyphenTestCase(unittest.TestCase):
      DESCRIPTION  "This is the MIB compliance statement"
      MODULE
       MANDATORY-GROUPS {
-       testComplianceInfoGroup,
-       testNotificationInfoGroup
+       test-compliance-info-group,
+       if                           -- a reserved Python keyword
       }
-      GROUP     testNotificationGroup
+      GROUP     test-notification-group
       DESCRIPTION
             "Support for these notifications is optional."
       ::= { 1 3 }
@@ -135,6 +135,17 @@ class ModuleComplianceHyphenTestCase(unittest.TestCase):
     def testModuleComplianceLabel(self):
         self.assertEqual(
             self.ctx["test_compliance"].getLabel(), "test-compliance", "bad label"
+        )
+
+    def testModuleComplianceObjects(self):
+        self.assertEqual(
+            self.ctx["test_compliance"].getObjects(),
+            (
+                ("TEST-MIB", "test-compliance-info-group"),
+                ("TEST-MIB", "if"),
+                ("TEST-MIB", "test-notification-group"),
+            ),
+            "bad OBJECTS",
         )
 
 

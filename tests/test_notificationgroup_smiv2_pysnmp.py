@@ -105,7 +105,7 @@ class NotificationGroupHyphenTestCase(unittest.TestCase):
 
     test-notification-group NOTIFICATION-GROUP
        NOTIFICATIONS    {
-                            testStatusChangeNotify
+                            test-status-change-notify
                         }
         STATUS          current
         DESCRIPTION
@@ -133,6 +133,13 @@ class NotificationGroupHyphenTestCase(unittest.TestCase):
             self.ctx["test_notification_group"].getLabel(),
             "test-notification-group",
             "bad label",
+        )
+
+    def testNotificationGroupObjects(self):
+        self.assertEqual(
+            self.ctx["test_notification_group"].getObjects(),
+            (("TEST-MIB", "test-status-change-notify"),),
+            "bad OBJECTS",
         )
 
 
