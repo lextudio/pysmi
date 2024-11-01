@@ -1,3 +1,9 @@
+Revision 1.5.7, released on Nov 01, 2024
+----------------------------------------
+
+- Various improvements in MIB parsing, including better DEFVAL handling, symbol
+  name generation, and more.
+
 Revision 1.5.6, released on Oct 29, 2024
 ----------------------------------------
 
