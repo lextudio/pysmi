@@ -22,16 +22,16 @@ Managed Objects Instances.
 
 {% block asn1_constraints_imports scoped %}
 (ConstraintsIntersection,
+ ConstraintsUnion,
  SingleValueConstraint,
  ValueRangeConstraint,
- ValueSizeConstraint,
- ConstraintsUnion) = mibBuilder.importSymbols(
+ ValueSizeConstraint) = mibBuilder.importSymbols(
     "ASN1-REFINEMENT",
     "ConstraintsIntersection",
+    "ConstraintsUnion",
     "SingleValueConstraint",
     "ValueRangeConstraint",
-    "ValueSizeConstraint",
-    "ConstraintsUnion")
+    "ValueSizeConstraint")
 {% endblock -%}
 
 {% block smi_imports scoped %}
@@ -73,7 +73,8 @@ Managed Objects Instances.
     {{ definition['oid'] }}
 )
     {% if 'revisions' in definition %}
-{{ symbol }}.setRevisions(
+if mibBuilder.loadTexts:
+    {{ symbol }}.setRevisions(
         {% for revision in definition.get('revisions', ()) %}
             {% if loop.first and loop.last %}
         ({{ revision['revision']|pythonstr }},)
@@ -85,17 +86,19 @@ Managed Objects Instances.
          {{ revision['revision']|pythonstr }},
             {%  endif %}
         {%  endfor %}
-)
+    )
     {% endif %}
     {% if 'lastupdated' in definition %}
-{{ symbol }}.setLastUpdated({{ definition['lastupdated']|pythonstr }})
+if mibBuilder.loadTexts:
+    {{ symbol }}.setLastUpdated({{ definition['lastupdated']|pythonstr }})
     {% endif %}
     {% if 'organization' in definition %}
 if mibBuilder.loadTexts:
     {{ symbol }}.setOrganization({{ definition['organization']|pythonstr }})
     {% endif %}
     {% if 'contactinfo' in definition %}
-{{ symbol }}.setContactInfo({{ definition['contactinfo']|pythonstr }})
+if mibBuilder.loadTexts:
+    {{ symbol }}.setContactInfo({{ definition['contactinfo']|pythonstr }})
     {% endif %}
     {% if 'description' in definition %}
 if mibBuilder.loadTexts:
@@ -124,7 +127,7 @@ if mibBuilder.loadTexts:
         )
     )
     namedValues = NamedValues(
-    {% for name, iden in spec['enumeration'].items()|sort %}
+    {% for name, iden in spec['enumeration'].items()|sort(attribute='1') %}
         {% if loop.first and loop.last %}
         ("{{ name}}", {{ iden }})
         {% elif loop.first %}
@@ -153,7 +156,7 @@ if mibBuilder.loadTexts:
 
 {% macro bits(namedbits) %}
     namedValues = NamedValues(
-    {% for name, iden in namedbits.items()|sort %}
+    {% for name, iden in namedbits.items()|sort(attribute='1') %}
         {% if loop.first and loop.last %}
         ("{{ name}}", {{ iden }})
         {% elif loop.first %}
@@ -187,12 +190,8 @@ if mibBuilder.loadTexts:
     {% elif definition['default']['default']['format'] == 'string' %}
     {# TODO: pyasn1 does not like defaulted strings #}
     defaultValue = OctetString({{ definition['default']['default']['value']|pythonstr }})
-    {% elif definition['default']['default']['format'] == 'oid' %}
+    {% elif definition['default']['default']['format'] in ('oid', 'enum') %}
     defaultValue = {{ definition['default']['default']['value'] }}
-    {% elif definition['default']['default']['format'] == 'enum'
-        and 'constraints' in definition['syntax'] %}
-    {# TODO: pyasn1 does not like default enum #}
-    defaultValue = {{ definition['syntax']['constraints']['enumeration'][definition['default']['default']['value']] }}
     {% elif definition['default']['default']['format'] == 'bits' %}
     {# TODO: pyasn1 does not like default named bits #}
     defaultBinValue = "{{ definition['default']['default']['value']['bits'].values()|bitstring }}"
@@ -279,9 +278,7 @@ class _{{ symbol|capfirst }}_Type({{ definition['syntax']['type'] }}):
 {{ bits(definition['syntax']['bits']) }}
                 {% endif %}
 
-                {% if 'constraints' in definition['syntax'] or 'bits' in definition['syntax'] %}
 _{{ symbol|capfirst }}_Type.__name__ = "{{ definition['syntax']['type'] }}"
-                {% endif %}
             {% else %}
 _{{ symbol|capfirst }}_Type = {{ definition['syntax']['type'] }}
             {% endif %}
@@ -367,7 +364,7 @@ if mibBuilder.loadTexts:
    and 'augmention' in definition %}
 {{ definition['augmention']['object'] }}.registerAugmentions(
     ("{{ mib['meta']['module'] }}",
-     "{{ symbol }}")
+     "{{ definition['name'] }}")
 )
 {{ symbol }}.setIndexNames(*{{ definition['augmention']['object'] }}.getIndexNames())
 {% endfor %}
@@ -517,9 +514,9 @@ if mibBuilder.loadTexts:
 {{ symbol }} = ModuleCompliance(
     {{ definition['oid'] }}
 )
-    {% if 'objects' in definition %}
+    {% if 'modulecompliance' in definition %}
 {{ symbol }}.setObjects(
-    {% for obj in definition['objects'] %}
+    {% for obj in definition['modulecompliance'] %}
         {% if loop.first and loop.last %}
     ("{{ obj['module'] }}", "{{  obj['object'] }}")
         {% elif loop.first %}

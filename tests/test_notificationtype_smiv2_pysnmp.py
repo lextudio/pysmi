@@ -59,11 +59,26 @@ class NotificationTypeTestCase(unittest.TestCase):
     def testNotificationTypeName(self):
         self.assertEqual(self.ctx["testNotificationType"].getName(), (1, 3), "bad name")
 
+    def testNotificationTypeStatus(self):
+        self.assertEqual(
+            self.ctx["testNotificationType"].getStatus(), "current", "bad STATUS"
+        )
+
     def testNotificationTypeDescription(self):
         self.assertEqual(
             self.ctx["testNotificationType"].getDescription(),
             "A collection of test notification types.",
             "bad DESCRIPTION",
+        )
+
+    def testNotificationTypeObjects(self):
+        self.assertEqual(
+            self.ctx["testNotificationType"].getObjects(),
+            (
+                ("TEST-MIB", "testChangeConfigType"),
+                ("TEST-MIB", "testChangeConfigValue"),
+            ),
+            "bad OBJECTS",
         )
 
     def testNotificationTypeClass(self):
@@ -83,8 +98,8 @@ class NotificationTypeHyphenTestCase(unittest.TestCase):
 
     test-notification-type NOTIFICATION-TYPE
        OBJECTS         {
-                            testChangeConfigType,
-                            testChangeConfigValue
+                            test-change-config-type,
+                            as                        -- a reserved Python keyword
                         }
         STATUS          current
         DESCRIPTION
@@ -112,6 +127,113 @@ class NotificationTypeHyphenTestCase(unittest.TestCase):
             self.ctx["test_notification_type"].getLabel(),
             "test-notification-type",
             "bad name",
+        )
+
+    def testNotificationTypeObjects(self):
+        self.assertEqual(
+            self.ctx["test_notification_type"].getObjects(),
+            (
+                ("TEST-MIB", "test-change-config-type"),
+                ("TEST-MIB", "as"),
+            ),
+            "bad OBJECTS",
+        )
+
+
+class NotificationTypeTextTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      NOTIFICATION-TYPE
+        FROM SNMPv2-SMI;
+
+    testNotificationType NOTIFICATION-TYPE
+        OBJECTS         {
+                            testChangeConfigType,
+                            testChangeConfigValue
+                        }
+        STATUS          deprecated
+        DESCRIPTION
+            "A collection of \\ test notification types.\\"
+     ::= { 1 3 }
+
+    END
+    """
+
+    def setUp(self):
+        ast = parserFactory()().parse(self.__class__.__doc__)[0]
+        mibInfo, symtable = SymtableCodeGen().gen_code(ast, {}, genTexts=True)
+        self.mibInfo, pycode = PySnmpCodeGen().gen_code(
+            ast, {mibInfo.name: symtable}, genTexts=True
+        )
+        codeobj = compile(pycode, "test", "exec")
+
+        mibBuilder = MibBuilder()
+        mibBuilder.loadTexts = True
+
+        self.ctx = {"mibBuilder": mibBuilder}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+    def testNotificationTypeStatus(self):
+        # Use a value other than "current" in this test, as "current" is the
+        # default pysnmp value (which could mean the test value was never set).
+        self.assertEqual(
+            self.ctx["testNotificationType"].getStatus(), "deprecated", "bad STATUS"
+        )
+
+    def testNotificationTypeDescription(self):
+        self.assertEqual(
+            self.ctx["testNotificationType"].getDescription(),
+            "A collection of \\ test notification types.\\",
+            "bad DESCRIPTION",
+        )
+
+
+class NotificationTypeNoLoadTextsTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      NOTIFICATION-TYPE
+        FROM SNMPv2-SMI;
+
+    testNotificationType NOTIFICATION-TYPE
+       OBJECTS         {
+                            testChangeConfigType,
+                            testChangeConfigValue
+                        }
+        STATUS          obsolete
+        DESCRIPTION
+            "A collection of test notification types."
+     ::= { 1 3 }
+
+    END
+    """
+
+    def setUp(self):
+        ast = parserFactory()().parse(self.__class__.__doc__)[0]
+        mibInfo, symtable = SymtableCodeGen().gen_code(ast, {}, genTexts=True)
+        self.mibInfo, pycode = PySnmpCodeGen().gen_code(
+            ast, {mibInfo.name: symtable}, genTexts=True
+        )
+        codeobj = compile(pycode, "test", "exec")
+
+        self.ctx = {"mibBuilder": MibBuilder()}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+    def testNotificationTypeStatus(self):
+        # "current" is the default pysnmp value, and therefore what we get if
+        # we request that texts not be loaded.
+        self.assertEqual(
+            self.ctx["testNotificationType"].getStatus(), "current", "bad STATUS"
+        )
+
+    def testNotificationTypeDescription(self):
+        self.assertEqual(
+            self.ctx["testNotificationType"].getDescription(),
+            "",
+            "bad DESCRIPTION",
         )
 
 

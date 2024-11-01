@@ -150,6 +150,67 @@ class ImportAbsentTestCase(unittest.TestCase):
         )
 
 
+class ImportObjectsTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      TRAP-TYPE
+        FROM RFC-1215
+      -- For the purpose of this test, the types of these symbols do not matter.
+      importedValue1, imported-value-2, global
+        FROM IMPORTED-MIB;
+
+    testId OBJECT IDENTIFIER ::= { 1 3 }
+
+    testTrap TRAP-TYPE
+        ENTERPRISE  testId
+        VARIABLES {
+            importedValue1,
+            imported-value-2,
+            global
+        }
+        DESCRIPTION "Test trap"
+      ::= 1
+
+    END
+    """
+
+    IMPORTED_MIB = """
+    IMPORTED-MIB DEFINITIONS ::= BEGIN
+
+    importedValue1    OBJECT IDENTIFIER ::= { 1 3 }
+    imported-value-2  OBJECT IDENTIFIER ::= { 1 4 }
+    global            OBJECT IDENTIFIER ::= { 1 5 }  -- a reserved Python keyword
+
+    END
+    """
+
+    def setUp(self):
+        self.ctx = {"mibBuilder": MibBuilder()}
+        symbolTable = {}
+
+        for mibData in (self.IMPORTED_MIB, self.__class__.__doc__):
+            ast = parserFactory()().parse(mibData)[0]
+            mibInfo, symtable = SymtableCodeGen().gen_code(ast, {})
+
+            symbolTable[mibInfo.name] = symtable
+
+            mibInfo, pycode = PySnmpCodeGen().gen_code(ast, dict(symbolTable))
+            codeobj = compile(pycode, "test", "exec")
+            exec(codeobj, self.ctx, self.ctx)
+
+    def testTrapTypeObjects(self):
+        self.assertEqual(
+            self.ctx["testTrap"].getObjects(),
+            (
+                ("IMPORTED-MIB", "importedValue1"),
+                ("IMPORTED-MIB", "imported-value-2"),
+                ("IMPORTED-MIB", "global"),
+            ),
+            "bad OBJECTS",
+        )
+
+
 suite = unittest.TestLoader().loadTestsFromModule(sys.modules[__name__])
 
 if __name__ == "__main__":

@@ -20,6 +20,7 @@ from pysmi.searcher import StubSearcher
 from pysmi.writer import CallbackWriter
 from pysmi.parser import SmiStarParser
 from pysmi.compiler import MibCompiler
+from pyasn1.type.namedval import NamedValues
 from pysnmp.smi.builder import MibBuilder
 
 
@@ -324,6 +325,462 @@ class ImportTypeTestCase(unittest.TestCase):
     def testObjectTypePrettyValue3(self):
         self.assertEqual(
             self.ctx["testObject3"].getSyntax().prettyPrint(), "1:2:3", "bad defval"
+        )
+
+
+class ImportTCEnumUsedByDefvalTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      OBJECT-TYPE
+        FROM SNMPv2-SMI
+      ImportedType
+        FROM IMPORTED-MIB;
+
+    testObject OBJECT-TYPE
+        SYNTAX       ImportedType
+        MAX-ACCESS   read-write
+        STATUS       current
+        DESCRIPTION  "Test object"
+        DEFVAL       { enabled }
+      ::= { 1 4 }
+
+    END
+    """
+
+    IMPORTED_MIB = """
+    IMPORTED-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      OBJECT-TYPE
+        FROM SNMPv2-SMI
+      TEXTUAL-CONVENTION
+        FROM SNMPv2-TC;
+
+    ImportedType ::= TEXTUAL-CONVENTION
+        STATUS       current
+        DESCRIPTION  "Test TC"
+        SYNTAX       INTEGER { enabled(1), disabled(2) }
+
+    END
+    """
+
+    def setUp(self):
+        self.ctx = {"mibBuilder": MibBuilder()}
+        symbolTable = {}
+
+        for mibData in (self.IMPORTED_MIB, self.__class__.__doc__):
+            ast = parserFactory()().parse(mibData)[0]
+            mibInfo, symtable = SymtableCodeGen().gen_code(ast, {})
+
+            symbolTable[mibInfo.name] = symtable
+
+            mibInfo, pycode = PySnmpCodeGen().gen_code(ast, dict(symbolTable))
+            codeobj = compile(pycode, "test", "exec")
+            exec(codeobj, self.ctx, self.ctx)
+
+    def testObjectTypeNamedValues(self):
+        self.assertEqual(
+            self.ctx["testObject"].getSyntax().namedValues,
+            NamedValues(("enabled", 1), ("disabled", 2)),
+            "bad NAMED VALUES",
+        )
+
+    def testObjectTypeSyntax(self):
+        self.assertEqual(self.ctx["testObject"].getSyntax(), 1, "bad DEFVAL")
+
+
+class ImportObjectsTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      OBJECT-TYPE, NOTIFICATION-TYPE
+        FROM SNMPv2-SMI
+      OBJECT-GROUP, NOTIFICATION-GROUP, MODULE-COMPLIANCE
+        FROM SNMPv2-CONF
+      -- For the purpose of this test, the types of these symbols do not matter.
+      importedValue1, imported-value-2, global
+        FROM IMPORTED-MIB;
+
+    testNotificationType NOTIFICATION-TYPE
+        OBJECTS         {
+                            importedValue1,
+                            imported-value-2,
+                            global
+                        }
+        STATUS          current
+        DESCRIPTION     "A collection of test notification types."
+      ::= { 1 6 }
+
+    testObjectGroup OBJECT-GROUP
+        OBJECTS         {
+                            importedValue1,
+                            imported-value-2,
+                            global
+                        }
+        STATUS          current
+        DESCRIPTION     "A collection of test objects."
+      ::= { 1 7 }
+
+    testNotificationGroup NOTIFICATION-GROUP
+        NOTIFICATIONS   {
+                            importedValue1,
+                            imported-value-2,
+                            global
+                        }
+        STATUS          current
+        DESCRIPTION     "A collection of test notifications."
+      ::= { 1 8 }
+
+    testModuleCompliance MODULE-COMPLIANCE
+        STATUS        current
+        DESCRIPTION   "This is the MIB compliance statement"
+        MODULE        IMPORTED-MIB
+        MANDATORY-GROUPS {
+            importedValue1,
+            imported-value-2,
+            nonexistentValue
+        }
+        GROUP        global
+        DESCRIPTION  "Support for these notifications is optional."
+      ::= { 1 9 }
+
+    END
+    """
+
+    IMPORTED_MIB = """
+    IMPORTED-MIB DEFINITIONS ::= BEGIN
+
+    importedValue1    OBJECT IDENTIFIER ::= { 1 3 }
+    imported-value-2  OBJECT IDENTIFIER ::= { 1 4 }
+    global            OBJECT IDENTIFIER ::= { 1 5 }  -- a reserved Python keyword
+
+    END
+    """
+
+    def setUp(self):
+        self.ctx = {"mibBuilder": MibBuilder()}
+        symbolTable = {}
+
+        for mibData in (self.IMPORTED_MIB, self.__class__.__doc__):
+            ast = parserFactory()().parse(mibData)[0]
+            mibInfo, symtable = SymtableCodeGen().gen_code(ast, {})
+
+            symbolTable[mibInfo.name] = symtable
+
+            mibInfo, pycode = PySnmpCodeGen().gen_code(ast, dict(symbolTable))
+            codeobj = compile(pycode, "test", "exec")
+            exec(codeobj, self.ctx, self.ctx)
+
+    def testNotificationTypeObjects(self):
+        self.assertEqual(
+            self.ctx["testNotificationType"].getObjects(),
+            (
+                ("IMPORTED-MIB", "importedValue1"),
+                ("IMPORTED-MIB", "imported-value-2"),
+                ("IMPORTED-MIB", "global"),
+            ),
+            "bad OBJECTS",
+        )
+
+    def testObjectGroupObjects(self):
+        self.assertEqual(
+            self.ctx["testObjectGroup"].getObjects(),
+            (
+                ("IMPORTED-MIB", "importedValue1"),
+                ("IMPORTED-MIB", "imported-value-2"),
+                ("IMPORTED-MIB", "global"),
+            ),
+            "bad OBJECTS",
+        )
+
+    def testNotificationGroupObjects(self):
+        self.assertEqual(
+            self.ctx["testNotificationGroup"].getObjects(),
+            (
+                ("IMPORTED-MIB", "importedValue1"),
+                ("IMPORTED-MIB", "imported-value-2"),
+                ("IMPORTED-MIB", "global"),
+            ),
+            "bad OBJECTS",
+        )
+
+    def testModuleComplianceObjects(self):
+        self.assertEqual(
+            self.ctx["testModuleCompliance"].getObjects(),
+            (
+                ("IMPORTED-MIB", "importedValue1"),
+                ("IMPORTED-MIB", "imported-value-2"),
+                # Even if the referenced MIB does not export the value, the
+                # resulting object must still consist of the correct MIB and
+                # object name.
+                ("IMPORTED-MIB", "nonexistentValue"),
+                ("IMPORTED-MIB", "global"),
+            ),
+            "bad OBJECTS",
+        )
+
+
+class ImportObjectIdentifierDefaultTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      OBJECT-TYPE
+        FROM SNMPv2-SMI
+      importedValue1, imported-value-2, global
+        FROM IMPORTED-MIB;
+
+    testObject1 OBJECT-TYPE
+        SYNTAX      OBJECT IDENTIFIER
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION "Test object"
+        DEFVAL      { importedValue1 }
+      ::= { 1 6 }
+
+    testObject2 OBJECT-TYPE
+        SYNTAX      OBJECT IDENTIFIER
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION "Test object"
+        DEFVAL      { imported-value-2 }
+      ::= { 1 7 }
+
+    testObject3 OBJECT-TYPE
+        SYNTAX      OBJECT IDENTIFIER
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION "Test object"
+        DEFVAL      { global }
+      ::= { 1 8 }
+
+    END
+    """
+
+    IMPORTED_MIB = """
+    IMPORTED-MIB DEFINITIONS ::= BEGIN
+
+    importedValue1    OBJECT IDENTIFIER ::= { 1 3 }
+    imported-value-2  OBJECT IDENTIFIER ::= { 1 4 }
+    global            OBJECT IDENTIFIER ::= { 1 5 }  -- a reserved Python keyword
+
+    END
+    """
+
+    def setUp(self):
+        self.ctx = {"mibBuilder": MibBuilder()}
+        symbolTable = {}
+
+        for mibData in (self.IMPORTED_MIB, self.__class__.__doc__):
+            ast = parserFactory()().parse(mibData)[0]
+            mibInfo, symtable = SymtableCodeGen().gen_code(ast, {})
+
+            symbolTable[mibInfo.name] = symtable
+
+            mibInfo, pycode = PySnmpCodeGen().gen_code(ast, dict(symbolTable))
+            codeobj = compile(pycode, "test", "exec")
+            exec(codeobj, self.ctx, self.ctx)
+
+    def testObjectTypeSyntax1(self):
+        self.assertEqual(
+            self.ctx["testObject1"].getSyntax(),
+            (1, 3),
+            "bad DEFVAL",
+        )
+
+    def testObjectTypeSyntax2(self):
+        self.assertEqual(
+            self.ctx["testObject2"].getSyntax(),
+            (1, 4),
+            "bad DEFVAL",
+        )
+
+    def testObjectTypeSyntax3(self):
+        self.assertEqual(
+            self.ctx["testObject3"].getSyntax(),
+            (1, 5),
+            "bad DEFVAL",
+        )
+
+
+class ImportMibTableHyphenTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      OBJECT-TYPE
+        FROM SNMPv2-SMI
+      test-entry, testIndex1, test-index-2, global
+        FROM IMPORTED-MIB;
+
+    --
+    -- Augmentation
+    --
+
+    testTableAug OBJECT-TYPE
+        SYNTAX          SEQUENCE OF TestEntryAug
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "Test table"
+      ::= { 1 4 }
+
+    test-entry-aug OBJECT-TYPE
+        SYNTAX          TestEntryAug
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "Test row"
+        AUGMENTS        { test-entry }
+      ::= { testTableAug 1 }
+
+    TestEntryAug ::= SEQUENCE {
+        testIndexAug    INTEGER
+    }
+
+    testIndexAug OBJECT-TYPE
+        SYNTAX          INTEGER
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION     "Test column"
+      ::= { test-entry-aug 1 }
+
+    --
+    -- External indices
+    --
+
+    testTableExt OBJECT-TYPE
+        SYNTAX          SEQUENCE OF TestEntryExt
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "Test table"
+      ::= { 1 5 }
+
+    testEntryExt OBJECT-TYPE
+        SYNTAX          TestEntryExt
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "Test row"
+        INDEX           { testIndex1, test-index-2, global }
+      ::= { testTableExt 1 }
+
+    TestEntryExt ::= SEQUENCE {
+        testColumn      OCTET STRING
+    }
+
+    testColumn OBJECT-TYPE
+        SYNTAX          OCTET STRING
+        MAX-ACCESS      read-create
+        STATUS          current
+        DESCRIPTION     "Test column"
+      ::= { testEntryExt 1 }
+
+    END
+    """
+
+    IMPORTED_MIB = """
+    IMPORTED-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      OBJECT-TYPE
+        FROM SNMPv2-SMI;
+
+    testTable OBJECT-TYPE
+        SYNTAX          SEQUENCE OF TestEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "Test table"
+      ::= { 1 3 }
+
+    test-entry OBJECT-TYPE
+        SYNTAX          TestEntry
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "Test row"
+        INDEX           { testIndex1, test-index-2, global }
+      ::= { testTable 1 }
+
+    TestEntry ::= SEQUENCE {
+        testIndex1      INTEGER,
+        test-index-2    INTEGER,
+        global          OCTET STRING,
+        testColumn      INTEGER
+    }
+
+    testIndex1 OBJECT-TYPE
+        SYNTAX          INTEGER
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "Test column"
+      ::= { test-entry 1 }
+
+    test-index-2 OBJECT-TYPE
+        SYNTAX          INTEGER
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "Test column"
+      ::= { test-entry 2 }
+
+    global OBJECT-TYPE
+        SYNTAX          OCTET STRING
+        MAX-ACCESS      not-accessible
+        STATUS          current
+        DESCRIPTION     "Test column"
+      ::= { test-entry 3 }
+
+    testColumn OBJECT-TYPE
+        SYNTAX          INTEGER
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     "Test column"
+      ::= { test-entry 4 }
+
+    END
+    """
+
+    def setUp(self):
+        self.ctx = {"mibBuilder": MibBuilder()}
+        symbolTable = {}
+
+        for mibData in (self.IMPORTED_MIB, self.__class__.__doc__):
+            ast = parserFactory()().parse(mibData)[0]
+            mibInfo, symtable = SymtableCodeGen().gen_code(ast, {})
+
+            symbolTable[mibInfo.name] = symtable
+
+            mibInfo, pycode = PySnmpCodeGen().gen_code(ast, dict(symbolTable))
+            codeobj = compile(pycode, "test", "exec")
+            exec(codeobj, self.ctx, self.ctx)
+
+    def testObjectTypeTableRowAugmentation(self):
+        # TODO: provide getAugmentation() method
+        try:
+            augmentingRows = self.ctx["test_entry"].augmentingRows
+
+        except AttributeError:
+            augmentingRows = self.ctx["test_entry"]._augmentingRows
+
+        self.assertEqual(
+            list(augmentingRows)[0],
+            ("TEST-MIB", "test-entry-aug"),
+            "bad AUGMENTS table clause",
+        )
+
+    def testObjectTypeTableAugRowIndex(self):
+        self.assertEqual(
+            self.ctx["test_entry_aug"].getIndexNames(),
+            (
+                (0, "IMPORTED-MIB", "testIndex1"),
+                (0, "IMPORTED-MIB", "test-index-2"),
+                (0, "IMPORTED-MIB", "global"),
+            ),
+            "bad table indices",
+        )
+
+    def testObjectTypeTableExtRowIndex(self):
+        self.assertEqual(
+            self.ctx["testEntryExt"].getIndexNames(),
+            (
+                (0, "IMPORTED-MIB", "testIndex1"),
+                (0, "IMPORTED-MIB", "test-index-2"),
+                (0, "IMPORTED-MIB", "global"),
+            ),
+            "bad table indices",
         )
 
 

@@ -77,8 +77,8 @@ class SymtableCodeGen(AbstractCodeGen):
     }
 
     def __init__(self):
-        self._rows = set()
-        self._cols = {}  # k, v = name, datatype
+        self._rows = set()  # symbols
+        self._cols = {}  # k, v = name, datatype [name is *not* a Pythonized symbol!]
         self._sequenceTypes = set()
         self._exports = set()
         self._postponedSyms = {}  # k, v = symbol, (parents, properties)
@@ -394,7 +394,7 @@ class SymtableCodeGen(AbstractCodeGen):
     def gen_conceptual_table(self, data, classmode=False):
         row = data[0]
         if row[0] and row[0][0]:
-            self._rows.add(self.trans_opers(row[0][0]))
+            self._rows.add(row[0][0])  # (already a Pythonized symbol)
         return ("MibTable", ""), ""
 
     # noinspection PyUnusedLocal,PyUnusedLocal,PyMethodMayBeStatic
