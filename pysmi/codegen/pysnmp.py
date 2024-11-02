@@ -12,6 +12,7 @@ import jinja2
 from pysmi import debug, error
 from pysmi.codegen import jfilters
 from pysmi.codegen.intermediate import IntermediateCodeGen
+from pysmi.mibinfo import MibInfo
 
 
 class PySnmpCodeGen(IntermediateCodeGen):
@@ -77,7 +78,7 @@ class PySnmpCodeGen(IntermediateCodeGen):
         "INET-ADDRESS-MIB",
     ) + IntermediateCodeGen.baseMibs
 
-    def gen_code(self, ast, symbolTable, **kwargs):
+    def gen_code(self, ast, symbolTable, **kwargs) -> "tuple[MibInfo, str]":
         mibInfo, context = IntermediateCodeGen.gen_code(
             self, ast, symbolTable, **kwargs
         )

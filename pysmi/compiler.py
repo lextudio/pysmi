@@ -82,6 +82,8 @@ class MibCompiler:
     _borrowers: list[AbstractBorrower]
     _parsedMibs: dict[str, tuple]
 
+    failedMibs: dict[str, error.PySmiError]
+
     def __init__(self, parser, codegen: AbstractCodeGen, writer: AbstractWriter):
         """Creates an instance of *MibCompiler* class.
 
@@ -274,7 +276,7 @@ class MibCompiler:
                     break
                 except UnicodeDecodeError:
                     debug.logger & debug.FLAG_COMPILER and debug.logger(
-                        f"http exeception {mibname} found at {source}"
+                        f"http exception {mibname} found at {source}"
                     )
                     continue
 

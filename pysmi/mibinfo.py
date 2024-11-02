@@ -41,7 +41,7 @@ class MibInfo:
     compliance = ()
 
     #: imported MIB names
-    imported = ()
+    imported: tuple[str, ...] = ()
 
     def __init__(self, **kwargs):
         for k in kwargs:

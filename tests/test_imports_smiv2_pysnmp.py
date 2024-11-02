@@ -5,13 +5,9 @@
 # License: https://www.pysnmp.com/pysmi/license.html
 #
 import sys
+import unittest
 
-try:
-    import unittest2 as unittest
-
-except ImportError:
-    import unittest
-
+from pysmi import error
 from pysmi.parser.smi import parserFactory
 from pysmi.codegen.pysnmp import PySnmpCodeGen
 from pysmi.codegen.symtable import SymtableCodeGen
@@ -876,6 +872,50 @@ class ImportCycleTestCase(unittest.TestCase):
 
         self.assertEqual(results["Test-MIB"], "compiled", "Test-MIB was not compiled")
         self.assertEqual(results["Other-MIB"], "compiled", "Other-MIB was not compiled")
+
+
+class ImportMissingTestCase(unittest.TestCase):
+    """
+    Test-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      someObject
+        FROM OTHER-MIB;
+
+    END
+    """
+
+    def setUp(self):
+        self.mibCompiler = MibCompiler(
+            SmiStarParser(), PySnmpCodeGen(), CallbackWriter(lambda m, d, c: None)
+        )
+
+        self.testMibLoaded = False
+
+        def getMibData(mibname, context):
+            if mibname in PySnmpCodeGen.baseMibs:
+                return f"{mibname} DEFINITIONS ::= BEGIN\nEND"
+
+            if mibname == "OTHER-MIB":
+                raise error.PySmiReaderFileNotFoundError(
+                    f"source MIB {mibname} not found", reader=self
+                )
+            else:
+                self.assertEqual(mibname, "TEST-MIB", f"unexpected MIB name {mibname}")
+                self.assertFalse(
+                    self.testMibLoaded, "TEST-MIB was loaded more than once"
+                )
+                self.testMibLoaded = True
+                return self.__class__.__doc__
+
+        self.mibCompiler.add_sources(CallbackReader(getMibData))
+        self.mibCompiler.add_searchers(StubSearcher(*PySnmpCodeGen.baseMibs))
+
+    def testMissingImports(self):
+        results = self.mibCompiler.compile("TEST-MIB", noDeps=False)
+        # TODO: this test case is invalid right now, as the accurate error reported should point out that OTHER-MIB is missing.
+        self.assertEqual(
+            results["Test-MIB"], "unprocessed", "Test-MIB was not marked as missing"
+        )
 
 
 suite = unittest.TestLoader().loadTestsFromModule(sys.modules[__name__])
