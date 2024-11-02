@@ -151,6 +151,9 @@ if mibBuilder.loadTexts:
         ValueSizeConstraint({{ range['min'] }}, {{ range['max'] }}),
         {% endfor %}
     )
+        {% if 'fixed' in spec %}
+    fixedLength = {{ spec['fixed'] }}
+        {% endif %}
     {% endif %}
 {% endmacro -%}
 

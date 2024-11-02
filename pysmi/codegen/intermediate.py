@@ -880,7 +880,22 @@ class IntermediateCodeGen(AbstractCodeGen):
             size["max"] = vmax
             sizes.append(size)
 
-        return {"size": sizes}
+        outDict = {"size": sizes}
+
+        # If the union of ranges consists of a single size, then store that
+        # information as well, so that pysnmp (which needs to know) does not
+        # have to compute it itself. We take a slightly elaborate approach so
+        # that strange ranges such as SIZE(4 | 4) also produce a fixed size.
+        #
+        # Note that as per RFC 2578 Sec. 9 point (3), derived types may only
+        # ever reduce the ranges of their base types, so we never need to
+        # override a base type's fixed length to be "non-fixed" again.
+        minSize = min(size["min"] for size in sizes)
+        maxSize = max(size["max"] for size in sizes)
+        if minSize == maxSize:
+            outDict["fixed"] = minSize
+
+        return outDict
 
     # noinspection PyUnusedLocal
     def gen_oid(self, data):

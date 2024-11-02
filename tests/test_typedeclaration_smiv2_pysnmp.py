@@ -16,7 +16,8 @@ except ImportError:
 from pysmi.parser.smi import parserFactory
 from pysmi.codegen.pysnmp import PySnmpCodeGen
 from pysmi.codegen.symtable import SymtableCodeGen
-from pyasn1.type.constraint import ValueSizeConstraint
+from pyasn1.type.constraint import ConstraintsUnion, SingleValueConstraint
+from pyasn1.type.constraint import ValueRangeConstraint, ValueSizeConstraint
 from pyasn1.type.namedval import NamedValues
 from pysnmp.smi.builder import MibBuilder
 from pysnmp.smi.view import MibViewController
@@ -64,6 +65,11 @@ class TypeDeclarationTestCase(unittest.TestCase):
                     }
     TestTypeSizeRangeConstraint ::= OCTET STRING (SIZE (0..255))
     TestTypeSizeConstraint ::= OCTET STRING (SIZE (8 | 11))
+    TestTypeAdjacentSizeRangeConstraint ::= OCTET STRING (SIZE (0..2 | 3..7 | 8))
+    TestTypeFixedSizeConstraint ::= OCTET STRING (SIZE (4))
+    TestTypeFixedSizeRangeConstraint ::= OCTET STRING (SIZE (5..5))   -- illegal but accepted
+    TestTypeFixedSizeMultiConstraint ::= OCTET STRING (SIZE (6 | 6))  -- illegal but accepted
+    TestTypeFixedSizeZeroConstraint ::= OCTET STRING (SIZE (0))
     TestTypeRangeConstraint ::= INTEGER (0..2)
     TestTypeSingleValueConstraint ::= INTEGER (0|2|4)
 
@@ -124,6 +130,37 @@ class TypeDeclarationTestCase(unittest.TestCase):
             f"Symbol {symbol} not exported",
         )
 
+    def protoTestConstraints(self, symbol, constraints):
+        if constraints is not None:
+            # This is not perfect, in that the "in" check does not guarantee
+            # there is not mistakenly a narrower constraint present as well.
+            # However, this is the best we can do without getting into the
+            # weeds of eliminating intersections by reducing ranges against
+            # each other.
+            self.assertTrue(
+                constraints in self.ctx[symbol].subtypeSpec.getValueMap(),
+                f"constraints {constraints} not in {symbol} subtypeSpec {self.ctx[symbol].subtypeSpec}",
+            )
+        else:
+            self.assertFalse(
+                self.ctx[symbol].subtypeSpec.getValueMap(),
+                f"non-empty {symbol} subtypeSpec {self.ctx[symbol].subtypeSpec}",
+            )
+
+    def protoTestIsFixedLength(self, symbol, length_or_none):
+        self.assertEqual(
+            self.ctx[symbol]().isFixedLength(),
+            length_or_none is not None,
+            f"wrong fixed length presence for symbol {symbol}",
+        )
+
+    def protoTestGetFixedLength(self, symbol, length_or_none):
+        self.assertEqual(
+            self.ctx[symbol]().getFixedLength(),
+            length_or_none,
+            f"wrong fixed length for symbol {symbol}",
+        )
+
     def testTextualConventionSymbol(self):
         self.assertTrue("TestTextualConvention" in self.ctx, "symbol not present")
 
@@ -172,52 +209,101 @@ class TypeDeclarationTestCase(unittest.TestCase):
 # populate test case class with per-type methods
 
 typesMap = (
+    # symbol (without "TestType"), type class, constraints (or None), fixed length (or None)
     # TODO: Integer/Integer32?
-    ("TestTypeInteger", "Integer32"),
-    ("TestTypeOctetString", "OctetString"),
-    ("TestTypeObjectIdentifier", "ObjectIdentifier"),
-    ("TestTypeIpAddress", "IpAddress"),
-    ("TestTypeInteger32", "Integer32"),
-    ("TestTypeCounter32", "Counter32"),
-    ("TestTypeGauge32", "Gauge32"),
-    ("TestTypeTimeTicks", "TimeTicks"),
-    ("TestTypeOpaque", "Opaque"),
-    ("TestTypeCounter64", "Counter64"),
-    ("TestTypeUnsigned32", "Unsigned32"),
-    ("TestTypeTestTypeEnum", "Integer32"),
-    ("TestTypeSizeRangeConstraint", "OctetString"),
-    ("TestTypeSizeConstraint", "OctetString"),
-    ("TestTypeRangeConstraint", "Integer32"),
-    ("TestTypeSingleValueConstraint", "Integer32"),
+    ("Integer", "Integer32", ValueRangeConstraint(-2147483648, 2147483647), None),
+    ("OctetString", "OctetString", ValueSizeConstraint(0, 65535), None),
+    ("ObjectIdentifier", "ObjectIdentifier", None, None),
+    ("IpAddress", "IpAddress", ValueSizeConstraint(4, 4), None),
+    ("Integer32", "Integer32", ValueRangeConstraint(-2147483648, 2147483647), None),
+    ("Counter32", "Counter32", ValueRangeConstraint(0, 4294967295), None),
+    ("Gauge32", "Gauge32", ValueRangeConstraint(0, 4294967295), None),
+    ("TimeTicks", "TimeTicks", ValueRangeConstraint(0, 4294967295), None),
+    ("Opaque", "Opaque", None, None),
+    ("Counter64", "Counter64", ValueRangeConstraint(0, 18446744073709551615), None),
+    ("Unsigned32", "Unsigned32", ValueRangeConstraint(0, 4294967295), None),
+    ("Enum", "Integer32", SingleValueConstraint(-1, 0, 1), None),
+    ("Bits", "Bits", ValueSizeConstraint(0, 65535), None),
+    ("SizeRangeConstraint", "OctetString", ValueSizeConstraint(0, 255), None),
+    (
+        "SizeConstraint",
+        "OctetString",
+        ConstraintsUnion(ValueSizeConstraint(8, 8), ValueSizeConstraint(11, 11)),
+        None,
+    ),
+    (
+        "AdjacentSizeRangeConstraint",
+        "OctetString",
+        ConstraintsUnion(
+            ValueSizeConstraint(0, 2),
+            ValueSizeConstraint(3, 7),
+            ValueSizeConstraint(8, 8),
+        ),
+        None,
+    ),
+    ("FixedSizeConstraint", "OctetString", ValueSizeConstraint(4, 4), 4),
+    ("FixedSizeRangeConstraint", "OctetString", ValueSizeConstraint(5, 5), 5),
+    (
+        "FixedSizeMultiConstraint",
+        "OctetString",
+        ConstraintsUnion(ValueSizeConstraint(6, 6), ValueSizeConstraint(6, 6)),
+        6,
+    ),
+    ("FixedSizeZeroConstraint", "OctetString", ValueSizeConstraint(0, 0), 0),
+    ("RangeConstraint", "Integer32", ValueRangeConstraint(0, 2), None),
+    (
+        "SingleValueConstraint",
+        "Integer32",
+        ConstraintsUnion(
+            ValueRangeConstraint(0, 0),
+            ValueRangeConstraint(2, 2),
+            ValueRangeConstraint(4, 4),
+        ),
+        None,
+    ),
 )
 
 
-def decor(func, symbol, klass):
+def decor(func, symbol, param):
     def inner(self):
-        func(self, symbol, klass)
+        func(self, symbol, param)
 
     return inner
 
 
-for s, k in typesMap:
+for s, k, c, f in typesMap:
+    symbol = f"TestType{s}"
     setattr(
         TypeDeclarationTestCase,
-        "testTypeDeclaration" + k + "SymbolTestCase",
-        decor(TypeDeclarationTestCase.protoTestSymbol, s, k),
+        "testTypeDeclaration" + s + "SymbolTestCase",
+        decor(TypeDeclarationTestCase.protoTestSymbol, symbol, k),
     )
     setattr(
         TypeDeclarationTestCase,
-        "testTypeDeclaration" + k + "ClassTestCase",
-        decor(TypeDeclarationTestCase.protoTestClass, s, k),
+        "testTypeDeclaration" + s + "ClassTestCase",
+        decor(TypeDeclarationTestCase.protoTestClass, symbol, k),
     )
     setattr(
         TypeDeclarationTestCase,
-        "testTypeDeclaration" + k + "ExportTestCase",
-        decor(TypeDeclarationTestCase.protoTestExport, s, k),
+        "testTypeDeclaration" + s + "ExportTestCase",
+        decor(TypeDeclarationTestCase.protoTestExport, symbol, k),
     )
-
-
-# XXX constraints flavor not checked
+    setattr(
+        TypeDeclarationTestCase,
+        "testTypeDeclaration" + s + "ConstraintsTestCase",
+        decor(TypeDeclarationTestCase.protoTestConstraints, symbol, c),
+    )
+    if k == "OctetString":
+        setattr(
+            TypeDeclarationTestCase,
+            "testTypeDeclaration" + s + "IsFixedLengthTestCase",
+            decor(TypeDeclarationTestCase.protoTestIsFixedLength, symbol, f),
+        )
+        setattr(
+            TypeDeclarationTestCase,
+            "testTypeDeclaration" + s + "GetFixedLengthTestCase",
+            decor(TypeDeclarationTestCase.protoTestGetFixedLength, symbol, f),
+        )
 
 
 class TypeDeclarationHyphenTestCase(unittest.TestCase):
@@ -686,6 +772,269 @@ class TypeDeclarationInheritanceTestCase(unittest.TestCase):
         self.assertEqual(
             self.ctx["testObjectTTB"].getSyntax().prettyPrint(), "1.23456", "bad DEFVAL"
         )
+
+
+class TypeDeclarationFixedLengthTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      OBJECT-TYPE
+        FROM SNMPv2-SMI
+      TEXTUAL-CONVENTION
+        FROM SNMPv2-TC;
+
+    -- 'N': no range
+    testObjectN OBJECT-TYPE
+        SYNTAX      OCTET STRING
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION "Test object"
+      ::= { 1 4 1 }
+
+    -- 'R': (non-fixed) range
+    testObjectR OBJECT-TYPE
+        SYNTAX      OCTET STRING (SIZE (0..31))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION "Test object"
+      ::= { 1 4 2 }
+
+    -- 'F': fixed length
+    testObjectF OBJECT-TYPE
+        SYNTAX      OCTET STRING (SIZE (32))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION "Test object"
+      ::= { 1 4 3 }
+
+    TestSimpleN ::= OCTET STRING
+    TestSimpleR ::= OCTET STRING (SIZE (10 | 15 | 20))
+    TestSimpleF ::= OCTET STRING (SIZE (30))
+
+    -- (N)o syntax subtyping of (S)imple syntax with (N)o subtyping
+    testObjectNSN OBJECT-TYPE
+        SYNTAX      TestSimpleN
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION "Test object"
+      ::= { 1 4 4 }
+
+    -- (N)o syntax subtyping of (S)imple syntax with (R)ange subtyping (etc.)
+    testObjectNSR OBJECT-TYPE
+        SYNTAX      TestSimpleR
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION "Test object"
+      ::= { 1 4 5 }
+
+    testObjectNSF OBJECT-TYPE
+        SYNTAX      TestSimpleF
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION "Test object"
+      ::= { 1 4 6 }
+
+    testObjectRSN OBJECT-TYPE
+        SYNTAX      TestSimpleN (SIZE (1 | 2 | 5..10))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION "Test object"
+      ::= { 1 4 7 }
+
+    testObjectRSR OBJECT-TYPE
+        SYNTAX      TestSimpleR (SIZE (10 | 20))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION "Test object"
+      ::= { 1 4 8 }
+
+    -- no RSF: can't extend fixed value to range
+
+    testObjectFSN OBJECT-TYPE
+        SYNTAX      TestSimpleN (SIZE (56))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION "Test object"
+      ::= { 1 4 9 }
+
+    testObjectFSR OBJECT-TYPE
+        SYNTAX      TestSimpleR (SIZE (20))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION "Test object"
+      ::= { 1 4 10 }
+
+    testObjectFSF OBJECT-TYPE
+        SYNTAX      TestSimpleF (SIZE (30))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION "Test object"
+      ::= { 1 4 11 }
+
+    TestTCN ::= TEXTUAL-CONVENTION
+        STATUS       current
+        DESCRIPTION  "Test TC"
+        SYNTAX       OCTET STRING
+
+    TestTCR ::= TEXTUAL-CONVENTION
+        STATUS       current
+        DESCRIPTION  "Test TC"
+        SYNTAX       OCTET STRING (SIZE (8..16 | 24..40))
+
+    TestTCF ::= TEXTUAL-CONVENTION
+        STATUS       current
+        DESCRIPTION  "Test TC"
+        SYNTAX       OCTET STRING (SIZE (14))
+
+    -- (N)o syntax subtyping of (T)extualConvention syntax with (N)o subtyping (etc.)
+    testObjectNTN OBJECT-TYPE
+        SYNTAX      TestTCN
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION "Test object"
+      ::= { 1 4 12 }
+
+    testObjectNTR OBJECT-TYPE
+        SYNTAX      TestTCR
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION "Test object"
+      ::= { 1 4 13 }
+
+    testObjectNTF OBJECT-TYPE
+        SYNTAX      TestTCF
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION "Test object"
+      ::= { 1 4 14 }
+
+    testObjectRTN OBJECT-TYPE
+        SYNTAX      TestTCN (SIZE (4..5 | 7..8))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION "Test object"
+      ::= { 1 4 15 }
+
+    testObjectRTR OBJECT-TYPE
+        SYNTAX      TestTCR (SIZE (10..14 | 26..38))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION "Test object"
+      ::= { 1 4 16 }
+
+    -- no RTF: can't extend fixed value to range
+
+    testObjectFTN OBJECT-TYPE
+        SYNTAX      TestTCN (SIZE (78))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION "Test object"
+      ::= { 1 4 17 }
+
+    testObjectFTR OBJECT-TYPE
+        SYNTAX      TestTCR (SIZE (10))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION "Test object"
+      ::= { 1 4 18 }
+
+    testObjectFTF OBJECT-TYPE
+        SYNTAX      TestTCF (SIZE (14))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION "Test object"
+      ::= { 1 4 19 }
+
+    -- Also test that fixed lengths from base types are visible for objects
+    -- that use types derived from such base types. For textual conventions,
+    -- this test relies on pysmi's lenience with respect to nesting TCs.
+    TestSimpleSF ::= TestSimpleF
+
+    testObjectNSNSF OBJECT-TYPE
+        SYNTAX      TestSimpleSF
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION "Test object"
+      ::= { 1 4 20 }
+
+    TestTCTF ::= TEXTUAL-CONVENTION
+        STATUS       current
+        DESCRIPTION  "Test TC"
+        SYNTAX       TestTCF
+
+    testObjectNTNTF OBJECT-TYPE
+        SYNTAX      TestTCTF
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION "Test object"
+      ::= { 1 4 21 }
+
+    END
+    """
+
+    def setUp(self):
+        ast = parserFactory()().parse(self.__class__.__doc__)[0]
+        mibInfo, symtable = SymtableCodeGen().gen_code(ast, {})
+        self.mibInfo, pycode = PySnmpCodeGen().gen_code(ast, {mibInfo.name: symtable})
+        codeobj = compile(pycode, "test", "exec")
+
+        self.ctx = {"mibBuilder": MibBuilder()}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+    def protoTestIsFixedLength(self, symbol, length_or_none):
+        self.assertEqual(
+            self.ctx[symbol].getSyntax().isFixedLength(),
+            length_or_none is not None,
+            f"wrong fixed length presence for symbol {symbol}",
+        )
+
+    def protoTestGetFixedLength(self, symbol, length_or_none):
+        self.assertEqual(
+            self.ctx[symbol].getSyntax().getFixedLength(),
+            length_or_none,
+            f"wrong fixed length for symbol {symbol}",
+        )
+
+
+fixedLengthsMap = (
+    # symbol (without "testObject"), fixed length (or None)
+    ("N", None),
+    ("R", None),
+    ("F", 32),
+    ("NSN", None),
+    ("NSR", None),
+    ("NSF", 30),
+    ("RSN", None),
+    ("RSR", None),
+    ("FSN", 56),
+    ("FSR", 20),
+    ("FSF", 30),
+    ("NTN", None),
+    ("NTR", None),
+    ("NTF", 14),
+    ("RTN", None),
+    ("RTR", None),
+    ("FTN", 78),
+    ("FTR", 10),
+    ("FTF", 14),
+    ("NSNSF", 30),
+    ("NTNTF", 14),
+)
+
+
+for s, f in fixedLengthsMap:
+    symbol = f"testObject{s}"
+    setattr(
+        TypeDeclarationFixedLengthTestCase,
+        "testObjectType" + s + "IsFixedLengthTestCase",
+        decor(TypeDeclarationFixedLengthTestCase.protoTestIsFixedLength, symbol, f),
+    )
+    setattr(
+        TypeDeclarationFixedLengthTestCase,
+        "testObjectType" + s + "GetFixedLengthTestCase",
+        decor(TypeDeclarationFixedLengthTestCase.protoTestGetFixedLength, symbol, f),
+    )
 
 
 class TypeDeclarationBitsTextualConventionSyntaxTestCase(unittest.TestCase):
