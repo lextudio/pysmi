@@ -1,3 +1,8 @@
+Revision 1.5.8, released on Nov 02, 2024
+----------------------------------------
+
+- Fixed fixed-length OCTET STRING handling.
+
 Revision 1.5.7, released on Nov 01, 2024
 ----------------------------------------
 
