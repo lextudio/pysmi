@@ -45,6 +45,7 @@ class SymtableCodeGen(AbstractCodeGen):
         ),  # OBJECT IDENTIFIER
         "SNMPv2-TC": (
             "DisplayString",
+            "PhysAddress",
             "TEXTUAL-CONVENTION",
         ),  # XXX
         "SNMPv2-CONF": (

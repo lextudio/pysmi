@@ -403,6 +403,10 @@ if mibBuilder.loadTexts:
 if mibBuilder.loadTexts:
     {{ symbol }}.setDescription({{ definition['description']|pythonstr }})
     {% endif %}
+    {% if 'reference' in definition %}
+if mibBuilder.loadTexts:
+    {{ symbol }}.setReference({{ definition['reference']|pythonstr }})
+    {% endif %}
 
 {% endfor %}
 {% endblock -%}
@@ -475,6 +479,10 @@ if mibBuilder.loadTexts:
 if mibBuilder.loadTexts:
     {{ symbol }}.setDescription({{ definition['description']|pythonstr }})
     {% endif %}
+    {% if 'reference' in definition %}
+if mibBuilder.loadTexts:
+    {{ symbol }}.setReference({{ definition['reference']|pythonstr }})
+    {% endif %}
 
 {% endfor %}
 {% endblock -%}
@@ -539,6 +547,10 @@ if mibBuilder.loadTexts:
     {% if 'description' in definition %}
 if mibBuilder.loadTexts:
     {{ symbol }}.setDescription({{ definition['description']|pythonstr }})
+    {% endif %}
+    {% if 'reference' in definition %}
+if mibBuilder.loadTexts:
+    {{ symbol }}.setReference({{ definition['reference']|pythonstr }})
     {% endif %}
 
 {% endfor %}
