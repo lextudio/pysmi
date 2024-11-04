@@ -1,3 +1,8 @@
+Revision 1.5.9, released on Nov 04, 2024
+----------------------------------------
+
+- Exposed reference property in MIB objects.
+
 Revision 1.5.8, released on Nov 02, 2024
 ----------------------------------------
 
