@@ -200,6 +200,71 @@ class NotificationGroupTextTestCase(unittest.TestCase):
         )
 
 
+class NotificationGroupReferenceTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      NOTIFICATION-GROUP
+        FROM SNMPv2-CONF;
+
+    testNotificationGroup NOTIFICATION-GROUP
+       NOTIFICATIONS    {
+                            testStatusChangeNotify,
+                            testClassEventNotify,
+                            testThresholdBelowNotify
+                        }
+        STATUS          obsolete
+        DESCRIPTION     "A collection of \\n test
+     notifications."
+        REFERENCE       "This is a reference"
+     ::= { 1 3 }
+
+    END
+    """
+
+    def setUp(self):
+        docstring = textwrap.dedent(self.__class__.__doc__)
+        ast = parserFactory()().parse(docstring)[0]
+        mibInfo, symtable = SymtableCodeGen().gen_code(ast, {}, genTexts=True)
+        self.mibInfo, pycode = PySnmpCodeGen().gen_code(
+            ast,
+            {mibInfo.name: symtable},
+            genTexts=True,
+            textFilter=lambda symbol, text: text,
+        )
+        codeobj = compile(pycode, "test", "exec")
+
+        mibBuilder = MibBuilder()
+        mibBuilder.loadTexts = True
+
+        self.ctx = {"mibBuilder": mibBuilder}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+    def testNotificationGroupStatus(self):
+        # Use a value other than "current" in this test, as "current" is the
+        # default pysnmp value (which could mean the test value was never set).
+        self.assertEqual(
+            self.ctx["testNotificationGroup"].getStatus(),
+            "obsolete",
+            "bad STATUS",
+        )
+
+    def testNotificationGroupDescription(self):
+        self.assertEqual(
+            self.ctx["testNotificationGroup"].getDescription(),
+            "A collection of \\n test\n notifications.",
+            "bad DESCRIPTION",
+        )
+
+    def testNotificationGroupReference(self):
+        self.assertEqual(
+            self.ctx["testNotificationGroup"].getReference(),
+            "This is a reference",
+            "bad REFERENCE",
+        )
+
+
 class NotificationGroupNoLoadTextsTestCase(unittest.TestCase):
     """
     TEST-MIB DEFINITIONS ::= BEGIN

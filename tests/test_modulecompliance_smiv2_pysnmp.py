@@ -209,6 +209,74 @@ class ModuleComplianceTextTestCase(unittest.TestCase):
         )
 
 
+class ModuleComplianceReferenceTestCase(unittest.TestCase):
+    """
+    TEST-MIB DEFINITIONS ::= BEGIN
+    IMPORTS
+      MODULE-COMPLIANCE
+        FROM SNMPv2-CONF;
+
+    testCompliance MODULE-COMPLIANCE
+     STATUS      deprecated
+     DESCRIPTION  "This is the MIB
+      compliance statement\\"
+     REFERENCE "This is a reference"
+     MODULE
+      MANDATORY-GROUPS {
+       testComplianceInfoGroup,
+       testNotificationInfoGroup
+      }
+      GROUP     testNotificationGroup
+      DESCRIPTION
+            "Support for these notifications is optional."
+      ::= { 1 3 }
+
+    END
+    """
+
+    def setUp(self):
+        docstring = textwrap.dedent(self.__class__.__doc__)
+        ast = parserFactory()().parse(docstring)[0]
+        mibInfo, symtable = SymtableCodeGen().gen_code(ast, {}, genTexts=True)
+        self.mibInfo, pycode = PySnmpCodeGen().gen_code(
+            ast,
+            {mibInfo.name: symtable},
+            genTexts=True,
+            textFilter=lambda symbol, text: text,
+        )
+        codeobj = compile(pycode, "test", "exec")
+
+        mibBuilder = MibBuilder()
+        mibBuilder.loadTexts = True
+
+        self.ctx = {"mibBuilder": mibBuilder}
+
+        exec(codeobj, self.ctx, self.ctx)
+
+    def testModuleComplianceStatus(self):
+        # Use a value other than "current" in this test, as "current" is the
+        # default pysnmp value (which could mean the test value was never set).
+        self.assertEqual(
+            self.ctx["testCompliance"].getStatus(),
+            "deprecated",
+            "bad STATUS",
+        )
+
+    def testModuleComplianceDescription(self):
+        self.assertEqual(
+            self.ctx["testCompliance"].getDescription(),
+            "This is the MIB\n  compliance statement\\",
+            "bad DESCRIPTION",
+        )
+
+    def testModuleComplianceReference(self):
+        self.assertEqual(
+            self.ctx["testCompliance"].getReference(),
+            "This is a reference",
+            "bad REFERENCE",
+        )
+
+
 class ModuleComplianceNoLoadTextsTestCase(unittest.TestCase):
     """
     TEST-MIB DEFINITIONS ::= BEGIN
