@@ -54,7 +54,9 @@ def __getattr__(attr: str):
     """Handle deprecated attributes."""
     if newAttr := deprecated_attributes.get(attr):
         warnings.warn(
-            f"{attr} is deprecated. Please use {newAttr} instead.", DeprecationWarning
+            f"{attr} is deprecated. Please use {newAttr} instead.",
+            DeprecationWarning,
+            stacklevel=2,
         )
         return globals()[newAttr]
     raise AttributeError(f"module {__name__} has no attribute {attr}")
