@@ -381,7 +381,7 @@ class SymtableCodeGen(AbstractCodeGen):
 
     # noinspection PyUnusedLocal,PyMethodMayBeStatic
     def gen_bits(self, data, classmode=False):
-        bits = data[0]
+        bits = dict(data[0])
         return ("Bits", ""), bits
 
     # noinspection PyUnusedLocal,PyUnusedLocal,PyMethodMayBeStatic
@@ -444,7 +444,7 @@ class SymtableCodeGen(AbstractCodeGen):
 
     # noinspection PyUnusedLocal,PyUnusedLocal,PyMethodMayBeStatic
     def gen_integer_subtype(self, data, classmode=False):
-        return ""
+        return [data[0]]
 
     # noinspection PyUnusedLocal,PyUnusedLocal,PyMethodMayBeStatic
     def gen_max_access(self, data, classmode=False):
@@ -452,7 +452,7 @@ class SymtableCodeGen(AbstractCodeGen):
 
     # noinspection PyUnusedLocal,PyUnusedLocal,PyMethodMayBeStatic
     def gen_octetstring_subtype(self, data, classmode=False):
-        return ""
+        return [data[0]]
 
     # noinspection PyUnusedLocal
     def gen_oid(self, data, classmode=False):

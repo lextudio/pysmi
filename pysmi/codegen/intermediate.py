@@ -216,7 +216,23 @@ class IntermediateCodeGen(AbstractCodeGen):
 
         else:
             baseSymType, baseSymSubtype = self.get_base_type(*symType)
-            if isinstance(baseSymSubtype, list):
+
+            if isinstance(baseSymSubtype, dict):
+                # An enumeration (INTEGER or BITS). Combine the enumeration
+                # lists when applicable. That is a bit more permissive than
+                # strictly needed, as syntax refinement may only remove entries
+                # from the base enumeration (RFC 2578 Sec. 9 point (2)).
+                if isinstance(symSubtype, dict):
+                    baseSymSubtype.update(symSubtype)
+                symSubtype = baseSymSubtype
+
+            elif isinstance(baseSymSubtype, list):
+                # A value range or size constraint. Note that each list is an
+                # intersection of unions of ranges. Taking the intersection
+                # instead of the most-top level union of ranges is a bit more
+                # restrictive than strictly needed, as range syntax refinement
+                # may only remove allowed values from the base type (RFC 2578
+                # Sec. 9. points (1) and (3)), but it matches what pyasn1 does.
                 if isinstance(symSubtype, list):
                     symSubtype += baseSymSubtype
                 else:
@@ -663,6 +679,26 @@ class IntermediateCodeGen(AbstractCodeGen):
         text = data[0]
         return self.textFilter("contact-info", text)
 
+    def is_in_range(self, intersection, value):
+        """Check whether the given value falls within the given constraints.
+
+        The given list represents an intersection and contains elements that
+        represent unions of individual ranges. Each individual range consists
+        of one or two elements (a single value, or a low..high range). The
+        given value is considered in range if it falls within range for each of
+        the unions within the intersection. If the intersection is empty, the
+        value is accepted as well.
+        """
+        for union in intersection:
+            in_range = False
+            for rng in union:
+                if self.str2int(rng[0]) <= value <= self.str2int(rng[-1]):
+                    in_range = True
+                    break
+            if not in_range:
+                return False
+        return True
+
     # noinspection PyUnusedLocal
     def gen_display_hint(self, data):
         return data[0]
@@ -682,11 +718,11 @@ class IntermediateCodeGen(AbstractCodeGen):
         elif self.is_binary(defval):  # binary
             value = int(defval[1:-2] or "0", 2)
 
-        elif isinstance(defvalType[1], list):  # enumeration label
+        elif isinstance(defvalType[1], dict):  # enumeration label
             # For enumerations, the ASN.1 DEFVAL statements contain names,
             # whereas the code generation template expects integer values
             # (represented as strings).
-            nameToValueMap = dict(defvalType[1])
+            nameToValueMap = defvalType[1]
 
             # buggy MIB: DEFVAL { { ... } }
             if isinstance(defval, list):
@@ -706,12 +742,16 @@ class IntermediateCodeGen(AbstractCodeGen):
         else:
             raise ValueError("wrong input type for integer")
 
-        if isinstance(defvalType[1], list):  # enumeration number
+        if isinstance(defvalType[1], dict):  # enumeration number
             # For numerical values given for enumerated integers, make sure
             # that they are valid, because pyasn1 will not check this case and
             # thus let us set a default value that is not valid for the type.
-            if value not in {num for name, num in defvalType[1]}:
+            if value not in defvalType[1].values():
                 raise ValueError("wrong enumeration value")
+
+        elif isinstance(defvalType[1], list):  # range constraints
+            if not self.is_in_range(defvalType[1], value):
+                raise ValueError("value does not conform to range constraints")
 
         return str(value), "decimal"
 
@@ -754,7 +794,7 @@ class IntermediateCodeGen(AbstractCodeGen):
         elif defvalBaseType == "Bits" and isinstance(defval, list):  # bit labels
             defvalBits = []
 
-            bits = dict(defvalType[1])
+            bits = defvalType[1]
 
             for bit in defval:
                 bitValue = bits.get(bit, None)
@@ -767,6 +807,14 @@ class IntermediateCodeGen(AbstractCodeGen):
 
         else:
             raise ValueError("wrong input type for string")
+
+        if defvalBaseType == "OctetString" and isinstance(
+            defvalType[1], list
+        ):  # size constraints
+            size = len(value) // 2 if fmt == "hex" else len(value)
+
+            if not self.is_in_range(defvalType[1], size):
+                raise ValueError("value does not conform to size constraints")
 
         return value, fmt
 
