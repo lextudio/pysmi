@@ -13,10 +13,6 @@ from pysmi import config, debug, error
 from pysmi.codegen.base import AbstractCodeGen
 from pysmi.mibinfo import MibInfo
 
-if sys.version_info[0] > 2:
-    unicode = str
-    long = int
-
 
 class IntermediateCodeGen(AbstractCodeGen):
     """Turns MIB AST into an intermediate representation.
@@ -220,7 +216,23 @@ class IntermediateCodeGen(AbstractCodeGen):
 
         else:
             baseSymType, baseSymSubtype = self.get_base_type(*symType)
-            if isinstance(baseSymSubtype, list):
+
+            if isinstance(baseSymSubtype, dict):
+                # An enumeration (INTEGER or BITS). Combine the enumeration
+                # lists when applicable. That is a bit more permissive than
+                # strictly needed, as syntax refinement may only remove entries
+                # from the base enumeration (RFC 2578 Sec. 9 point (2)).
+                if isinstance(symSubtype, dict):
+                    baseSymSubtype.update(symSubtype)
+                symSubtype = baseSymSubtype
+
+            elif isinstance(baseSymSubtype, list):
+                # A value range or size constraint. Note that each list is an
+                # intersection of unions of ranges. Taking the intersection
+                # instead of the most-top level union of ranges is a bit more
+                # restrictive than strictly needed, as range syntax refinement
+                # may only remove allowed values from the base type (RFC 2578
+                # Sec. 9. points (1) and (3)), but it matches what pyasn1 does.
                 if isinstance(symSubtype, list):
                     symSubtype += baseSymSubtype
                 else:
@@ -486,7 +498,7 @@ class IntermediateCodeGen(AbstractCodeGen):
         oidStr, parentOid = oid
         indexStr, fakeSyms, fakeSymDicts = index or ("", [], [])
 
-        defval = self.gen_def_val(defval, objname=pysmiName)
+        defval = self.process_defval(defval, objname=pysmiName)
 
         outDict = OrderedDict()
         outDict["name"] = name
@@ -667,125 +679,207 @@ class IntermediateCodeGen(AbstractCodeGen):
         text = data[0]
         return self.textFilter("contact-info", text)
 
+    def is_in_range(self, intersection, value):
+        """Check whether the given value falls within the given constraints.
+
+        The given list represents an intersection and contains elements that
+        represent unions of individual ranges. Each individual range consists
+        of one or two elements (a single value, or a low..high range). The
+        given value is considered in range if it falls within range for each of
+        the unions within the intersection. If the intersection is empty, the
+        value is accepted as well.
+        """
+        for union in intersection:
+            in_range = False
+            for rng in union:
+                if self.str2int(rng[0]) <= value <= self.str2int(rng[-1]):
+                    in_range = True
+                    break
+            if not in_range:
+                return False
+        return True
+
     # noinspection PyUnusedLocal
     def gen_display_hint(self, data):
         return data[0]
 
-    # noinspection PyUnusedLocal
-    def gen_def_val(self, data, objname=None):
-        if not data:
-            return {}
+    # noinspection PyMethodMayBeStatic,PyUnusedLocal
+    def gen_def_val(self, data):
+        return data[0]
 
-        if not objname:
-            return data
-
-        defval = data[0]
-        defvalType = self.get_base_type(objname, self.moduleName[0])
-
-        outDict = OrderedDict(basetype=defvalType[0][0])
-
-        if isinstance(defval, (int, long)):  # number
-            outDict.update(value=defval, format="decimal")
+    def _process_integer_defval(self, defval, defvalType):
+        """Process a DEFVAL value for an integer/enumeration type."""
+        if isinstance(defval, int):  # decimal
+            value = defval
 
         elif self.is_hex(defval):  # hex
-            # common bug in MIBs
-            if defvalType[0][0] in ("Integer32", "Integer"):
-                outDict.update(
-                    value=str(int(len(defval) > 3 and defval[1:-2] or "0", 16)),
-                    format="hex",
-                )
+            value = int(defval[1:-2] or "0", 16)
 
-            else:
-                outDict.update(value=defval[1:-2], format="hex")
+        elif self.is_binary(defval):  # binary
+            value = int(defval[1:-2] or "0", 2)
+
+        elif isinstance(defvalType[1], dict):  # enumeration label
+            # For enumerations, the ASN.1 DEFVAL statements contain names,
+            # whereas the code generation template expects integer values
+            # (represented as strings).
+            nameToValueMap = defvalType[1]
+
+            # buggy MIB: DEFVAL { { ... } }
+            if isinstance(defval, list):
+                defval = [dv for dv in defval if dv in nameToValueMap]
+                if defval:
+                    defval = defval[0]
+                # (fall through)
+
+            # good MIB: DEFVAL { ... }
+            if defval not in nameToValueMap:
+                raise ValueError("unknown enumeration label")
+
+            # Return early so as to skip the enumeration value check below.
+            # After all, we already know the resulting number is valid.
+            return str(nameToValueMap[defval]), "decimal"
+
+        else:
+            raise ValueError("wrong input type for integer")
+
+        if isinstance(defvalType[1], dict):  # enumeration number
+            # For numerical values given for enumerated integers, make sure
+            # that they are valid, because pyasn1 will not check this case and
+            # thus let us set a default value that is not valid for the type.
+            if value not in defvalType[1].values():
+                raise ValueError("wrong enumeration value")
+
+        elif isinstance(defvalType[1], list):  # range constraints
+            if not self.is_in_range(defvalType[1], value):
+                raise ValueError("value does not conform to range constraints")
+
+        return str(value), "decimal"
+
+    def _process_string_defval(self, defval, defvalType):
+        """Process a DEFVAL value for a string type (including BITS)."""
+        defvalBaseType = defvalType[0][0]  # either "OctetString" or "Bits"
+
+        if isinstance(defval, int):  # decimal
+            if defvalBaseType != "Bits":
+                raise ValueError("decimal values have no meaning for OCTET STRING")
+
+            # Convert the value to a hex string. Add padding if needed.
+            value = defval and hex(defval)[2:] or ""
+            value = ("0" + value) if len(value) % 2 == 1 else value
+
+            fmt = "hex"
+
+        elif self.is_hex(defval):  # hex
+            # Extract the value as hex string. Add padding if needed.
+            value = defval[1:-2]
+            value = ("0" + value) if len(value) % 2 == 1 else value
+
+            fmt = "hex"
 
         elif self.is_binary(defval):  # binary
             binval = defval[1:-2]
 
-            # common bug in MIBs
-            if defvalType[0][0] in ("Integer32", "Integer"):
-                outDict.update(value=str(int(binval or "0", 2)), format="bin")
+            # Make sure not to lose any leading zeroes. Add padding if needed.
+            width = ((len(binval) + 7) // 8) * 2
+            value = width and "{:0{width}x}".format(int(binval, 2), width=width) or ""
+            fmt = "hex"
 
-            else:
-                hexval = binval and hex(int(binval, 2))[2:] or ""
-                outDict.update(value=hexval, format="hex")
+        elif defval and defval[0] == '"' and defval[-1] == '"':  # quoted string
+            if defvalBaseType != "OctetString":
+                raise ValueError("quoted strings have no meaning for BITS")
 
-        # quoted string
-        elif defval and defval[0] == defval[-1] and defval[0] == '"':
-            # common bug in MIBs
-            if defval[1:-1] == "" and defvalType != "OctetString":
-                # a warning should be here
-                return {}  # we will set no default value
+            value = defval[1:-1]
+            fmt = "string"
 
-            outDict.update(value=defval[1:-1], format="string")
+        elif defvalBaseType == "Bits" and isinstance(defval, list):  # bit labels
+            defvalBits = []
 
-        # symbol (oid as defval) or name for enumeration member
+            bits = defvalType[1]
+
+            for bit in defval:
+                bitValue = bits.get(bit, None)
+                if bitValue is not None:
+                    defvalBits.append((bit, bitValue))
+                else:
+                    raise ValueError("unknown bit")
+
+            return self.gen_bits([defvalBits])[1], "bits"
+
         else:
-            # oid
-            if defvalType[0][0] == "ObjectIdentifier" and (
-                self.trans_opers(defval) in self.symbolTable[self.moduleName[0]]
-                or self.trans_opers(defval) in self._importMap
-            ):
-                pysmiDefval = self.trans_opers(defval)
-                module = self._importMap.get(pysmiDefval, self.moduleName[0])
+            raise ValueError("wrong input type for string")
 
-                try:
-                    val = str(
-                        self.gen_numeric_oid(
-                            self.symbolTable[module][pysmiDefval]["oid"]
-                        )
-                    )
+        if defvalBaseType == "OctetString" and isinstance(
+            defvalType[1], list
+        ):  # size constraints
+            size = len(value) // 2 if fmt == "hex" else len(value)
 
-                    outDict.update(value=val, format="oid")
+            if not self.is_in_range(defvalType[1], size):
+                raise ValueError("value does not conform to size constraints")
 
-                except Exception:
-                    # or no module if it will be borrowed later
-                    raise error.PySmiSemanticError(
-                        f'no symbol "{defval}" in module "{module}"'
-                    )
+        return value, fmt
 
-            # enumeration
-            elif defvalType[0][0] in ("Integer32", "Integer") and isinstance(
-                defvalType[1], list
-            ):
-                # For enumerations, the ASN.1 DEFVAL statements contain names,
-                # whereas the code generation template expects integer values
-                # (represented as strings).
-                nameToValueMap = dict(defvalType[1])
+    def _process_oid_defval(self, defval, defvalType):
+        """Process a DEFVAL value for an object identifier."""
+        if isinstance(defval, str) and (
+            self.trans_opers(defval) in self.symbolTable[self.moduleName[0]]
+            or self.trans_opers(defval) in self._importMap
+        ):
+            pysmiDefval = self.trans_opers(defval)
+            module = self._importMap.get(pysmiDefval, self.moduleName[0])
 
-                # buggy MIB: DEFVAL { { ... } }
-                if isinstance(defval, list):
-                    defval = [dv for dv in defval if dv in nameToValueMap]
-                    if defval:
-                        outDict.update(
-                            value=str(nameToValueMap[defval[0]]), format="enum"
-                        )
+            value = self.gen_numeric_oid(self.symbolTable[module][pysmiDefval]["oid"])
 
-                # good MIB: DEFVAL { ... }
-                elif defval in nameToValueMap:
-                    outDict.update(value=str(nameToValueMap[defval]), format="enum")
+            return str(value), "oid"
 
-            elif defvalType[0][0] == "Bits":
-                defvalBits = []
+        else:
+            raise ValueError("wrong input type for object identifier")
 
-                bits = dict(defvalType[1])
+    def process_defval(self, defval, objname):
+        if defval is None:
+            return {}
 
-                for bit in defval:
-                    bitValue = bits.get(bit, None)
-                    if bitValue is not None:
-                        defvalBits.append((bit, bitValue))
+        defvalType = self.get_base_type(objname, self.moduleName[0])
+        defvalBaseType = defvalType[0][0]
 
-                    else:
-                        raise error.PySmiSemanticError(
-                            f'no such bit as "{bit}" for symbol "{objname}"'
-                        )
+        # Our general policy is that DEFVAL values are considered discardable:
+        # any values that were accepted by the parser but turn out to be
+        # invalid, are dropped here, so that they will not keep the MIB from
+        # being compiled or loaded. The underlying idea is that DEFVAL values
+        # are not all that important, and therefore better discarded than the
+        # cause of a MIB loading failure.
+        #
+        # For each combination of input value and object type, the following
+        # table shows whether the combination is:
+        # - required to be supported by RFC 2578;
+        # - accepted out of lenience by our implementation; or,
+        # - discarded for being no meaningful combination.
+        # Note that enumerations are also Integer32/Integer types, but handled
+        # slightly differently, so they are a separate column in this table.
+        #
+        # Input         Integer     Enumeration OctetString ObjectId.   Bits
+        # ------------- ----------- ----------- ----------- ----------- ---------
+        # decimal       required    accepted    discarded   discarded   accepted
+        # hex           accepted    accepted    required    discarded   accepted
+        # binary        accepted    accepted    required    discarded   accepted
+        # quoted string discarded   discarded   required    discarded   discarded
+        # symbol/label  discarded   required    discarded   required    discarded
+        # brackets      discarded   accepted    discarded   discarded   required
 
-                outDict.update(value=self.gen_bits([defvalBits])[1], format="bits")
+        try:
+            if defvalBaseType in ("Integer32", "Integer"):
+                value, fmt = self._process_integer_defval(defval, defvalType)
+            elif defvalBaseType in ("OctetString", "Bits"):
+                value, fmt = self._process_string_defval(defval, defvalType)
+            elif defvalBaseType == "ObjectIdentifier":
+                value, fmt = self._process_oid_defval(defval, defvalType)
+            else:  # pragma: no cover
+                raise ValueError("unknown base type")
 
-            else:
-                raise error.PySmiSemanticError(
-                    f'unknown type "{defvalType}" for defval "{defval}" of symbol "{objname}"'
-                )
+        except ValueError:
+            # Discard the given default value.
+            return {}
 
+        outDict = OrderedDict(basetype=defvalBaseType, value=value, format=fmt)
         return {"default": outDict}
 
     # noinspection PyMethodMayBeStatic
@@ -903,11 +997,11 @@ class IntermediateCodeGen(AbstractCodeGen):
         out = ()
         parent = ""
         for el in data[0]:
-            if isinstance(el, (str, unicode)):
+            if isinstance(el, str):
                 parent = self.trans_opers(el)
                 out += ((parent, self._importMap.get(parent, self.moduleName[0])),)
 
-            elif isinstance(el, (int, long)):
+            elif isinstance(el, int):
                 out += (el,)
 
             elif isinstance(el, tuple):

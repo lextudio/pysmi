@@ -312,9 +312,6 @@ class SymtableCodeGen(AbstractCodeGen):
         if augmention:
             parents.append(self.trans_opers(augmention))
 
-        if defval:  # XXX
-            symProps["defval"] = defval
-
         if index and index[1]:
             namepart, fakeIndexes, fakeSymSyntax = index
             for fakeIdx, fakeSyntax in zip(fakeIndexes, fakeSymSyntax):
@@ -384,7 +381,7 @@ class SymtableCodeGen(AbstractCodeGen):
 
     # noinspection PyUnusedLocal,PyMethodMayBeStatic
     def gen_bits(self, data, classmode=False):
-        bits = data[0]
+        bits = dict(data[0])
         return ("Bits", ""), bits
 
     # noinspection PyUnusedLocal,PyUnusedLocal,PyMethodMayBeStatic
@@ -406,34 +403,9 @@ class SymtableCodeGen(AbstractCodeGen):
     def gen_display_hint(self, data, classmode=False):
         return ""
 
-    # noinspection PyUnusedLocal
-    def gen_def_val(self, data, classmode=False):  # XXX should be fixed, see pysnmp.py
-        defval = data[0]
-
-        if isinstance(defval, int):  # number
-            val = str(defval)
-
-        elif self.is_hex(defval):  # hex
-            val = 'hexValue="' + defval[1:-2] + '"'  # not working for Integer baseTypes
-
-        elif self.is_binary(defval):  # binary
-            binval = defval[1:-2]
-            hexval = binval and hex(int(binval, 2))[2:] or ""
-            val = 'hexValue="' + hexval + '"'
-
-        elif isinstance(defval, list):  # bits list
-            val = defval
-
-        elif defval and defval[0] == defval[-1] and defval[0] == '"':  # quoted string
-            val = dorepr(defval[1:-1])
-
-        else:  # symbol (oid as defval) or name for enumeration member
-            if defval in self._out or defval in self._importMap:
-                val = defval + ".getName()"
-            else:
-                val = dorepr(defval)
-
-        return val
+    # noinspection PyUnusedLocal,PyUnusedLocal,PyMethodMayBeStatic
+    def gen_def_val(self, data, classmode=False):
+        return ""
 
     # noinspection PyUnusedLocal,PyUnusedLocal,PyMethodMayBeStatic
     def gen_description(self, data, classmode=False):
@@ -472,7 +444,7 @@ class SymtableCodeGen(AbstractCodeGen):
 
     # noinspection PyUnusedLocal,PyUnusedLocal,PyMethodMayBeStatic
     def gen_integer_subtype(self, data, classmode=False):
-        return ""
+        return [data[0]]
 
     # noinspection PyUnusedLocal,PyUnusedLocal,PyMethodMayBeStatic
     def gen_max_access(self, data, classmode=False):
@@ -480,7 +452,7 @@ class SymtableCodeGen(AbstractCodeGen):
 
     # noinspection PyUnusedLocal,PyUnusedLocal,PyMethodMayBeStatic
     def gen_octetstring_subtype(self, data, classmode=False):
-        return ""
+        return [data[0]]
 
     # noinspection PyUnusedLocal
     def gen_oid(self, data, classmode=False):

@@ -293,11 +293,11 @@ class AbstractCodeGen:
 
     @staticmethod
     def is_binary(s):
-        return isinstance(s, str) and s[0] == "'" and s[-2:] in ("'b", "'B")
+        return isinstance(s, str) and s and s[0] == "'" and s[-2:] in ("'b", "'B")
 
     @staticmethod
     def is_hex(s):
-        return isinstance(s, str) and s[0] == "'" and s[-2:] in ("'h", "'H")
+        return isinstance(s, str) and s and s[0] == "'" and s[-2:] in ("'h", "'H")
 
     def str2int(self, s):
         if self.is_binary(s):
