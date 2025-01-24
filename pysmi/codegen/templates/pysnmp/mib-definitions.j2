@@ -152,7 +152,7 @@ if mibBuilder.loadTexts:
         {% endfor %}
     )
         {% if 'fixed' in spec %}
-    fixedLength = {{ spec['fixed'] }}
+    fixed_length = {{ spec['fixed'] }}
         {% endif %}
     {% endif %}
 {% endmacro -%}
