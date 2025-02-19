@@ -1,3 +1,8 @@
+Revision 1.5.10, released on Feb 19, 2025
+-----------------------------------------
+
+- Improved DEFVAL handling.
+
 Revision 1.5.9, released on Nov 04, 2024
 ----------------------------------------
 
