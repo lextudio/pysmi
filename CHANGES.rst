@@ -1,3 +1,8 @@
+Revision 1.5.11, released on Feb 19, 2025
+-----------------------------------------
+
+- Fixed version mismatch in package.
+
 Revision 1.5.10, released on Feb 19, 2025
 -----------------------------------------
 
