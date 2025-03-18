@@ -149,14 +149,14 @@ class TypeDeclarationTestCase(unittest.TestCase):
 
     def protoTestIsFixedLength(self, symbol, length_or_none):
         self.assertEqual(
-            self.ctx[symbol]().isFixedLength(),
+            self.ctx[symbol]().is_fixed_length(),
             length_or_none is not None,
             f"wrong fixed length presence for symbol {symbol}",
         )
 
     def protoTestGetFixedLength(self, symbol, length_or_none):
         self.assertEqual(
-            self.ctx[symbol]().getFixedLength(),
+            self.ctx[symbol]().get_fixed_length(),
             length_or_none,
             f"wrong fixed length for symbol {symbol}",
         )
@@ -984,14 +984,14 @@ class TypeDeclarationFixedLengthTestCase(unittest.TestCase):
 
     def protoTestIsFixedLength(self, symbol, length_or_none):
         self.assertEqual(
-            self.ctx[symbol].getSyntax().isFixedLength(),
+            self.ctx[symbol].getSyntax().is_fixed_length(),
             length_or_none is not None,
             f"wrong fixed length presence for symbol {symbol}",
         )
 
     def protoTestGetFixedLength(self, symbol, length_or_none):
         self.assertEqual(
-            self.ctx[symbol].getSyntax().getFixedLength(),
+            self.ctx[symbol].getSyntax().get_fixed_length(),
             length_or_none,
             f"wrong fixed length for symbol {symbol}",
         )
