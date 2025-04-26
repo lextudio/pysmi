@@ -1,6 +1,6 @@
 [project]
 name = "pysmi"
-version = "1.5.11"
+version = "1.6.0"
 description = "A pure-Python implementation of SNMP/SMI MIB parsing and conversion library."
 authors = [
     {name = "Ilya Etingof", email = "etingof@gmail.com"},
@@ -36,7 +36,7 @@ include-package-data = true
 
 [project.optional-dependencies]
 dev = [
-    "pysnmp>=7.1.10",
+    "pysnmp>=7.1.16",
     "pytest>=6.2.5",
     "pytest-cov>=3.0.0",
     "black==22.3.0",

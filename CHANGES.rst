@@ -1,3 +1,8 @@
+Revision 1.6.0, released on Apr 26, 2025
+----------------------------------------
+
+- Upgraded to match pysnmp 7.1.16 and above.
+
 Revision 1.5.11, released on Feb 19, 2025
 -----------------------------------------
 
