@@ -6,7 +6,7 @@ authors = [
     {name = "Ilya Etingof", email = "etingof@gmail.com"},
     {name = "LeXtudio Inc.", email = "support@lextudio.com"}
 ]
-license = {text = "BSD-2-Clause"}
+license = "BSD-2-Clause"
 readme = "README.md"
 requires-python = ">=3.9"
 classifiers = [
@@ -29,10 +29,6 @@ dependencies = [
 
 [project.urls]
 Repository = "https://github.com/lextudio/pysmi"
-
-[tool.setuptools]
-packages = ["pysmi"]
-include-package-data = true
 
 [project.optional-dependencies]
 dev = [
@@ -60,6 +56,12 @@ dev = [
 mibcopy = "pysmi.scripts.mibcopy:start"
 mibdump = "pysmi.scripts.mibdump:start"
 
+[tool.flit.sdist]
+exclude = [
+    "tests/",
+    "docs/",
+]
+
 [build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
+requires = ["flit_core>=3.9.0"]
+build-backend = "flit_core.buildapi"

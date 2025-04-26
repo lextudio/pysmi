@@ -700,7 +700,7 @@ wheels = [
 
 [[package]]
 name = "pysmi"
-version = "1.5.11"
+version = "1.6.0"
 source = { editable = "." }
 dependencies = [
     { name = "jinja2" },
@@ -747,7 +747,7 @@ requires-dist = [
     { name = "pep8-naming", marker = "extra == 'dev'", specifier = ">=0.14.1" },
     { name = "ply", specifier = ">=3.11" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = "==2.21.0" },
-    { name = "pysnmp", marker = "extra == 'dev'", specifier = ">=7.1.10" },
+    { name = "pysnmp", marker = "extra == 'dev'", specifier = ">=7.1.16" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=6.2.5" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=3.0.0" },
     { name = "requests", specifier = ">=2.26.0" },
