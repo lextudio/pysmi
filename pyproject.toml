@@ -28,6 +28,7 @@ dependencies = [
 ]
 
 [project.urls]
+Homepage = "https://pysnmp.com"
 Repository = "https://github.com/lextudio/pysmi"
 
 [project.optional-dependencies]
@@ -60,6 +61,7 @@ mibdump = "pysmi.scripts.mibdump:start"
 exclude = [
     "tests/",
     "docs/",
+    "examples/"
 ]
 
 [build-system]

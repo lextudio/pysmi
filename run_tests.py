@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Script to run tests for pysmi.
+Script to run tests for the project.
 Equivalent to Run-Tests.ps1
 """
 
@@ -15,7 +15,7 @@ from pathlib import Path
 def main():
     """Main function to run tests."""
     # Parse command line arguments
-    parser = argparse.ArgumentParser(description="Run tests for pysmi project.")
+    parser = argparse.ArgumentParser(description="Run tests for this project.")
     parser.add_argument(
         "--coverage", action="store_true", help="Run with coverage report"
     )
@@ -40,7 +40,7 @@ def main():
         print("Installing dependencies...", file=sys.stderr)
         subprocess.run(["uv", "pip", "install", "-e", ".[dev]"], check=True)
 
-    print("Running tests for pysmi...", file=sys.stderr)
+    print("Running tests for this project...", file=sys.stderr)
 
     # Build the command
     command = ["uv", "run", "pytest"]
@@ -49,7 +49,7 @@ def main():
         command.append("-v")
 
     if args.coverage:
-        command.extend(["--cov=pysmi", "--cov-report=term", "--cov-report=html"])
+        command.extend(["--cov=pysnmp", "--cov-report=term", "--cov-report=html"])
 
     if args.test_file:
         command.append(args.test_file)
