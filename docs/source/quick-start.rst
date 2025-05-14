@@ -93,37 +93,38 @@ dependencies).
    Failed MIBs:
 
 .. note::
+
    You must pay attention to the following tips carefully.
 
    #. Behind the scene, related MIB documents are downloaded from our MIB repository
-   at `mibs.pysnmp.com`_, since no source directory is specified. You can also
-   specify a local directory with ``--mib-source`` option.
+      at `mibs.pysnmp.com`_, since no source directory is specified. You can also
+      specify a local directory with ``--mib-source`` option.
 
    #. If you are behind a firewall, you may need to set up a proxy server for
-   ``mibdump`` to work properly.
+      ``mibdump`` to work properly.
 
    #. If you indeed have a local MIB repository, you can specify it with
-   ``--mib-source`` option. But the key parameter must be the module name (like
-   ``IF-MIB``) and you rely on ``mibdump`` to find the MIB file for you. Don't
-   use a full path to the MIB file as the key parameter, as it won't work.
+      ``--mib-source`` option. But the key parameter must be the module name (like
+      ``IF-MIB``) and you rely on ``mibdump`` to find the MIB file for you. Don't
+      use a full path to the MIB file as the key parameter, as it won't work.
 
    #. "Created/updated MIBs: IANAifType-MIB, IF-MIB, SNMPv2-MIB" is a very nice
-    message to see. It means that PySMI has successfully compiled the MIB
-    documents and generated JSON files for them. This includes the specified
-    MIB module (``IF-MIB`` in this case) and its dependencies. Not all
-    dependencies are listed here, because some of them are already compiled
-    and cached as part of the PySNMP library.
+      message to see. It means that PySMI has successfully compiled the MIB
+      documents and generated JSON files for them. This includes the specified
+      MIB module (``IF-MIB`` in this case) and its dependencies. Not all
+      dependencies are listed here, because some of them are already compiled
+      and cached as part of the PySNMP library.
 
-    #. If you see "Failed MIBs:" message, you should check the error message
-    and try to fix the issue. The error message is usually self-explanatory.
+   #. If you see "Failed MIBs:" message, you should check the error message
+      and try to fix the issue. The error message is usually self-explanatory.
 
-    #. If no ``--destination-directory`` is specified, the output files are saved
-    in the default directory, on Windows it is ``C:\Users\<username>\PySNMP Configuration\mibs``,
-    and on Linux/macOS it is ``~/.pysnmp/mibs``. The PySNMP library uses this
-    directory to resolve compiled .py files during runtime.
+   #. If no ``--destination-directory`` is specified, the output files are saved
+      in the default directory, on Windows it is ``C:\Users\<username>\PySNMP Configuration\mibs``,
+      and on Linux/macOS it is ``~/.pysnmp/mibs``. The PySNMP library uses this
+      directory to resolve compiled .py files during runtime.
 
-    If you want to know more about the options available for ``mibdump``, you
-    can refer to "Related Resources" section at the end of this document.
+   If you want to know more about the options available for ``mibdump``, you
+   can refer to "Related Resources" section at the end of this document.
 
 The generated JSON file for `IF-MIB`_ is located in the current folder. You can
 see its contents like below,
