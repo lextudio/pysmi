@@ -1,3 +1,8 @@
+Revision 1.6.2, released on May 27, 2025
+----------------------------------------
+
+- Fixed debugging flag bug.
+
 Revision 1.6.1, released on Apr 26, 2025
 ----------------------------------------
 
