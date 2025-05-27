@@ -188,12 +188,12 @@ class SmiV2Lexer(AbstractLexer):
             )
         else:
             if debug.logger & debug.FLAG_LEXER:
-                logger = debug.logger.getCurrentLogger()
+                logger = debug.logger.get_current_logger()
             else:
                 logger = lex.NullLogger()
 
             if debug.logger & debug.FLAG_GRAMMAR:
-                debuglogger = debug.logger.getCurrentLogger()
+                debuglogger = debug.logger.get_current_logger()
             else:
                 debuglogger = None
 
