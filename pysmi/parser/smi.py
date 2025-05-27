@@ -46,12 +46,12 @@ class SmiV2Parser(AbstractParser):
             )
         else:
             if debug.logger & debug.FLAG_PARSER:
-                logger = debug.logger.getCurrentLogger()
+                logger = debug.logger.get_current_logger()
             else:
                 logger = yacc.NullLogger()
 
             if debug.logger & debug.FLAG_GRAMMAR:
-                debuglogger = debug.logger.getCurrentLogger()
+                debuglogger = debug.logger.get_current_logger()
             else:
                 debuglogger = None
 
