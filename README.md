@@ -35,5 +35,5 @@ If something does not work as expected,
 [open an issue](https://github.com/lextudio/pysnmp/issues) at GitHub.
 
 Copyright (c) 2015-2020, [Ilya Etingof](mailto:etingof@gmail.com).
-Copyright (c) 2022-2025, [LeXtudio Inc.](mailto:support@lextudio.com).
+Copyright (c) 2022-2026, [LeXtudio Inc.](mailto:support@lextudio.com).
 All rights reserved.

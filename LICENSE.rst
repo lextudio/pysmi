@@ -1,8 +1,8 @@
 Copyright (c) 2015-2020 Ilya Etingof <etingof@gmail.com>
 
-Copyright (c) 2022-2025, LeXtudio Inc. <support@lextudio.com>
+Copyright (c) 2022-2026, LeXtudio Inc. <support@lextudio.com>
 
-Copyright (c) 2015-2025, Other contributors
+Copyright (c) 2015-2026, Other contributors
 
 All rights reserved.
 
