@@ -6,8 +6,8 @@
 #
 # Build an internally used symbol table for each passed MIB.
 #
-from pysmi import config, debug, error
-from pysmi.codegen.base import AbstractCodeGen, dorepr
+from pysmi import config, debug, error, implicit_imports
+from pysmi.codegen.base import AbstractCodeGen
 from pysmi.mibinfo import MibInfo
 
 
@@ -117,7 +117,31 @@ class SymtableCodeGen(AbstractCodeGen):
 
         return data
 
-    def gen_imports(self, imports):
+    def gen_imports(self, imports, apply_implicit=False):
+        # normalize incoming imports into a mutable mapping of lists
+        if not isinstance(imports, dict):
+            try:
+                imports = dict(imports)
+            except Exception:
+                imports = {}
+
+        # ensure all import value containers are lists we can append to
+        for m in list(imports):
+            imports[m] = list(imports[m])
+
+        # helper to safely add a symbol to imports[module]
+        def _add_import(mod, sym):
+            if mod in imports:
+                if isinstance(imports[mod], list):
+                    imports[mod].append(sym)
+                else:
+                    try:
+                        imports[mod] = list(imports[mod]) + [sym]
+                    except Exception:
+                        imports[mod] = [sym]
+            else:
+                imports[mod] = [sym]
+
         # convertion to SNMPv2
         toDel = []
         for module in list(imports):
@@ -128,22 +152,29 @@ class SymtableCodeGen(AbstractCodeGen):
 
                         for newImport in self.convertImportv2[module][symbol]:
                             newModule, newSymbol = newImport
-
-                            if newModule in imports:
-                                imports[newModule].append(newSymbol)
-                            else:
-                                imports[newModule] = [newSymbol]
+                            _add_import(newModule, newSymbol)
 
         # removing converted symbols
         for d in toDel:
             imports[d[0]].remove(d[1])
 
-        # merging mib and constant imports
+        # merging mib and constant imports (ensure lists)
         for module in self.constImports:
-            if module in imports:
-                imports[module] += self.constImports[module]
-            else:
-                imports[module] = self.constImports[module]
+            for sym in self.constImports[module]:
+                _add_import(module, sym)
+
+        # apply per-MIB implicit imports only when explicitly requested
+        if apply_implicit:
+            try:
+                mib_exceptions = implicit_imports.IMPLICIT_IMPORTS.get(
+                    self.moduleName[0]
+                )
+            except Exception:
+                mib_exceptions = None
+
+            if mib_exceptions:
+                for newModule, newSymbol in mib_exceptions:
+                    _add_import(newModule, newSymbol)
 
         for module in sorted(imports):
             symbols = ()
@@ -621,27 +652,63 @@ class SymtableCodeGen(AbstractCodeGen):
         self._importMap.clear()
         self._out = {}  # should be new object, do not use `clear` method
         self.moduleName[0], moduleOid, imports, declarations = ast
+        # First attempt without implicit imports
+        try:
+            out, importedModules = self.gen_imports(imports, apply_implicit=False)
 
-        out, importedModules = self.gen_imports(imports)
+            for declr in declarations or []:
+                if declr:
+                    clausetype = declr[0]
+                    classmode = clausetype == "typeDeclaration"
+                    self.handlersTable[declr[0]](
+                        self, self.prep_data(declr[1:], classmode), classmode
+                    )
 
-        for declr in declarations or []:
-            if declr:
-                clausetype = declr[0]
-                classmode = clausetype == "typeDeclaration"
-                self.handlersTable[declr[0]](
-                    self, self.prep_data(declr[1:], classmode), classmode
-                )
-
-        if self._postponedSyms:
-            self.correct_postponed_syms()
             if self._postponedSyms:
-                raise error.PySmiSemanticError(
-                    f"Unknown parents for symbols: {', '.join(self._postponedSyms)}"
-                )
+                self.correct_postponed_syms()
+                if self._postponedSyms:
+                    raise error.PySmiSemanticError(
+                        f"Unknown parents for symbols: {', '.join(self._postponedSyms)}"
+                    )
 
-        for sym in self._parentOids:
-            if sym not in self._out and sym not in self._importMap:
-                raise error.PySmiSemanticError(f"Unknown parent symbol: {sym}")
+            for sym in self._parentOids:
+                if sym not in self._out and sym not in self._importMap:
+                    raise error.PySmiSemanticError(f"Unknown parent symbol: {sym}")
+
+        except error.PySmiSemanticError:
+            # Try again only if we have implicit imports defined for this MIB
+            if implicit_imports.IMPLICIT_IMPORTS.get(self.moduleName[0]):
+                # reset state and retry with implicit imports applied
+                self._rows.clear()
+                self._cols.clear()
+                self._parentOids.clear()
+                self._symsOrder = []
+                self._postponedSyms.clear()
+                self._importMap.clear()
+                self._out = {}
+
+                out, importedModules = self.gen_imports(imports, apply_implicit=True)
+
+                for declr in declarations or []:
+                    if declr:
+                        clausetype = declr[0]
+                        classmode = clausetype == "typeDeclaration"
+                        self.handlersTable[declr[0]](
+                            self, self.prep_data(declr[1:], classmode), classmode
+                        )
+
+                if self._postponedSyms:
+                    self.correct_postponed_syms()
+                    if self._postponedSyms:
+                        raise error.PySmiSemanticError(
+                            f"Unknown parents for symbols: {', '.join(self._postponedSyms)}"
+                        )
+
+                for sym in self._parentOids:
+                    if sym not in self._out and sym not in self._importMap:
+                        raise error.PySmiSemanticError(f"Unknown parent symbol: {sym}")
+            else:
+                raise
 
         self._out["_symtable_order"] = list(self._symsOrder)
         self._out["_symtable_cols"] = list(self._cols)
