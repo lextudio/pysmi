@@ -1,3 +1,8 @@
+Revision 1.6.3, released on Jan 22, 2026
+----------------------------------------
+
+- Add new implicit imports handling.
+
 Revision 1.6.2, released on May 27, 2025
 ----------------------------------------
 
