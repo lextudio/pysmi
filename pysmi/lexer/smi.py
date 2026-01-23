@@ -534,6 +534,7 @@ relaxedGrammar = {
     "lowcaseIdentifier": [],
     "curlyBracesAroundEnterpriseInTrap": [],
     "noCells": [],
+    "namedConstraintValue": [],
 }
 
 

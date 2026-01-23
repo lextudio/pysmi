@@ -1420,6 +1420,23 @@ class NoCells:
             p[0] = (p[1], p[3])
 
 
+# noinspection PyIncorrectDocstring
+class NamedConstraintValue:
+    # tolerate identifiers as named constraint values in integer subtypes
+    # e.g. SYNTAX Unsigned32 (WAN7 | WAN8) where WAN7/WAN8 are defined TCs
+    @staticmethod
+    def p_value(self, p):
+        """value : NEGATIVENUMBER
+        | NUMBER
+        | NEGATIVENUMBER64
+        | NUMBER64
+        | HEX_STRING
+        | BIN_STRING
+        | UPPERCASE_IDENTIFIER
+        | LOWERCASE_IDENTIFIER"""
+        p[0] = p[1]
+
+
 relaxedGrammar = {
     "supportSmiV1Keywords": [
         SupportSmiV1Keywords.p_importedKeyword,
@@ -1438,6 +1455,7 @@ relaxedGrammar = {
         CurlyBracesInEnterprises.p_EnterprisePart,
     ],
     "noCells": [NoCells.p_CreationPart],
+    "namedConstraintValue": [NamedConstraintValue.p_value],
 }
 
 
@@ -1464,6 +1482,7 @@ def parserFactory(**grammarOptions):
         * lowcaseIdentifier - tolerate lowercase MIB identifiers
         * curlyBracesAroundEnterpriseInTrap - tolerate curly braces around enterprise ID in TRAP MACRO
         * noCells - tolerate missing cells (XXX)
+        * namedConstraintValue - tolerate identifiers as named constraint values in integer subtypes
 
     Examples:
 
