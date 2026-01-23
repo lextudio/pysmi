@@ -1420,6 +1420,15 @@ class NoCells:
             p[0] = (p[1], p[3])
 
 
+# noinspection PyIncorrectDocstring
+class LowcaseTypeIdentifier:
+    # common mistake - lowercase type identifier in SEQUENCE OF
+    @staticmethod
+    def p_row(self, p):
+        """row : fuzzy_lowercase_identifier"""
+        p[0] = ('row', p[1])
+
+
 relaxedGrammar = {
     "supportSmiV1Keywords": [
         SupportSmiV1Keywords.p_importedKeyword,
@@ -1438,6 +1447,7 @@ relaxedGrammar = {
         CurlyBracesInEnterprises.p_EnterprisePart,
     ],
     "noCells": [NoCells.p_CreationPart],
+    "lowcaseTypeIdentifier": [LowcaseTypeIdentifier.p_row],
 }
 
 
@@ -1464,6 +1474,7 @@ def parserFactory(**grammarOptions):
         * lowcaseIdentifier - tolerate lowercase MIB identifiers
         * curlyBracesAroundEnterpriseInTrap - tolerate curly braces around enterprise ID in TRAP MACRO
         * noCells - tolerate missing cells (XXX)
+        * lowcaseTypeIdentifier - tolerate lowercase type identifiers in SEQUENCE OF
 
     Examples:
 
