@@ -26,34 +26,6 @@ class SymtableCodeGen(AbstractCodeGen):
         "BITS": ("Bits",),
     }
 
-    constImports = {
-        "SNMPv2-SMI": (
-            "iso",
-            "Bits",  # XXX
-            "Integer32",  # XXX
-            "TimeTicks",  # bug in some IETF MIBs
-            "Counter32",  # bug in some IETF MIBs (e.g. DSA-MIB)
-            "Counter64",  # bug in some MIBs (e.g.A3COM-HUAWEI-LswINF-MIB)
-            "NOTIFICATION-TYPE",  # bug in some MIBs (e.g. A3COM-HUAWEI-DHCPSNOOP-MIB)
-            "Gauge32",  # bug in some IETF MIBs (e.g. DSA-MIB)
-            "MODULE-IDENTITY",
-            "OBJECT-TYPE",
-            "OBJECT-IDENTITY",
-            "Unsigned32",
-            "IpAddress",  # XXX
-            "MibIdentifier",
-        ),  # OBJECT IDENTIFIER
-        "SNMPv2-TC": (
-            "DisplayString",
-            "PhysAddress",
-            "TEXTUAL-CONVENTION",
-        ),  # XXX
-        "SNMPv2-CONF": (
-            "MODULE-COMPLIANCE",
-            "NOTIFICATION-GROUP",
-        ),  # XXX
-    }
-
     baseTypes = ["Integer", "Integer32", "Bits", "ObjectIdentifier", "OctetString"]
 
     typeClasses = {
@@ -129,19 +101,6 @@ class SymtableCodeGen(AbstractCodeGen):
         for m in list(imports):
             imports[m] = list(imports[m])
 
-        # helper to safely add a symbol to imports[module]
-        def _add_import(mod, sym):
-            if mod in imports:
-                if isinstance(imports[mod], list):
-                    imports[mod].append(sym)
-                else:
-                    try:
-                        imports[mod] = list(imports[mod]) + [sym]
-                    except Exception:
-                        imports[mod] = [sym]
-            else:
-                imports[mod] = [sym]
-
         # convertion to SNMPv2
         toDel = []
         for module in list(imports):
@@ -152,29 +111,18 @@ class SymtableCodeGen(AbstractCodeGen):
 
                         for newImport in self.convertImportv2[module][symbol]:
                             newModule, newSymbol = newImport
-                            _add_import(newModule, newSymbol)
+                            implicit_imports.add_import(imports, newModule, newSymbol)
 
         # removing converted symbols
         for d in toDel:
             imports[d[0]].remove(d[1])
 
         # merging mib and constant imports (ensure lists)
-        for module in self.constImports:
-            for sym in self.constImports[module]:
-                _add_import(module, sym)
+        implicit_imports.apply_const_imports(imports)
 
         # apply per-MIB implicit imports only when explicitly requested
         if apply_implicit:
-            try:
-                mib_exceptions = implicit_imports.IMPLICIT_IMPORTS.get(
-                    self.moduleName[0]
-                )
-            except Exception:
-                mib_exceptions = None
-
-            if mib_exceptions:
-                for newModule, newSymbol in mib_exceptions:
-                    _add_import(newModule, newSymbol)
+            implicit_imports.apply_implicit_imports(imports, self.moduleName[0])
 
         for module in sorted(imports):
             symbols = ()

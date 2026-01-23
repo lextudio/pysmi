@@ -5,11 +5,10 @@
 # License: https://www.pysnmp.com/pysmi/license.html
 #
 import re
-import sys
 from collections import OrderedDict
 from time import strftime, strptime
 
-from pysmi import config, debug, error
+from pysmi import config, debug, error, implicit_imports
 from pysmi.codegen.base import AbstractCodeGen
 from pysmi.mibinfo import MibInfo
 
@@ -21,25 +20,6 @@ class IntermediateCodeGen(AbstractCodeGen):
     and structures that could easily be used from within the template
     engines.
     """
-
-    constImports = {
-        "SNMPv2-SMI": (
-            "iso",
-            "NOTIFICATION-TYPE",  # bug in some MIBs (e.g. A3COM-HUAWEI-DHCPSNOOP-MIB)
-            "MODULE-IDENTITY",
-            "OBJECT-TYPE",
-            "OBJECT-IDENTITY",
-        ),
-        "SNMPv2-TC": (
-            "DisplayString",
-            "PhysAddress",
-            "TEXTUAL-CONVENTION",
-        ),  # XXX
-        "SNMPv2-CONF": (
-            "MODULE-COMPLIANCE",
-            "NOTIFICATION-GROUP",
-        ),  # XXX
-    }
 
     # never compile these, they either:
     # - define MACROs (implementation supplies them)
@@ -86,7 +66,7 @@ class IntermediateCodeGen(AbstractCodeGen):
                 data.append(self.handlersTable[el[0]](self, self.prep_data(el[1:])))
         return data
 
-    def gen_imports(self, imports):
+    def gen_imports(self, imports, apply_implicit=False):
         # convertion to SNMPv2
         toDel = []
         for module in list(imports):
@@ -97,22 +77,18 @@ class IntermediateCodeGen(AbstractCodeGen):
 
                         for newImport in self.convertImportv2[module][symbol]:
                             newModule, newSymbol = newImport
-
-                            if newModule in imports:
-                                imports[newModule].append(newSymbol)
-                            else:
-                                imports[newModule] = [newSymbol]
+                            implicit_imports.add_import(imports, newModule, newSymbol)
 
         # removing converted symbols
         for d in toDel:
             imports[d[0]].remove(d[1])
 
-        # merging mib and constant imports
-        for module in self.constImports:
-            if module in imports:
-                imports[module] += self.constImports[module]
-            else:
-                imports[module] = self.constImports[module]
+        # merging mib and constant imports (ensure mutable lists)
+        implicit_imports.apply_const_imports(imports)
+
+        # apply implicit per-MIB imports when requested
+        if apply_implicit:
+            implicit_imports.apply_implicit_imports(imports, self.moduleName[0])
 
         outDict = OrderedDict()
         outDict["class"] = "imports"
