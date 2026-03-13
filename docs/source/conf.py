@@ -134,6 +134,7 @@ html_theme = "furo"
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
+    "announcement": 'Try <strong>SNMP Studio</strong>: <a href="https://www.sharpsnmp.com/#section-studio" target="_blank">Explore SNMP Studio</a>.',
     "source_repository": "https://github.com/lextudio/pysmi",
     "source_branch": "main",
     "source_directory": "docs/source/",
