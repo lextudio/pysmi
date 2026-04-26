@@ -1,14 +1,15 @@
+Revision 2.0.0, released on Apr 26, 2026
+----------------------------------------
+
+- Python 3.9 support is retired.
+- Switched to Lack of a better code generation engine. This is likely to cause
+  some regressions, but it is a necessary step to move forward as ply is no
+  longer maintained.
+
 Revision 1.6.3, released on Jan 22, 2026
 ----------------------------------------
 
 - Add new implicit imports handling.
-
-Deprecation notice
-------------------
-
-- Python 3.9 support is retired as of Feb 06, 2026. The project now requires
-  Python >= 3.10. Users on Python 3.9 should upgrade to a supported Python
-  release; compatibility shims for 3.9 are removed and CI no longer tests 3.9.
 
 Revision 1.6.2, released on May 27, 2025
 ----------------------------------------
