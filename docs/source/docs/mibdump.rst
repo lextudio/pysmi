@@ -362,8 +362,8 @@ Minor speedups
 There are a few options that may improve PySMI performance.
 
 The --cache-directory option may be used to point to a temporary
-writable directory where PySMI parser (e.g. Ply) would store its
-lookup tables.
+writable directory where PySMI may keep transient parser/runtime
+artifacts.
 
 By default PySMI performing transformation into pysnmp format will
 also pre-compile Python source into interpreter bytecode. That takes

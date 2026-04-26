@@ -650,10 +650,6 @@ class _BootstrapAstBuilder(Transformer):
         return "IpAddress"
 
     def type_smi_networkaddress(self, _items):
-        if not self._enabled("supportSmiV1Keywords"):
-            raise error.PySmiParserError(
-                "NetworkAddress requires supportSmiV1Keywords option", lineno="?"
-            )
         return "NetworkAddress"
 
     def type_smi_timeticks(self, _items):
@@ -788,10 +784,6 @@ class _BootstrapAstBuilder(Transformer):
         return "IpAddress"
 
     def sequence_app_networkaddress(self, _items):
-        if not self._enabled("supportSmiV1Keywords"):
-            raise error.PySmiParserError(
-                "NetworkAddress requires supportSmiV1Keywords option", lineno="?"
-            )
         return "NetworkAddress"
 
     def sequence_app_counter_alias(self, _items):
@@ -856,9 +848,10 @@ class _BootstrapAstBuilder(Transformer):
 
     def app_networkaddress(self, items):
         if not self._enabled("supportSmiV1Keywords"):
-            raise error.PySmiParserError(
-                "NetworkAddress requires supportSmiV1Keywords option", lineno="?"
-            )
+            subtype = items[0] if items else None
+            if subtype is None:
+                return ("row", "NetworkAddress")
+            return ("SimpleSyntax", "NetworkAddress", subtype)
         return ("ApplicationSyntax", "NetworkAddress", items[0])
 
     def app_counter_alias(self, _items):
@@ -1074,9 +1067,8 @@ class _BootstrapAstBuilder(Transformer):
 
     def type_smiv1_networkaddress(self, _items):
         if not self._enabled("supportSmiV1Keywords"):
-            raise error.PySmiParserError(
-                "NetworkAddress requires supportSmiV1Keywords option", lineno="?"
-            )
+            # In non-SMIv1 mode this is just an identifier token in PLY.
+            return ("objectIdentifier", ["NetworkAddress"])
         return ("typeSMIv1", "NetworkAddress")
 
     def entry(self, items):
@@ -1536,7 +1528,7 @@ class _BootstrapAstBuilder(Transformer):
         return (name, module_oid, imports, declarations)
 
 
-class SmiV2ParserLark(AbstractParser):
+class SmiV2Parser(AbstractParser):
     _grammarOptions = {}
     _implementedOptions = {
         "supportSmiV1Keywords",
@@ -1554,13 +1546,11 @@ class SmiV2ParserLark(AbstractParser):
         del tempdir
 
         if Lark is None:
-            raise error.PySmiError(
-                "Lark backend requested but dependency 'lark' is not installed"
-            )
+            raise error.PySmiError("Parser dependency 'lark' is not installed")
 
         if startSym != "mibFile":
             raise error.PySmiError(
-                f"Lark backend currently supports startSym='mibFile', got {startSym!r}"
+                f"Parser currently supports startSym='mibFile', got {startSym!r}"
             )
 
         unsupported = sorted(
@@ -1570,7 +1560,7 @@ class SmiV2ParserLark(AbstractParser):
         )
         if unsupported:
             raise error.PySmiError(
-                f"Lark backend does not yet support parser options: {', '.join(unsupported)}"
+                f"Parser does not yet support parser options: {', '.join(unsupported)}"
             )
 
         self.parser = Lark(
@@ -1625,6 +1615,4 @@ def parserFactory(**grammarOptions):
         if option not in relaxedGrammar:
             raise error.PySmiError(f"Unknown parser relaxation option: {option}")
 
-    return type(
-        "SmiLarkParser", (SmiV2ParserLark,), {"_grammarOptions": grammarOptions}
-    )
+    return type("SmiParser", (SmiV2Parser,), {"_grammarOptions": grammarOptions})

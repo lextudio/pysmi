@@ -1,7 +1,7 @@
-import importlib.util
 import unittest
 
 from pysmi import config, error
+from pysmi.lexer.smi import lexerFactory
 from pysmi.parser.smi import parserFactory
 
 
@@ -15,25 +15,23 @@ class ParserBackendTestCase(unittest.TestCase):
         with self.assertRaises(error.PySmiError):
             parserFactory(backend="nope")
 
-    def testLarkBackendBootstrap(self):
-        SmiParser = parserFactory(backend="lark")
+    def testPlyBackendDisconnected(self):
+        with self.assertRaises(error.PySmiError):
+            parserFactory(backend="ply")
 
-        if importlib.util.find_spec("lark") is None:
-            with self.assertRaises(error.PySmiError):
-                SmiParser()
-            return
+    def testPlyLexerDisconnected(self):
+        with self.assertRaises(error.PySmiError):
+            lexerFactory()
+
+    def testParserBootstrap(self):
+        SmiParser = parserFactory()
 
         ast = SmiParser().parse(self.SIMPLE_MIB)
         self.assertEqual(ast, [("TEST-MIB", None, {}, None)])
 
-    def testLarkBackendSupportsMixOfCommasAndSpacesParity(self):
-        larkParser = parserFactory(backend="lark", mixOfCommasAndSpaces=True)
-        plyParser = parserFactory(mixOfCommasAndSpaces=True)
-
-        if importlib.util.find_spec("lark") is None:
-            with self.assertRaises(error.PySmiError):
-                larkParser()
-            return
+    def testParserSupportsMixOfCommasAndSpacesParity(self):
+        parser = parserFactory(mixOfCommasAndSpaces=True)
+        defaultParser = parserFactory(mixOfCommasAndSpaces=True)
 
         mib = """
         TEST-MIB DEFINITIONS ::= BEGIN
@@ -41,15 +39,10 @@ class ParserBackendTestCase(unittest.TestCase):
         END
         """
 
-        self.assertEqual(larkParser().parse(mib), plyParser().parse(mib))
+        self.assertEqual(parser().parse(mib), defaultParser().parse(mib))
 
-    def testLarkBackendRejectsEnumCommaSpaceMixWithoutOption(self):
-        SmiParser = parserFactory(backend="lark")
-
-        if importlib.util.find_spec("lark") is None:
-            with self.assertRaises(error.PySmiError):
-                SmiParser()
-            return
+    def testParserRejectsEnumCommaSpaceMixWithoutOption(self):
+        SmiParser = parserFactory()
 
         mib = """
         TEST-MIB DEFINITIONS ::= BEGIN
@@ -60,14 +53,9 @@ class ParserBackendTestCase(unittest.TestCase):
         with self.assertRaises(error.PySmiParserError):
             SmiParser().parse(mib)
 
-    def testLarkBackendStrictModeInvalidBinaryStringParity(self):
-        larkParser = parserFactory(backend="lark")
-        plyParser = parserFactory()
-
-        if importlib.util.find_spec("lark") is None:
-            with self.assertRaises(error.PySmiError):
-                larkParser()
-            return
+    def testParserStrictModeInvalidBinaryStringParity(self):
+        parser = parserFactory()
+        defaultParser = parserFactory()
 
         mib = """
         TEST-MIB DEFINITIONS ::= BEGIN
@@ -86,18 +74,13 @@ class ParserBackendTestCase(unittest.TestCase):
         config.STRICT_MODE = True
 
         with self.assertRaises(error.PySmiLexerError):
-            larkParser().parse(mib)
+            parser().parse(mib)
         with self.assertRaises(error.PySmiLexerError):
-            plyParser().parse(mib)
+            defaultParser().parse(mib)
 
-    def testLarkBackendStrictModeHexStringParity(self):
-        larkParser = parserFactory(backend="lark")
-        plyParser = parserFactory()
-
-        if importlib.util.find_spec("lark") is None:
-            with self.assertRaises(error.PySmiError):
-                larkParser()
-            return
+    def testParserStrictModeHexStringParity(self):
+        parser = parserFactory()
+        defaultParser = parserFactory()
 
         mib = """
         TEST-MIB DEFINITIONS ::= BEGIN
@@ -115,16 +98,11 @@ class ParserBackendTestCase(unittest.TestCase):
         self.addCleanup(setattr, config, "STRICT_MODE", strict_mode)
         config.STRICT_MODE = True
 
-        self.assertEqual(larkParser().parse(mib), plyParser().parse(mib))
+        self.assertEqual(parser().parse(mib), defaultParser().parse(mib))
 
-    def testLarkBackendMacroClauseParityWithPly(self):
-        larkParser = parserFactory(backend="lark")
-        plyParser = parserFactory()
-
-        if importlib.util.find_spec("lark") is None:
-            with self.assertRaises(error.PySmiError):
-                larkParser()
-            return
+    def testParserMacroClauseParity(self):
+        parser = parserFactory()
+        defaultParser = parserFactory()
 
         mib = """
         TEST-MIB DEFINITIONS ::= BEGIN
@@ -135,16 +113,11 @@ class ParserBackendTestCase(unittest.TestCase):
         END
         """
 
-        self.assertEqual(larkParser().parse(mib), plyParser().parse(mib))
+        self.assertEqual(parser().parse(mib), defaultParser().parse(mib))
 
-    def testLarkBackendChoiceClauseParityWithPly(self):
-        larkParser = parserFactory(backend="lark")
-        plyParser = parserFactory()
-
-        if importlib.util.find_spec("lark") is None:
-            with self.assertRaises(error.PySmiError):
-                larkParser()
-            return
+    def testParserChoiceClauseParity(self):
+        parser = parserFactory()
+        defaultParser = parserFactory()
 
         mib = """
         TEST-MIB DEFINITIONS ::= BEGIN
@@ -154,16 +127,11 @@ class ParserBackendTestCase(unittest.TestCase):
         END
         """
 
-        self.assertEqual(larkParser().parse(mib), plyParser().parse(mib))
+        self.assertEqual(parser().parse(mib), defaultParser().parse(mib))
 
-    def testLarkBackendSubtypeHexBinaryRangeParityWithPly(self):
-        larkParser = parserFactory(backend="lark")
-        plyParser = parserFactory()
-
-        if importlib.util.find_spec("lark") is None:
-            with self.assertRaises(error.PySmiError):
-                larkParser()
-            return
+    def testParserSubtypeHexBinaryRangeParity(self):
+        parser = parserFactory()
+        defaultParser = parserFactory()
 
         mib = """
         TEST-MIB DEFINITIONS ::= BEGIN
@@ -176,16 +144,11 @@ class ParserBackendTestCase(unittest.TestCase):
         END
         """
 
-        self.assertEqual(larkParser().parse(mib), plyParser().parse(mib))
+        self.assertEqual(parser().parse(mib), defaultParser().parse(mib))
 
-    def testLarkBackendInvalidNestedOidDefvalParityWithPly(self):
-        larkParser = parserFactory(backend="lark")
-        plyParser = parserFactory()
-
-        if importlib.util.find_spec("lark") is None:
-            with self.assertRaises(error.PySmiError):
-                larkParser()
-            return
+    def testParserInvalidNestedOidDefvalParity(self):
+        parser = parserFactory()
+        defaultParser = parserFactory()
 
         mib = """
         TEST-MIB DEFINITIONS ::= BEGIN
@@ -199,16 +162,11 @@ class ParserBackendTestCase(unittest.TestCase):
         END
         """
 
-        self.assertEqual(larkParser().parse(mib), plyParser().parse(mib))
+        self.assertEqual(parser().parse(mib), defaultParser().parse(mib))
 
-    def testLarkBackendGaugeAliasAndTrapOptionalPartsParity(self):
-        larkParser = parserFactory(backend="lark")
-        plyParser = parserFactory()
-
-        if importlib.util.find_spec("lark") is None:
-            with self.assertRaises(error.PySmiError):
-                larkParser()
-            return
+    def testParserGaugeAliasAndTrapOptionalPartsParity(self):
+        parser = parserFactory()
+        defaultParser = parserFactory()
 
         mib = """
         TEST-MIB DEFINITIONS ::= BEGIN
@@ -233,16 +191,11 @@ class ParserBackendTestCase(unittest.TestCase):
         END
         """
 
-        self.assertEqual(larkParser().parse(mib), plyParser().parse(mib))
+        self.assertEqual(parser().parse(mib), defaultParser().parse(mib))
 
-    def testLarkBackendExportsSkipParityWithPly(self):
-        larkParser = parserFactory(backend="lark")
-        plyParser = parserFactory()
-
-        if importlib.util.find_spec("lark") is None:
-            with self.assertRaises(error.PySmiError):
-                larkParser()
-            return
+    def testParserExportsSkipParity(self):
+        parser = parserFactory()
+        defaultParser = parserFactory()
 
         mib = """
         TEST-MIB DEFINITIONS ::= BEGIN
@@ -253,16 +206,11 @@ class ParserBackendTestCase(unittest.TestCase):
         END
         """
 
-        self.assertEqual(larkParser().parse(mib), plyParser().parse(mib))
+        self.assertEqual(parser().parse(mib), defaultParser().parse(mib))
 
-    def testLarkBackendTaggedSyntaxParityWithPly(self):
-        larkParser = parserFactory(backend="lark")
-        plyParser = parserFactory()
-
-        if importlib.util.find_spec("lark") is None:
-            with self.assertRaises(error.PySmiError):
-                larkParser()
-            return
+    def testParserTaggedSyntaxParity(self):
+        parser = parserFactory()
+        defaultParser = parserFactory()
 
         mib = """
         TEST-MIB DEFINITIONS ::= BEGIN
@@ -275,16 +223,11 @@ class ParserBackendTestCase(unittest.TestCase):
         END
         """
 
-        self.assertEqual(larkParser().parse(mib), plyParser().parse(mib))
+        self.assertEqual(parser().parse(mib), defaultParser().parse(mib))
 
-    def testLarkBackendTypeNameSmiKeywordsParityWithPly(self):
-        larkParser = parserFactory(backend="lark")
-        plyParser = parserFactory()
-
-        if importlib.util.find_spec("lark") is None:
-            with self.assertRaises(error.PySmiError):
-                larkParser()
-            return
+    def testParserTypeNameSmiKeywordsParity(self):
+        parser = parserFactory()
+        defaultParser = parserFactory()
 
         mib = """
         TEST-MIB DEFINITIONS ::= BEGIN
@@ -293,17 +236,11 @@ class ParserBackendTestCase(unittest.TestCase):
         END
         """
 
-        self.assertEqual(larkParser().parse(mib), plyParser().parse(mib))
+        self.assertEqual(parser().parse(mib), defaultParser().parse(mib))
 
-    def testLarkBackendTypeNameNetworkAddressRequiresOption(self):
-        larkParserStrict = parserFactory(backend="lark")
-        larkParserRelaxed = parserFactory(backend="lark", supportSmiV1Keywords=True)
-        plyParserRelaxed = parserFactory(supportSmiV1Keywords=True)
-
-        if importlib.util.find_spec("lark") is None:
-            with self.assertRaises(error.PySmiError):
-                larkParserStrict()
-            return
+    def testParserTypeNameNetworkAddressParity(self):
+        parser = parserFactory()
+        defaultParser = parserFactory()
 
         mib = """
         TEST-MIB DEFINITIONS ::= BEGIN
@@ -311,26 +248,32 @@ class ParserBackendTestCase(unittest.TestCase):
         END
         """
 
-        with self.assertRaises(error.PySmiParserError):
-            larkParserStrict().parse(mib)
+        self.assertEqual(parser().parse(mib), defaultParser().parse(mib))
 
-        self.assertEqual(larkParserRelaxed().parse(mib), plyParserRelaxed().parse(mib))
+    def testParserRhsNetworkAddressParityWithAndWithoutOption(self):
+        parserDefault = parserFactory()
+        defaultDefault = parserFactory()
+        parserRelaxed = parserFactory(supportSmiV1Keywords=True)
+        defaultRelaxed = parserFactory(supportSmiV1Keywords=True)
 
-    def testLarkBackendSupportsTrailingCommaRelaxationsParity(self):
-        larkParser = parserFactory(
-            backend="lark",
+        mib = """
+        TEST-MIB DEFINITIONS ::= BEGIN
+        MyNet ::= NetworkAddress
+        END
+        """
+
+        self.assertEqual(parserDefault().parse(mib), defaultDefault().parse(mib))
+        self.assertEqual(parserRelaxed().parse(mib), defaultRelaxed().parse(mib))
+
+    def testParserSupportsTrailingCommaRelaxationsParity(self):
+        parser = parserFactory(
             commaAtTheEndOfImport=True,
             commaAtTheEndOfSequence=True,
         )
-        plyParser = parserFactory(
+        defaultParser = parserFactory(
             commaAtTheEndOfImport=True,
             commaAtTheEndOfSequence=True,
         )
-
-        if importlib.util.find_spec("lark") is None:
-            with self.assertRaises(error.PySmiError):
-                larkParser()
-            return
 
         mib = """
         TEST-MIB DEFINITIONS ::= BEGIN
@@ -345,15 +288,10 @@ class ParserBackendTestCase(unittest.TestCase):
         END
         """
 
-        self.assertEqual(larkParser().parse(mib), plyParser().parse(mib))
+        self.assertEqual(parser().parse(mib), defaultParser().parse(mib))
 
-    def testLarkBackendRejectsTrailingCommaWithoutOption(self):
-        SmiParser = parserFactory(backend="lark")
-
-        if importlib.util.find_spec("lark") is None:
-            with self.assertRaises(error.PySmiError):
-                SmiParser()
-            return
+    def testParserRejectsTrailingCommaWithoutOption(self):
+        SmiParser = parserFactory()
 
         mib = """
         TEST-MIB DEFINITIONS ::= BEGIN
@@ -371,16 +309,9 @@ class ParserBackendTestCase(unittest.TestCase):
         with self.assertRaises(error.PySmiParserError):
             SmiParser().parse(mib)
 
-    def testLarkBackendSupportsSmiV1KeywordsAndIndexParity(self):
-        larkParser = parserFactory(
-            backend="lark", supportSmiV1Keywords=True, supportIndex=True
-        )
-        plyParser = parserFactory(supportSmiV1Keywords=True, supportIndex=True)
-
-        if importlib.util.find_spec("lark") is None:
-            with self.assertRaises(error.PySmiError):
-                larkParser()
-            return
+    def testParserSupportsSmiV1KeywordsAndIndexParity(self):
+        parser = parserFactory(supportSmiV1Keywords=True, supportIndex=True)
+        defaultParser = parserFactory(supportSmiV1Keywords=True, supportIndex=True)
 
         mib = """
         TEST-MIB DEFINITIONS ::= BEGIN
@@ -396,15 +327,10 @@ class ParserBackendTestCase(unittest.TestCase):
         END
         """
 
-        self.assertEqual(larkParser().parse(mib), plyParser().parse(mib))
+        self.assertEqual(parser().parse(mib), defaultParser().parse(mib))
 
-    def testLarkBackendRejectsSmiV1IndexWithoutOption(self):
-        SmiParser = parserFactory(backend="lark")
-
-        if importlib.util.find_spec("lark") is None:
-            with self.assertRaises(error.PySmiError):
-                SmiParser()
-            return
+    def testParserRejectsSmiV1IndexWithoutOption(self):
+        SmiParser = parserFactory()
 
         mib = """
         TEST-MIB DEFINITIONS ::= BEGIN
@@ -421,13 +347,136 @@ class ParserBackendTestCase(unittest.TestCase):
         with self.assertRaises(error.PySmiParserError):
             SmiParser().parse(mib)
 
-    def testLarkBackendParsesImportsAndValueDeclaration(self):
-        SmiParser = parserFactory(backend="lark")
+    def testParserSupportsUppercaseIdentifierParity(self):
+        parser = parserFactory(uppercaseIdentifier=True)
+        defaultParser = parserFactory(uppercaseIdentifier=True)
 
-        if importlib.util.find_spec("lark") is None:
-            with self.assertRaises(error.PySmiError):
-                SmiParser()
-            return
+        mib = """
+        TEST-MIB DEFINITIONS ::= BEGIN
+        MyEnum ::= INTEGER { ONE(1), TWO(2) }
+        END
+        """
+
+        self.assertEqual(parser().parse(mib), defaultParser().parse(mib))
+
+    def testParserRejectsUppercaseIdentifierWithoutOption(self):
+        SmiParser = parserFactory()
+
+        mib = """
+        TEST-MIB DEFINITIONS ::= BEGIN
+        MyEnum ::= INTEGER { ONE(1) }
+        END
+        """
+
+        with self.assertRaises(error.PySmiParserError):
+            SmiParser().parse(mib)
+
+    def testParserSupportsLowcaseIdentifierParity(self):
+        parser = parserFactory(lowcaseIdentifier=True)
+        defaultParser = parserFactory(lowcaseIdentifier=True)
+
+        mib = """
+        TEST-MIB DEFINITIONS ::= BEGIN
+        TestNotification NOTIFICATION-TYPE
+            STATUS current
+            DESCRIPTION "Notification"
+         ::= { 1 11 }
+        END
+        """
+
+        self.assertEqual(parser().parse(mib), defaultParser().parse(mib))
+
+    def testParserRejectsLowcaseIdentifierWithoutOption(self):
+        SmiParser = parserFactory()
+
+        mib = """
+        TEST-MIB DEFINITIONS ::= BEGIN
+        TestNotification NOTIFICATION-TYPE
+            STATUS current
+            DESCRIPTION "Notification"
+         ::= { 1 11 }
+        END
+        """
+
+        with self.assertRaises(error.PySmiParserError):
+            SmiParser().parse(mib)
+
+    def testParserSupportsBracedEnterpriseTrapParity(self):
+        parser = parserFactory(curlyBracesAroundEnterpriseInTrap=True)
+        defaultParser = parserFactory(curlyBracesAroundEnterpriseInTrap=True)
+
+        mib = """
+        TEST-MIB DEFINITIONS ::= BEGIN
+        trapBase OBJECT IDENTIFIER ::= { 1 6 }
+
+        testTrap TRAP-TYPE
+            ENTERPRISE { trapBase }
+         ::= 1
+        END
+        """
+
+        self.assertEqual(parser().parse(mib), defaultParser().parse(mib))
+
+    def testParserRejectsBracedEnterpriseTrapWithoutOption(self):
+        SmiParser = parserFactory()
+
+        mib = """
+        TEST-MIB DEFINITIONS ::= BEGIN
+        trapBase OBJECT IDENTIFIER ::= { 1 6 }
+
+        testTrap TRAP-TYPE
+            ENTERPRISE { trapBase }
+         ::= 1
+        END
+        """
+
+        with self.assertRaises(error.PySmiParserError):
+            SmiParser().parse(mib)
+
+    def testParserSupportsNoCellsParity(self):
+        parser = parserFactory(noCells=True)
+        defaultParser = parserFactory(noCells=True)
+
+        mib = """
+        TEST-MIB DEFINITIONS ::= BEGIN
+        testCapability AGENT-CAPABILITIES
+            PRODUCT-RELEASE "Test product"
+            STATUS current
+            DESCRIPTION "test capabilities"
+            SUPPORTS TEST-MIB
+            INCLUDES { testGroup }
+            VARIATION testObj
+            CREATION-REQUIRES { }
+            DESCRIPTION "Not supported."
+         ::= { 1 5 }
+        END
+        """
+
+        self.assertEqual(parser().parse(mib), defaultParser().parse(mib))
+
+    def testParserRejectsNoCellsWithoutOption(self):
+        SmiParser = parserFactory()
+
+        mib = """
+        TEST-MIB DEFINITIONS ::= BEGIN
+        testCapability AGENT-CAPABILITIES
+            PRODUCT-RELEASE "Test product"
+            STATUS current
+            DESCRIPTION "test capabilities"
+            SUPPORTS TEST-MIB
+            INCLUDES { testGroup }
+            VARIATION testObj
+            CREATION-REQUIRES { }
+            DESCRIPTION "Not supported."
+         ::= { 1 5 }
+        END
+        """
+
+        with self.assertRaises(error.PySmiParserError):
+            SmiParser().parse(mib)
+
+    def testParserParsesImportsAndValueDeclaration(self):
+        SmiParser = parserFactory()
 
         mib = """
         TEST-MIB { 1 3 6 } DEFINITIONS ::= BEGIN
@@ -463,13 +512,8 @@ class ParserBackendTestCase(unittest.TestCase):
             ],
         )
 
-    def testLarkBackendForbiddenUppercaseIdentifier(self):
-        SmiParser = parserFactory(backend="lark")
-
-        if importlib.util.find_spec("lark") is None:
-            with self.assertRaises(error.PySmiError):
-                SmiParser()
-            return
+    def testParserForbiddenUppercaseIdentifier(self):
+        SmiParser = parserFactory()
 
         mib = """
         TEST-MIB DEFINITIONS ::= BEGIN
@@ -480,13 +524,8 @@ class ParserBackendTestCase(unittest.TestCase):
         with self.assertRaises(error.PySmiLexerError):
             SmiParser().parse(mib)
 
-    def testLarkBackendParsesObjectIdentityClause(self):
-        SmiParser = parserFactory(backend="lark")
-
-        if importlib.util.find_spec("lark") is None:
-            with self.assertRaises(error.PySmiError):
-                SmiParser()
-            return
+    def testParserParsesObjectIdentityClause(self):
+        SmiParser = parserFactory()
 
         mib = """
         TEST-MIB DEFINITIONS ::= BEGIN
@@ -519,13 +558,8 @@ class ParserBackendTestCase(unittest.TestCase):
             ],
         )
 
-    def testLarkBackendParsesObjectIdentityClauseWithReference(self):
-        SmiParser = parserFactory(backend="lark")
-
-        if importlib.util.find_spec("lark") is None:
-            with self.assertRaises(error.PySmiError):
-                SmiParser()
-            return
+    def testParserParsesObjectIdentityClauseWithReference(self):
+        SmiParser = parserFactory()
 
         mib = """
         TEST-MIB DEFINITIONS ::= BEGIN
@@ -559,14 +593,9 @@ class ParserBackendTestCase(unittest.TestCase):
             ],
         )
 
-    def testLarkBackendTypeDeclarationParityWithPly(self):
-        larkParser = parserFactory(backend="lark")
-        plyParser = parserFactory()
-
-        if importlib.util.find_spec("lark") is None:
-            with self.assertRaises(error.PySmiError):
-                larkParser()
-            return
+    def testParserTypeDeclarationParity(self):
+        parser = parserFactory()
+        defaultParser = parserFactory()
 
         mib = """
         TEST-MIB DEFINITIONS ::= BEGIN
@@ -585,15 +614,10 @@ class ParserBackendTestCase(unittest.TestCase):
         END
         """
 
-        self.assertEqual(larkParser().parse(mib), plyParser().parse(mib))
+        self.assertEqual(parser().parse(mib), defaultParser().parse(mib))
 
-    def testLarkBackendTypeDeclarationTcWithoutOptionalParts(self):
-        SmiParser = parserFactory(backend="lark")
-
-        if importlib.util.find_spec("lark") is None:
-            with self.assertRaises(error.PySmiError):
-                SmiParser()
-            return
+    def testParserTypeDeclarationTcWithoutOptionalParts(self):
+        SmiParser = parserFactory()
 
         mib = """
         TEST-MIB DEFINITIONS ::= BEGIN
@@ -634,14 +658,9 @@ class ParserBackendTestCase(unittest.TestCase):
             ],
         )
 
-    def testLarkBackendObjectTypeParityWithPly(self):
-        larkParser = parserFactory(backend="lark")
-        plyParser = parserFactory()
-
-        if importlib.util.find_spec("lark") is None:
-            with self.assertRaises(error.PySmiError):
-                larkParser()
-            return
+    def testParserObjectTypeParity(self):
+        parser = parserFactory()
+        defaultParser = parserFactory()
 
         mib = """
         TEST-MIB DEFINITIONS ::= BEGIN
@@ -697,16 +716,11 @@ class ParserBackendTestCase(unittest.TestCase):
         END
         """
 
-        self.assertEqual(larkParser().parse(mib), plyParser().parse(mib))
+        self.assertEqual(parser().parse(mib), defaultParser().parse(mib))
 
-    def testLarkBackendTableSyntaxParityWithPly(self):
-        larkParser = parserFactory(backend="lark")
-        plyParser = parserFactory()
-
-        if importlib.util.find_spec("lark") is None:
-            with self.assertRaises(error.PySmiError):
-                larkParser()
-            return
+    def testParserTableSyntaxParity(self):
+        parser = parserFactory()
+        defaultParser = parserFactory()
 
         mib = """
         TEST-MIB DEFINITIONS ::= BEGIN
@@ -741,16 +755,11 @@ class ParserBackendTestCase(unittest.TestCase):
         END
         """
 
-        self.assertEqual(larkParser().parse(mib), plyParser().parse(mib))
+        self.assertEqual(parser().parse(mib), defaultParser().parse(mib))
 
-    def testLarkBackendComplianceAndNotificationParityWithPly(self):
-        larkParser = parserFactory(backend="lark")
-        plyParser = parserFactory()
-
-        if importlib.util.find_spec("lark") is None:
-            with self.assertRaises(error.PySmiError):
-                larkParser()
-            return
+    def testParserComplianceAndNotificationParity(self):
+        parser = parserFactory()
+        defaultParser = parserFactory()
 
         mib = """
         TEST-MIB DEFINITIONS ::= BEGIN
@@ -796,16 +805,11 @@ class ParserBackendTestCase(unittest.TestCase):
         END
         """
 
-        self.assertEqual(larkParser().parse(mib), plyParser().parse(mib))
+        self.assertEqual(parser().parse(mib), defaultParser().parse(mib))
 
-    def testLarkBackendTrapAndAgentCapabilitiesParityWithPly(self):
-        larkParser = parserFactory(backend="lark")
-        plyParser = parserFactory()
-
-        if importlib.util.find_spec("lark") is None:
-            with self.assertRaises(error.PySmiError):
-                larkParser()
-            return
+    def testParserTrapAndAgentCapabilitiesParity(self):
+        parser = parserFactory()
+        defaultParser = parserFactory()
 
         mib = """
         TEST-MIB DEFINITIONS ::= BEGIN
@@ -839,4 +843,4 @@ class ParserBackendTestCase(unittest.TestCase):
         END
         """
 
-        self.assertEqual(larkParser().parse(mib), plyParser().parse(mib))
+        self.assertEqual(parser().parse(mib), defaultParser().parse(mib))
