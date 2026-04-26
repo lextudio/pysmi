@@ -1448,6 +1448,7 @@ def parserFactory(**grammarOptions):
     Keyword Args:
         grammarOptions: a list of (bool) typed optional keyword parameters
                         enabling particular set of SMIv2 grammar relaxations.
+        backend: parser backend, either ``ply`` (default) or ``lark``.
 
     Returns:
         Specialized copy of *SmiV2Parser* class.
@@ -1471,6 +1472,16 @@ def parserFactory(**grammarOptions):
     >>> SmiV1Parser = smi.parserFactory(supportSmiV1Keywords=True, supportIndex=True)
 
     """
+    backend = (grammarOptions.pop("backend", "ply") or "ply").lower()
+
+    if backend == "lark":
+        from pysmi.parser.lark_parser import parserFactory as larkParserFactory
+
+        return larkParserFactory(**grammarOptions)
+
+    if backend != "ply":
+        raise error.PySmiError(f"Unknown parser backend: {backend}")
+
     classAttr = {}
 
     for option in grammarOptions:
