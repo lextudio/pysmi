@@ -53,6 +53,7 @@ FORBIDDEN_WORDS = {
 
 _LEGACY_MACRO_RE = re.compile(r"\bMACRO\b(?P<body>.*?)(?P<end>\bEND\b)", re.DOTALL)
 _LEGACY_CHOICE_RE = re.compile(r"\bCHOICE\b(?P<body>.*?)(?P<end>\})", re.DOTALL)
+_LEGACY_EXPORTS_RE = re.compile(r"\bEXPORTS\b(?P<body>[^;]*);", re.DOTALL)
 
 
 def _preserve_newlines(text):
@@ -67,8 +68,12 @@ def _normalize_legacy_lexer_skips(data):
     def _choice_repl(match):
         return "CHOICE" + _preserve_newlines(match.group("body"))
 
+    def _exports_repl(match):
+        return "EXPORTS" + _preserve_newlines(match.group("body")) + ";"
+
     data = _LEGACY_MACRO_RE.sub(_macro_repl, data)
-    return _LEGACY_CHOICE_RE.sub(_choice_repl, data)
+    data = _LEGACY_CHOICE_RE.sub(_choice_repl, data)
+    return _LEGACY_EXPORTS_RE.sub(_exports_repl, data)
 
 
 _SMI_V2_BOOTSTRAP_GRAMMAR = r"""
@@ -121,6 +126,21 @@ object_identity_clause: LOWERCASE_IDENTIFIER "OBJECT-IDENTITY" "STATUS" status "
 type_declaration: type_name "::=" type_declaration_rhs
 
 type_name: UPPERCASE_IDENTIFIER
+         | type_smi
+
+type_smi: type_smi_and_sppi
+        | type_smi_only
+
+type_smi_and_sppi: "IpAddress"      -> type_smi_ipaddress
+                 | "NetworkAddress" -> type_smi_networkaddress
+                 | "TimeTicks"      -> type_smi_timeticks
+                 | "Opaque"         -> type_smi_opaque
+                 | "Integer32"      -> type_smi_integer32
+                 | "Unsigned32"     -> type_smi_unsigned32
+
+type_smi_only: "Counter32" -> type_smi_counter32
+             | "Gauge32"   -> type_smi_gauge32
+             | "Counter64" -> type_smi_counter64
 
 type_declaration_rhs: syntax                                                                  -> type_decl_rhs_syntax
                     | "TEXTUAL-CONVENTION" display_part? "STATUS" status "DESCRIPTION" text refer_part? "SYNTAX" syntax -> type_decl_rhs_tc
@@ -161,6 +181,10 @@ object_syntax: simple_syntax
              | row
              | entry_type
              | application_syntax
+             | type_tag simple_syntax -> object_syntax_tagged
+
+type_tag: "[" "APPLICATION" NUMBER "]" "IMPLICIT"
+        | "[" "UNIVERSAL" NUMBER "]" "IMPLICIT"
 
 conceptual_table: "SEQUENCE" "OF" row
 
@@ -613,6 +637,46 @@ class _BootstrapAstBuilder(Transformer):
     def type_name(self, items):
         return items[0]
 
+    def type_smi(self, items):
+        return items[0]
+
+    def type_smi_and_sppi(self, items):
+        return items[0]
+
+    def type_smi_only(self, items):
+        return items[0]
+
+    def type_smi_ipaddress(self, _items):
+        return "IpAddress"
+
+    def type_smi_networkaddress(self, _items):
+        if not self._enabled("supportSmiV1Keywords"):
+            raise error.PySmiParserError(
+                "NetworkAddress requires supportSmiV1Keywords option", lineno="?"
+            )
+        return "NetworkAddress"
+
+    def type_smi_timeticks(self, _items):
+        return "TimeTicks"
+
+    def type_smi_opaque(self, _items):
+        return "Opaque"
+
+    def type_smi_integer32(self, _items):
+        return "Integer32"
+
+    def type_smi_unsigned32(self, _items):
+        return "Unsigned32"
+
+    def type_smi_counter32(self, _items):
+        return "Counter32"
+
+    def type_smi_gauge32(self, _items):
+        return "Gauge32"
+
+    def type_smi_counter64(self, _items):
+        return "Counter64"
+
     def type_decl_rhs_syntax(self, items):
         return ("typeDeclarationRHS", items[0])
 
@@ -663,6 +727,12 @@ class _BootstrapAstBuilder(Transformer):
 
     def object_syntax(self, items):
         return items[0]
+
+    def object_syntax_tagged(self, items):
+        return items[-1]
+
+    def type_tag(self, _items):
+        return None
 
     def conceptual_table(self, items):
         return ("conceptualTable", items[0])
