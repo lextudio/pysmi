@@ -4,7 +4,7 @@
 # Copyright (c) 2015-2020, Ilya Etingof <etingof@gmail.com>
 # License: https://www.pysnmp.com/pysmi/license.html
 #
-from pysmi import error
+from pysmi import config, error
 from pysmi.parser.base import AbstractParser
 
 try:
@@ -68,7 +68,12 @@ linkage_clause: "IMPORTS" import_stmt+ ";"
 
 import_stmt: import_identifiers "FROM" module_name
 
-import_identifiers: import_identifier ("," import_identifier)*
+import_identifiers: import_identifiers_regular
+                  | import_identifiers_trailing_comma
+
+import_identifiers_regular: import_identifier ("," import_identifier)*
+
+import_identifiers_trailing_comma: import_identifier ("," import_identifier)* ","
 
 import_identifier: fuzzy_lowercase_identifier
 
@@ -78,11 +83,13 @@ declaration: value_declaration
            | object_identity_clause
            | type_declaration
            | object_type_clause
+           | trap_type_clause
            | module_identity_clause
            | notification_type_clause
            | object_group_clause
            | notification_group_clause
            | module_compliance_clause
+           | agent_capabilities_clause
 
 value_declaration: fuzzy_lowercase_identifier "OBJECT" "IDENTIFIER" "::=" "{" object_identifier "}"
 
@@ -122,7 +129,12 @@ row: UPPERCASE_IDENTIFIER
 
 entry_type: "SEQUENCE" "{" sequence_items "}"
 
-sequence_items: sequence_item ("," sequence_item)*
+sequence_items: sequence_items_regular
+              | sequence_items_trailing_comma
+
+sequence_items_regular: sequence_item ("," sequence_item)*
+
+sequence_items_trailing_comma: sequence_item ("," sequence_item)* ","
 
 sequence_item: LOWERCASE_IDENTIFIER sequence_syntax
 
@@ -139,6 +151,7 @@ sequence_simple_syntax: "INTEGER" any_subtype -> sequence_simple_integer
                       | "OBJECT" "IDENTIFIER" any_subtype -> sequence_simple_object_identifier
 
 sequence_application_syntax: "IpAddress" any_subtype -> sequence_app_ipaddress
+                           | "NetworkAddress" any_subtype -> sequence_app_networkaddress
                            | "Counter32" any_subtype -> sequence_app_counter32
                            | "Gauge32" any_subtype -> sequence_app_gauge32
                            | "Unsigned32" any_subtype -> sequence_app_unsigned32
@@ -159,6 +172,7 @@ simple_syntax: "INTEGER"                          -> simple_integer
              | "OBJECT" "IDENTIFIER" any_subtype  -> simple_object_identifier
 
 application_syntax: "IpAddress" any_subtype         -> app_ipaddress
+                  | "NetworkAddress" any_subtype     -> app_networkaddress
                   | "Counter32"                      -> app_counter32
                   | "Counter32" integer_subtype      -> app_counter32_subtype
                   | "Gauge32"                        -> app_gauge32
@@ -190,9 +204,14 @@ value: NUMBER
 
 enum_spec: "{" enum_items "}"
 
-enum_items: enum_item ("," enum_item)*
+enum_items: enum_item enum_items_rest*
 
-enum_item: LOWERCASE_IDENTIFIER "(" enum_number ")"
+enum_items_rest: "," enum_item -> enum_items_rest_comma
+               | enum_item     -> enum_items_rest_space
+               | ","           -> enum_items_rest_trailing
+
+enum_item: LOWERCASE_IDENTIFIER "(" enum_number ")"  -> enum_item_lower
+         | UPPERCASE_IDENTIFIER "(" enum_number ")"  -> enum_item_upper
 
 enum_number: NUMBER
 
@@ -219,6 +238,12 @@ index_type: "IMPLIED" index -> index_type_implied
           | index           -> index_type_plain
 
 index: object_name
+     | type_smiv1
+
+type_smiv1: "INTEGER"                    -> type_smiv1_integer
+          | "OCTET" "STRING"             -> type_smiv1_octet_string
+          | "IpAddress"                  -> type_smiv1_ipaddress
+          | "NetworkAddress"             -> type_smiv1_networkaddress
 
 entry: object_name
 
@@ -241,7 +266,7 @@ bit_names: LOWERCASE_IDENTIFIER ("," LOWERCASE_IDENTIFIER)*
 
 object_name: object_identifier
 
-notification_type_clause: LOWERCASE_IDENTIFIER "NOTIFICATION-TYPE" notification_objects_part? "STATUS" status "DESCRIPTION" text refer_part? "::=" "{" notification_name "}"
+notification_type_clause: fuzzy_lowercase_identifier "NOTIFICATION-TYPE" notification_objects_part? "STATUS" status "DESCRIPTION" text refer_part? "::=" "{" notification_name "}"
 
 notification_objects_part: "OBJECTS" "{" objects "}"
 
@@ -314,6 +339,54 @@ notification: notification_name
 
 notification_name: object_identifier
 
+trap_type_clause: fuzzy_lowercase_identifier "TRAP-TYPE" enterprise_part var_part descr_part refer_part? "::=" NUMBER
+
+enterprise_part: "ENTERPRISE" object_identifier
+               | "ENTERPRISE" "{" object_identifier "}" -> enterprise_braced
+
+var_part: "VARIABLES" "{" var_types "}"
+        | empty
+
+var_types: var_type ("," var_type)*
+
+var_type: object_name
+
+descr_part: "DESCRIPTION" text
+          | empty
+
+agent_capabilities_clause: LOWERCASE_IDENTIFIER "AGENT-CAPABILITIES" "PRODUCT-RELEASE" text "STATUS" status "DESCRIPTION" text refer_part? module_part_capabilities? "::=" "{" object_identifier "}"
+
+module_part_capabilities: modules_capabilities
+                        | empty
+
+modules_capabilities: module_capabilities+
+
+module_capabilities: "SUPPORTS" module_name_capabilities "INCLUDES" "{" capabilities_groups "}" variation_part
+
+capabilities_groups: capabilities_group ("," capabilities_group)*
+
+capabilities_group: object_identifier
+
+module_name_capabilities: UPPERCASE_IDENTIFIER [object_identifier]
+
+variation_part: variations
+              | empty
+
+variations: variation+
+
+variation: "VARIATION" object_name syntax_part? write_syntax_part? variation_access_part? creation_part? defval_part? "DESCRIPTION" text
+
+variation_access_part: "ACCESS" variation_access
+
+variation_access: LOWERCASE_IDENTIFIER
+
+creation_part: "CREATION-REQUIRES" "{" cells "}"
+             | "CREATION-REQUIRES" "{" "}" -> creation_no_cells
+
+cells: cell ("," cell)*
+
+cell: object_name
+
 object_identifier: subidentifiers
 
 subidentifiers: subidentifier+
@@ -343,9 +416,18 @@ COMMENT: /--[^\r\n]*/
 
 
 class _BootstrapAstBuilder(Transformer):
+    def __init__(self, grammarOptions=None):
+        super().__init__()
+        self._grammarOptions = grammarOptions or {}
+
+    def _enabled(self, option):
+        return bool(self._grammarOptions.get(option))
+
     def UPPERCASE_IDENTIFIER(self, token):
         value = str(token)
-        if value in FORBIDDEN_WORDS:
+        if value in FORBIDDEN_WORDS and not (
+            value == "MAX" and self._enabled("supportSmiV1Keywords")
+        ):
             raise error.PySmiLexerError(f"{value} is forbidden", lineno=token.line)
         if value.endswith("-"):
             raise error.PySmiLexerError(
@@ -365,6 +447,36 @@ class _BootstrapAstBuilder(Transformer):
         value = int(token)
         if abs(value) > UNSIGNED64_MAX:
             raise error.PySmiLexerError(f"Number {value} is too big", lineno=token.line)
+        return value
+
+    def BIN_STRING(self, token):
+        value = str(token)
+        bits = value[1:-2]
+
+        while bits and bits[0] == "0" and len(bits) % 8:
+            bits = bits[1:]
+
+            if config.STRICT_MODE and len(bits) % 8:
+                raise error.PySmiLexerError(
+                    f"Number of 0s and 1s have to divide by 8 in binary string {value}",
+                    lineno=token.line,
+                )
+
+        return value
+
+    def HEX_STRING(self, token):
+        value = str(token)
+        digits = value[1:-2]
+
+        while digits and digits[0] == "0" and len(digits) % 2:
+            digits = digits[1:]
+
+            if config.STRICT_MODE and len(digits) % 2:
+                raise error.PySmiLexerError(
+                    f"Number of symbols have to be even in hex string {value}",
+                    lineno=token.line,
+                )
+
         return value
 
     def start(self, items):
@@ -392,6 +504,17 @@ class _BootstrapAstBuilder(Transformer):
         return (items[1], items[0])
 
     def import_identifiers(self, items):
+        return items[0]
+
+    def import_identifiers_regular(self, items):
+        return list(items)
+
+    def import_identifiers_trailing_comma(self, items):
+        if not self._enabled("commaAtTheEndOfImport"):
+            raise error.PySmiParserError(
+                "Trailing comma in IMPORTS requires commaAtTheEndOfImport option",
+                lineno="?",
+            )
         return list(items)
 
     def import_identifier(self, items):
@@ -487,6 +610,17 @@ class _BootstrapAstBuilder(Transformer):
         return ("SEQUENCE", items[0])
 
     def sequence_items(self, items):
+        return items[0]
+
+    def sequence_items_regular(self, items):
+        return list(items)
+
+    def sequence_items_trailing_comma(self, items):
+        if not self._enabled("commaAtTheEndOfSequence"):
+            raise error.PySmiParserError(
+                "Trailing comma in SEQUENCE requires commaAtTheEndOfSequence option",
+                lineno="?",
+            )
         return list(items)
 
     def sequence_item(self, items):
@@ -518,6 +652,13 @@ class _BootstrapAstBuilder(Transformer):
 
     def sequence_app_ipaddress(self, _items):
         return "IpAddress"
+
+    def sequence_app_networkaddress(self, _items):
+        if not self._enabled("supportSmiV1Keywords"):
+            raise error.PySmiParserError(
+                "NetworkAddress requires supportSmiV1Keywords option", lineno="?"
+            )
+        return "NetworkAddress"
 
     def sequence_app_counter32(self, _items):
         return "Counter32"
@@ -572,6 +713,13 @@ class _BootstrapAstBuilder(Transformer):
 
     def app_ipaddress(self, items):
         return ("ApplicationSyntax", "IpAddress", items[0])
+
+    def app_networkaddress(self, items):
+        if not self._enabled("supportSmiV1Keywords"):
+            raise error.PySmiParserError(
+                "NetworkAddress requires supportSmiV1Keywords option", lineno="?"
+            )
+        return ("ApplicationSyntax", "NetworkAddress", items[0])
 
     def app_counter32(self, _items):
         return ("ApplicationSyntax", "Counter32")
@@ -635,9 +783,42 @@ class _BootstrapAstBuilder(Transformer):
         return ("enumSpec", items[0])
 
     def enum_items(self, items):
-        return list(items)
+        values = [items[0]]
+        used_relaxed = False
 
-    def enum_item(self, items):
+        for mode, value in items[1:]:
+            if mode == "comma":
+                values.append(value)
+            elif mode == "space":
+                used_relaxed = True
+                values.append(value)
+            elif mode == "trailing":
+                used_relaxed = True
+
+        if used_relaxed and not self._enabled("mixOfCommasAndSpaces"):
+            raise error.PySmiParserError(
+                "Mixed comma/space enum items require mixOfCommasAndSpaces option",
+                lineno="?",
+            )
+        return values
+
+    def enum_items_rest_comma(self, items):
+        return ("comma", items[0])
+
+    def enum_items_rest_space(self, items):
+        return ("space", items[0])
+
+    def enum_items_rest_trailing(self, _items):
+        return ("trailing", None)
+
+    def enum_item_lower(self, items):
+        return (items[0], items[1])
+
+    def enum_item_upper(self, items):
+        if not self._enabled("uppercaseIdentifier"):
+            raise error.PySmiParserError(
+                "Uppercase enum items require uppercaseIdentifier option", lineno="?"
+            )
         return (items[0], items[1])
 
     def enum_number(self, items):
@@ -721,7 +902,30 @@ class _BootstrapAstBuilder(Transformer):
         return (1, items[0])
 
     def index(self, items):
-        return items[0][1][0]
+        item = items[0]
+        if isinstance(item, tuple) and item and item[0] == "typeSMIv1":
+            if not self._enabled("supportIndex"):
+                raise error.PySmiParserError(
+                    "SMIv1 index types require supportIndex option", lineno="?"
+                )
+            return item[1]
+        return item[1][0]
+
+    def type_smiv1_integer(self, _items):
+        return ("typeSMIv1", "INTEGER")
+
+    def type_smiv1_octet_string(self, _items):
+        return ("typeSMIv1", "OCTET STRING")
+
+    def type_smiv1_ipaddress(self, _items):
+        return ("typeSMIv1", "IpAddress")
+
+    def type_smiv1_networkaddress(self, _items):
+        if not self._enabled("supportSmiV1Keywords"):
+            raise error.PySmiParserError(
+                "NetworkAddress requires supportSmiV1Keywords option", lineno="?"
+            )
+        return ("typeSMIv1", "NetworkAddress")
 
     def entry(self, items):
         return items[0][1][0]
@@ -757,6 +961,11 @@ class _BootstrapAstBuilder(Transformer):
 
     def notification_type_clause(self, items):
         identity = items[0]
+        if identity[:1].isupper() and not self._enabled("lowcaseIdentifier"):
+            raise error.PySmiParserError(
+                "Uppercase notification identifiers require lowcaseIdentifier option",
+                lineno="?",
+            )
         idx = 1
 
         if (
@@ -999,6 +1208,132 @@ class _BootstrapAstBuilder(Transformer):
     def notification_name(self, items):
         return items[0]
 
+    def trap_type_clause(self, items):
+        identity = items[0]
+        enterprise = items[1]
+        var_part = items[2]
+        descr_part = items[3]
+
+        if len(items) == 5:
+            refer_part = None
+            number = items[4]
+        else:
+            refer_part = items[4]
+            number = items[5]
+
+        return (
+            "trapTypeClause",
+            identity,
+            enterprise,
+            var_part,
+            descr_part,
+            refer_part,
+            number,
+        )
+
+    def enterprise_part(self, items):
+        return items[-1]
+
+    def enterprise_braced(self, items):
+        if not self._enabled("curlyBracesAroundEnterpriseInTrap"):
+            raise error.PySmiParserError(
+                "Braced ENTERPRISE requires curlyBracesAroundEnterpriseInTrap option",
+                lineno="?",
+            )
+        return items[0]
+
+    def var_part(self, items):
+        return items[0] if items else []
+
+    def var_types(self, items):
+        return ("VarTypes", list(items))
+
+    def var_type(self, items):
+        return items[0][1][0]
+
+    def descr_part(self, items):
+        if items:
+            return ("DESCRIPTION", items[0])
+        return None
+
+    def agent_capabilities_clause(self, items):
+        identity = items[0]
+        product_release = ("PRODUCT-RELEASE", items[1])
+        status = items[2]
+        description = ("DESCRIPTION", items[3])
+
+        idx = 4
+        if (
+            idx < len(items)
+            and isinstance(items[idx], tuple)
+            and items[idx][0] == "REFERENCE"
+        ):
+            reference = items[idx]
+            idx += 1
+        else:
+            reference = None
+
+        oid = items[-1]
+
+        return (
+            "agentCapabilitiesClause",
+            identity,
+            product_release,
+            status,
+            description,
+            reference,
+            oid,
+        )
+
+    def module_part_capabilities(self, _items):
+        return None
+
+    def modules_capabilities(self, _items):
+        return None
+
+    def module_capabilities(self, _items):
+        return None
+
+    def capabilities_groups(self, _items):
+        return None
+
+    def capabilities_group(self, _items):
+        return None
+
+    def module_name_capabilities(self, _items):
+        return None
+
+    def variation_part(self, _items):
+        return None
+
+    def variations(self, _items):
+        return None
+
+    def variation(self, _items):
+        return None
+
+    def variation_access_part(self, _items):
+        return None
+
+    def variation_access(self, _items):
+        return None
+
+    def creation_part(self, _items):
+        return None
+
+    def creation_no_cells(self, _items):
+        if not self._enabled("noCells"):
+            raise error.PySmiParserError(
+                "Empty CREATION-REQUIRES requires noCells option", lineno="?"
+            )
+        return None
+
+    def cells(self, _items):
+        return None
+
+    def cell(self, _items):
+        return None
+
     def object_identifier(self, items):
         return ("objectIdentifier", items[0])
 
@@ -1032,6 +1367,17 @@ class _BootstrapAstBuilder(Transformer):
 
 class SmiV2ParserLark(AbstractParser):
     _grammarOptions = {}
+    _implementedOptions = {
+        "supportSmiV1Keywords",
+        "supportIndex",
+        "commaAtTheEndOfImport",
+        "commaAtTheEndOfSequence",
+        "mixOfCommasAndSpaces",
+        "uppercaseIdentifier",
+        "lowcaseIdentifier",
+        "curlyBracesAroundEnterpriseInTrap",
+        "noCells",
+    }
 
     def __init__(self, startSym="mibFile", tempdir=""):
         del tempdir
@@ -1046,7 +1392,11 @@ class SmiV2ParserLark(AbstractParser):
                 f"Lark backend currently supports startSym='mibFile', got {startSym!r}"
             )
 
-        unsupported = sorted(k for k, v in self._grammarOptions.items() if v)
+        unsupported = sorted(
+            k
+            for k, v in self._grammarOptions.items()
+            if v and k not in self._implementedOptions
+        )
         if unsupported:
             raise error.PySmiError(
                 f"Lark backend does not yet support parser options: {', '.join(unsupported)}"
@@ -1058,7 +1408,7 @@ class SmiV2ParserLark(AbstractParser):
             start="start",
             lexer="contextual",
         )
-        self.transformer = _BootstrapAstBuilder()
+        self.transformer = _BootstrapAstBuilder(self._grammarOptions)
 
     def reset(self):
         return None

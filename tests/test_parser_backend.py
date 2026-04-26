@@ -1,7 +1,7 @@
 import importlib.util
 import unittest
 
-from pysmi import error
+from pysmi import config, error
 from pysmi.parser.smi import parserFactory
 
 
@@ -26,16 +26,201 @@ class ParserBackendTestCase(unittest.TestCase):
         ast = SmiParser().parse(self.SIMPLE_MIB)
         self.assertEqual(ast, [("TEST-MIB", None, {}, None)])
 
-    def testLarkBackendRejectsRelaxationOptionsForNow(self):
-        SmiParser = parserFactory(backend="lark", supportSmiV1Keywords=True)
+    def testLarkBackendSupportsMixOfCommasAndSpacesParity(self):
+        larkParser = parserFactory(backend="lark", mixOfCommasAndSpaces=True)
+        plyParser = parserFactory(mixOfCommasAndSpaces=True)
+
+        if importlib.util.find_spec("lark") is None:
+            with self.assertRaises(error.PySmiError):
+                larkParser()
+            return
+
+        mib = """
+        TEST-MIB DEFINITIONS ::= BEGIN
+        MyEnum ::= INTEGER { one(1), two(2) three(3), }
+        END
+        """
+
+        self.assertEqual(larkParser().parse(mib), plyParser().parse(mib))
+
+    def testLarkBackendRejectsEnumCommaSpaceMixWithoutOption(self):
+        SmiParser = parserFactory(backend="lark")
 
         if importlib.util.find_spec("lark") is None:
             with self.assertRaises(error.PySmiError):
                 SmiParser()
             return
 
-        with self.assertRaises(error.PySmiError):
-            SmiParser()
+        mib = """
+        TEST-MIB DEFINITIONS ::= BEGIN
+        MyEnum ::= INTEGER { one(1) two(2) }
+        END
+        """
+
+        with self.assertRaises(error.PySmiParserError):
+            SmiParser().parse(mib)
+
+    def testLarkBackendStrictModeInvalidBinaryStringParity(self):
+        larkParser = parserFactory(backend="lark")
+        plyParser = parserFactory()
+
+        if importlib.util.find_spec("lark") is None:
+            with self.assertRaises(error.PySmiError):
+                larkParser()
+            return
+
+        mib = """
+        TEST-MIB DEFINITIONS ::= BEGIN
+        testObject OBJECT-TYPE
+            SYNTAX Integer32
+            MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION "bits"
+            DEFVAL { '011'B }
+         ::= { 1 1 }
+        END
+        """
+
+        strict_mode = config.STRICT_MODE
+        self.addCleanup(setattr, config, "STRICT_MODE", strict_mode)
+        config.STRICT_MODE = True
+
+        with self.assertRaises(error.PySmiLexerError):
+            larkParser().parse(mib)
+        with self.assertRaises(error.PySmiLexerError):
+            plyParser().parse(mib)
+
+    def testLarkBackendStrictModeHexStringParity(self):
+        larkParser = parserFactory(backend="lark")
+        plyParser = parserFactory()
+
+        if importlib.util.find_spec("lark") is None:
+            with self.assertRaises(error.PySmiError):
+                larkParser()
+            return
+
+        mib = """
+        TEST-MIB DEFINITIONS ::= BEGIN
+        testObject OBJECT-TYPE
+            SYNTAX Integer32
+            MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION "hex"
+            DEFVAL { '0ABC'H }
+         ::= { 1 1 }
+        END
+        """
+
+        strict_mode = config.STRICT_MODE
+        self.addCleanup(setattr, config, "STRICT_MODE", strict_mode)
+        config.STRICT_MODE = True
+
+        self.assertEqual(larkParser().parse(mib), plyParser().parse(mib))
+
+    def testLarkBackendSupportsTrailingCommaRelaxationsParity(self):
+        larkParser = parserFactory(
+            backend="lark",
+            commaAtTheEndOfImport=True,
+            commaAtTheEndOfSequence=True,
+        )
+        plyParser = parserFactory(
+            commaAtTheEndOfImport=True,
+            commaAtTheEndOfSequence=True,
+        )
+
+        if importlib.util.find_spec("lark") is None:
+            with self.assertRaises(error.PySmiError):
+                larkParser()
+            return
+
+        mib = """
+        TEST-MIB DEFINITIONS ::= BEGIN
+        IMPORTS
+          OBJECT-TYPE,
+            FROM SNMPv2-SMI;
+
+        TestEntry ::= SEQUENCE {
+          testIndex INTEGER,
+        }
+
+        END
+        """
+
+        self.assertEqual(larkParser().parse(mib), plyParser().parse(mib))
+
+    def testLarkBackendRejectsTrailingCommaWithoutOption(self):
+        SmiParser = parserFactory(backend="lark")
+
+        if importlib.util.find_spec("lark") is None:
+            with self.assertRaises(error.PySmiError):
+                SmiParser()
+            return
+
+        mib = """
+        TEST-MIB DEFINITIONS ::= BEGIN
+        IMPORTS
+          OBJECT-TYPE,
+            FROM SNMPv2-SMI;
+
+        TestEntry ::= SEQUENCE {
+          testIndex INTEGER,
+        }
+
+        END
+        """
+
+        with self.assertRaises(error.PySmiParserError):
+            SmiParser().parse(mib)
+
+    def testLarkBackendSupportsSmiV1KeywordsAndIndexParity(self):
+        larkParser = parserFactory(
+            backend="lark", supportSmiV1Keywords=True, supportIndex=True
+        )
+        plyParser = parserFactory(supportSmiV1Keywords=True, supportIndex=True)
+
+        if importlib.util.find_spec("lark") is None:
+            with self.assertRaises(error.PySmiError):
+                larkParser()
+            return
+
+        mib = """
+        TEST-MIB DEFINITIONS ::= BEGIN
+        testTable OBJECT-TYPE
+            SYNTAX Integer32
+            MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION "table"
+            INDEX { INTEGER, OCTET STRING, IpAddress, NetworkAddress }
+         ::= { 1 1 }
+
+        MyNet ::= NetworkAddress
+        END
+        """
+
+        self.assertEqual(larkParser().parse(mib), plyParser().parse(mib))
+
+    def testLarkBackendRejectsSmiV1IndexWithoutOption(self):
+        SmiParser = parserFactory(backend="lark")
+
+        if importlib.util.find_spec("lark") is None:
+            with self.assertRaises(error.PySmiError):
+                SmiParser()
+            return
+
+        mib = """
+        TEST-MIB DEFINITIONS ::= BEGIN
+        testTable OBJECT-TYPE
+            SYNTAX Integer32
+            MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION "table"
+            INDEX { INTEGER }
+         ::= { 1 1 }
+        END
+        """
+
+        with self.assertRaises(error.PySmiParserError):
+            SmiParser().parse(mib)
 
     def testLarkBackendParsesImportsAndValueDeclaration(self):
         SmiParser = parserFactory(backend="lark")
@@ -409,6 +594,49 @@ class ParserBackendTestCase(unittest.TestCase):
           GROUP testNotificationGroup
           DESCRIPTION "optional"
          ::= { 1 14 }
+        END
+        """
+
+        self.assertEqual(larkParser().parse(mib), plyParser().parse(mib))
+
+    def testLarkBackendTrapAndAgentCapabilitiesParityWithPly(self):
+        larkParser = parserFactory(backend="lark")
+        plyParser = parserFactory()
+
+        if importlib.util.find_spec("lark") is None:
+            with self.assertRaises(error.PySmiError):
+                larkParser()
+            return
+
+        mib = """
+        TEST-MIB DEFINITIONS ::= BEGIN
+        testId OBJECT IDENTIFIER ::= { 1 3 }
+
+        testObject OBJECT-TYPE
+            SYNTAX Integer32
+            MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION "Test object"
+         ::= { 1 4 }
+
+        testTrap TRAP-TYPE
+            ENTERPRISE testId
+            VARIABLES { testObject }
+            DESCRIPTION "Test trap"
+            REFERENCE "Trap ref"
+         ::= 1
+
+        testCapability AGENT-CAPABILITIES
+            PRODUCT-RELEASE "Test product"
+            STATUS current
+            DESCRIPTION "test capabilities"
+            REFERENCE "test reference"
+            SUPPORTS TEST-MIB
+            INCLUDES { testSystemGroup }
+            VARIATION testSysLevelType
+            ACCESS read-only
+            DESCRIPTION "Not supported."
+         ::= { 1 5 }
         END
         """
 
