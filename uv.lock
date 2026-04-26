@@ -682,7 +682,7 @@ wheels = [
 
 [[package]]
 name = "pysmi"
-version = "1.6.3"
+version = "2.0.0"
 source = { editable = "." }
 dependencies = [
     { name = "jinja2" },
