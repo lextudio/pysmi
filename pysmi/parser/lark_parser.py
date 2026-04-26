@@ -4,6 +4,8 @@
 # Copyright (c) 2015-2020, Ilya Etingof <etingof@gmail.com>
 # License: https://www.pysnmp.com/pysmi/license.html
 #
+import re
+
 from pysmi import config, error
 from pysmi.parser.base import AbstractParser
 
@@ -49,6 +51,26 @@ FORBIDDEN_WORDS = {
 }
 
 
+_LEGACY_MACRO_RE = re.compile(r"\bMACRO\b(?P<body>.*?)(?P<end>\bEND\b)", re.DOTALL)
+_LEGACY_CHOICE_RE = re.compile(r"\bCHOICE\b(?P<body>.*?)(?P<end>\})", re.DOTALL)
+
+
+def _preserve_newlines(text):
+    return "".join(ch for ch in text if ch in "\r\n")
+
+
+def _normalize_legacy_lexer_skips(data):
+    # Legacy PLY lexer skips from MACRO..END and CHOICE..} before parsing.
+    def _macro_repl(match):
+        return "MACRO" + _preserve_newlines(match.group("body")) + "END"
+
+    def _choice_repl(match):
+        return "CHOICE" + _preserve_newlines(match.group("body"))
+
+    data = _LEGACY_MACRO_RE.sub(_macro_repl, data)
+    return _LEGACY_CHOICE_RE.sub(_choice_repl, data)
+
+
 _SMI_V2_BOOTSTRAP_GRAMMAR = r"""
 start: mib_file
 
@@ -90,6 +112,7 @@ declaration: value_declaration
            | notification_group_clause
            | module_compliance_clause
            | agent_capabilities_clause
+           | macro_clause
 
 value_declaration: fuzzy_lowercase_identifier "OBJECT" "IDENTIFIER" "::=" "{" object_identifier "}"
 
@@ -101,6 +124,22 @@ type_name: UPPERCASE_IDENTIFIER
 
 type_declaration_rhs: syntax                                                                  -> type_decl_rhs_syntax
                     | "TEXTUAL-CONVENTION" display_part? "STATUS" status "DESCRIPTION" text refer_part? "SYNTAX" syntax -> type_decl_rhs_tc
+                    | choice_clause                                                           -> type_decl_rhs_choice
+
+choice_clause: "CHOICE"
+
+macro_clause: macro_name "MACRO" "END"
+
+macro_name: "MODULE-IDENTITY"
+          | "OBJECT-TYPE"
+          | "TRAP-TYPE"
+          | "NOTIFICATION-TYPE"
+          | "OBJECT-IDENTITY"
+          | "TEXTUAL-CONVENTION"
+          | "OBJECT-GROUP"
+          | "NOTIFICATION-GROUP"
+          | "MODULE-COMPLIANCE"
+          | "AGENT-CAPABILITIES"
 
 display_part: "DISPLAY-HINT" text
 
@@ -152,7 +191,9 @@ sequence_simple_syntax: "INTEGER" any_subtype -> sequence_simple_integer
 
 sequence_application_syntax: "IpAddress" any_subtype -> sequence_app_ipaddress
                            | "NetworkAddress" any_subtype -> sequence_app_networkaddress
+                           | "Counter" any_subtype -> sequence_app_counter_alias
                            | "Counter32" any_subtype -> sequence_app_counter32
+                           | "Gauge" any_subtype -> sequence_app_gauge_alias
                            | "Gauge32" any_subtype -> sequence_app_gauge32
                            | "Unsigned32" any_subtype -> sequence_app_unsigned32
                            | "TimeTicks" any_subtype -> sequence_app_timeticks
@@ -173,8 +214,12 @@ simple_syntax: "INTEGER"                          -> simple_integer
 
 application_syntax: "IpAddress" any_subtype         -> app_ipaddress
                   | "NetworkAddress" any_subtype     -> app_networkaddress
+                  | "Counter"                        -> app_counter_alias
+                  | "Counter" integer_subtype        -> app_counter_alias_subtype
                   | "Counter32"                      -> app_counter32
                   | "Counter32" integer_subtype      -> app_counter32_subtype
+                  | "Gauge"                          -> app_gauge_alias
+                  | "Gauge" integer_subtype          -> app_gauge_alias_subtype
                   | "Gauge32"                        -> app_gauge32
                   | "Gauge32" integer_subtype        -> app_gauge32_subtype
                   | "Unsigned32"                     -> app_unsigned32
@@ -201,6 +246,8 @@ ranges: range ("|" range)*
 range: value [".." value]
 
 value: NUMBER
+     | HEX_STRING
+     | BIN_STRING
 
 enum_spec: "{" enum_items "}"
 
@@ -259,6 +306,14 @@ valueof_simple_syntax: NUMBER
                      | BIN_STRING
                      | LOWERCASE_IDENTIFIER
                      | QUOTED_STRING
+                     | "{" object_identifier_defval "}" -> valueof_simple_oid_defval
+
+object_identifier_defval: subidentifiers_defval
+
+subidentifiers_defval: subidentifier_defval+
+
+subidentifier_defval: NUMBER
+                    | LOWERCASE_IDENTIFIER "(" NUMBER ")" -> subidentifier_defval_named
 
 bits_value: bit_names?
 
@@ -582,6 +637,15 @@ class _BootstrapAstBuilder(Transformer):
 
         return ("typeDeclarationRHS", display, status, description, refer, syntax)
 
+    def type_decl_rhs_choice(self, _items):
+        return None
+
+    def choice_clause(self, _items):
+        return "CHOICE"
+
+    def macro_clause(self, _items):
+        return None
+
     def display_part(self, items):
         return ("DISPLAY-HINT", items[0])
 
@@ -660,8 +724,14 @@ class _BootstrapAstBuilder(Transformer):
             )
         return "NetworkAddress"
 
+    def sequence_app_counter_alias(self, _items):
+        return "Counter"
+
     def sequence_app_counter32(self, _items):
         return "Counter32"
+
+    def sequence_app_gauge_alias(self, _items):
+        return "Gauge"
 
     def sequence_app_gauge32(self, _items):
         return "Gauge32"
@@ -721,11 +791,23 @@ class _BootstrapAstBuilder(Transformer):
             )
         return ("ApplicationSyntax", "NetworkAddress", items[0])
 
+    def app_counter_alias(self, _items):
+        return ("ApplicationSyntax", "Counter")
+
+    def app_counter_alias_subtype(self, items):
+        return ("ApplicationSyntax", "Counter", items[0])
+
     def app_counter32(self, _items):
         return ("ApplicationSyntax", "Counter32")
 
     def app_counter32_subtype(self, items):
         return ("ApplicationSyntax", "Counter32", items[0])
+
+    def app_gauge_alias(self, _items):
+        return ("ApplicationSyntax", "Gauge")
+
+    def app_gauge_alias_subtype(self, items):
+        return ("ApplicationSyntax", "Gauge", items[0])
 
     def app_gauge32(self, _items):
         return ("ApplicationSyntax", "Gauge32")
@@ -947,6 +1029,23 @@ class _BootstrapAstBuilder(Transformer):
     def valueof_simple_syntax(self, items):
         value = items[0]
         return value if isinstance(value, int) else str(value)
+
+    def valueof_simple_oid_defval(self, _items):
+        # Match legacy PLY behavior: accept invalid nested OID notation
+        # in DEFVAL without constructing a concrete value.
+        return None
+
+    def object_identifier_defval(self, items):
+        return ("objectIdentifier_defval", items[0])
+
+    def subidentifiers_defval(self, items):
+        return ("subidentifiers_defval", list(items))
+
+    def subidentifier_defval(self, items):
+        return ("subidentifier_defval", items[0])
+
+    def subidentifier_defval_named(self, items):
+        return ("subidentifier_defval", items[0], items[1])
 
     def bits_value(self, items):
         if items:
@@ -1243,7 +1342,9 @@ class _BootstrapAstBuilder(Transformer):
         return items[0]
 
     def var_part(self, items):
-        return items[0] if items else []
+        if items and items[0] is not None:
+            return items[0]
+        return []
 
     def var_types(self, items):
         return ("VarTypes", list(items))
@@ -1252,7 +1353,7 @@ class _BootstrapAstBuilder(Transformer):
         return items[0][1][0]
 
     def descr_part(self, items):
-        if items:
+        if items and items[0] is not None:
             return ("DESCRIPTION", items[0])
         return None
 
@@ -1415,6 +1516,7 @@ class SmiV2ParserLark(AbstractParser):
 
     def parse(self, data, **kwargs):
         del kwargs
+        data = _normalize_legacy_lexer_skips(data)
         try:
             tree = self.parser.parse(data)
         except UnexpectedInput as exc:

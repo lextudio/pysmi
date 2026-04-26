@@ -117,6 +117,124 @@ class ParserBackendTestCase(unittest.TestCase):
 
         self.assertEqual(larkParser().parse(mib), plyParser().parse(mib))
 
+    def testLarkBackendMacroClauseParityWithPly(self):
+        larkParser = parserFactory(backend="lark")
+        plyParser = parserFactory()
+
+        if importlib.util.find_spec("lark") is None:
+            with self.assertRaises(error.PySmiError):
+                larkParser()
+            return
+
+        mib = """
+        TEST-MIB DEFINITIONS ::= BEGIN
+        OBJECT-TYPE MACRO ::= BEGIN
+            TYPE NOTATION ::= "SYNTAX" Syntax
+            VALUE NOTATION ::= value (VALUE OBJECT IDENTIFIER)
+        END
+        END
+        """
+
+        self.assertEqual(larkParser().parse(mib), plyParser().parse(mib))
+
+    def testLarkBackendChoiceClauseParityWithPly(self):
+        larkParser = parserFactory(backend="lark")
+        plyParser = parserFactory()
+
+        if importlib.util.find_spec("lark") is None:
+            with self.assertRaises(error.PySmiError):
+                larkParser()
+            return
+
+        mib = """
+        TEST-MIB DEFINITIONS ::= BEGIN
+        MyChoice ::= CHOICE {
+            one INTEGER
+        }
+        END
+        """
+
+        self.assertEqual(larkParser().parse(mib), plyParser().parse(mib))
+
+    def testLarkBackendSubtypeHexBinaryRangeParityWithPly(self):
+        larkParser = parserFactory(backend="lark")
+        plyParser = parserFactory()
+
+        if importlib.util.find_spec("lark") is None:
+            with self.assertRaises(error.PySmiError):
+                larkParser()
+            return
+
+        mib = """
+        TEST-MIB DEFINITIONS ::= BEGIN
+        testObjectType OBJECT-TYPE
+            SYNTAX Integer32 ('02'H..'03'H | '00000001'B)
+            MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION "Test object"
+         ::= { 1 3 }
+        END
+        """
+
+        self.assertEqual(larkParser().parse(mib), plyParser().parse(mib))
+
+    def testLarkBackendInvalidNestedOidDefvalParityWithPly(self):
+        larkParser = parserFactory(backend="lark")
+        plyParser = parserFactory()
+
+        if importlib.util.find_spec("lark") is None:
+            with self.assertRaises(error.PySmiError):
+                larkParser()
+            return
+
+        mib = """
+        TEST-MIB DEFINITIONS ::= BEGIN
+        testObjectType OBJECT-TYPE
+            SYNTAX OBJECT IDENTIFIER
+            MAX-ACCESS read-only
+            STATUS current
+            DESCRIPTION "Test object"
+            DEFVAL { { 0 0 } }
+         ::= { 1 3 }
+        END
+        """
+
+        self.assertEqual(larkParser().parse(mib), plyParser().parse(mib))
+
+    def testLarkBackendGaugeAliasAndTrapOptionalPartsParity(self):
+        larkParser = parserFactory(backend="lark")
+        plyParser = parserFactory()
+
+        if importlib.util.find_spec("lark") is None:
+            with self.assertRaises(error.PySmiError):
+                larkParser()
+            return
+
+        mib = """
+        TEST-MIB DEFINITIONS ::= BEGIN
+        IMPORTS
+          Gauge
+            FROM RFC1155-SMI
+          TRAP-TYPE
+            FROM RFC-1215;
+
+        testObjectType OBJECT-TYPE
+            SYNTAX Gauge
+            ACCESS read-only
+            STATUS mandatory
+            DESCRIPTION "Test object"
+         ::= { 1 3 }
+
+        trapBase OBJECT IDENTIFIER ::= { 1 6 }
+
+        testTrap TRAP-TYPE
+            ENTERPRISE trapBase
+         ::= 2
+        END
+        """
+
+        self.assertEqual(larkParser().parse(mib), plyParser().parse(mib))
+
     def testLarkBackendSupportsTrailingCommaRelaxationsParity(self):
         larkParser = parserFactory(
             backend="lark",
